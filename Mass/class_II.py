@@ -13,39 +13,41 @@ class MassMethods:
         self.load_factor_ultimate = self.load_factor * self.load_factor
 
         # Class I attributes.
-        self.mass_empty, self.mass_takeoff = class_I()
+        # self.mass_empty, self.mass_takeoff = class_I()
+
+        self.mass_empty, self.mass_takeoff = 1029, 1633
 
         # Wing attributes.
-        self.wing_aspect_ratio = 1
-        self.wing_area = 1
-        self.wing_span = 1
-        self.wing_sweep_half = 1
-        self.wing_sweep_quarter = 1
-        self.wing_taper = 1
-        self.wing_t_to_c = 1
-        self.wing_t_max = 1
+        self.wing_aspect_ratio = 10.12
+        self.wing_area = 13.46
+        self.wing_span = 11.67
+        self.wing_sweep_half = 0
+        self.wing_sweep_quarter = 0
+        self.wing_taper = 0.5
+        self.wing_t_to_c = 0.15
+        self.wing_t_max = 0.24
 
         # Horizontal tail attributes.
-        self.h_tail_aspect_ratio = 1
-        self.h_tail_area = 1
-        self.h_tail_span = 1
-        self.h_tail_sweep_quarter = 1
-        self.h_tail_taper = 1
-        self.h_tail_t_max = 1
+        self.h_tail_aspect_ratio = 5.56
+        self.h_tail_area = 2.80
+        self.h_tail_span = 4.00
+        self.h_tail_sweep_quarter = 0
+        self.h_tail_taper = 0.65
+        self.h_tail_t_max = 0.12
 
         # Vertical tail attributes.
-        self.v_tail_aspect_ratio = 1
-        self.v_tail_area = 1
-        self.v_tail_span = 1
-        self.v_tail_sweep_quarter = 1
-        self.v_tail_taper = 1
-        self.v_tail_t_max = 1
+        self.v_tail_aspect_ratio = 2.78
+        self.v_tail_area = 1.40
+        self.v_tail_span = 2.00
+        self.v_tail_sweep_quarter = 10 * (np.pi / 180)
+        self.v_tail_taper = 2.8
+        self.v_tail_t_max = 0.12
 
         # Fuselage attributes.
-        self.fuselage_area = 1
-        self.fuselage_length = 1
-        self.fuselage_height = 1
-        self.fuselage_width = 1
+        self.fuselage_area = 21
+        self.fuselage_length = 7.92
+        self.fuselage_height = 1.3
+        self.fuselage_width = 1.3
         self.fuselage_radius = max(self.fuselage_height, self.fuselage_width) / 2
 
         # Gear attributes.
