@@ -52,7 +52,7 @@ class MassMethods:
         self.fuselage_radius = np.max(self.fuselage_height, self.fuselage_width)
 
         # Emperical attributes
-        self.h_tail_arm = 0.48 * self.wing_span
+        self.h_tail_arm = 0.40 * self.wing_span
 
         # Conversion factors.
         self.kg_to_pounds = 2.2046
@@ -113,7 +113,7 @@ class MassMethods:
                        * self.v_tail_taper ** 0.039
                        * 1 / self.kg_to_pounds)
 
-        mass_fuselage = 0.052 *
+        mass_fuselage = 0.052 * self.fuselage_area ** 1.086 *
 
         mass_gear_main = None
         mass_gear_nose = None
