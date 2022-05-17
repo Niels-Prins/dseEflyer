@@ -56,7 +56,7 @@ class MassMethods:
 
         # Landing gear attributes
         self.landing_load_factor = 4    # 3.5-5.5 G
-
+        self.landing_strut_lenght = 1
 
         # Conversion factors.
         self.kg_to_pounds = 2.2046
@@ -124,7 +124,11 @@ class MassMethods:
                          * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.241
                          * 1 / self.kg_to_pounds)
 
-        mass_gear_main = None
+        mass_gear_main = (0.095 * (self.landing_load_factor * self.mass_takeoff * self.kg_to_pounds) ** 0.749
+                          * (self.landing_strut_lenght * self.meters_to_feet) ** 0.409
+                          * 1 / self.kg_to_pounds)
+
+
         mass_gear_nose = None
         mass_control = None
         mass_instruments = None
