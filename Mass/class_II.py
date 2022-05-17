@@ -165,6 +165,7 @@ class MassMethods:
         mass_fuselage = None
         mass_gear_main = None
         mass_gear_nose = None
+        mass_control = None
         mass_electric = None
         mass_misc = None
 
@@ -175,6 +176,7 @@ class MassMethods:
         mass_fuselage = None
         mass_gear_main = None
         mass_gear_nose = None
+        mass_control = None
         mass_electric = None
         mass_misc = None
 
