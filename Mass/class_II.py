@@ -149,9 +149,12 @@ class MassMethods:
 
         mass_electrical = None
 
-        mass_misc = None
+        mass_misc = (0.0582 * self.mass_takeoff - 65
+                     * 1 / self.kg_to_pounds)
 
-        return mass_wing, mass_h_tail, mass_v_tail, mass_fuselage
+        print(mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear_main, mass_gear_nose, mass_control, mass_electrical, mass_misc)
+
+        return mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear_main, mass_gear_nose, mass_control, mass_electrical, mass_misc
 
     def torenbeek(self):
         mass_wing = None
@@ -172,3 +175,5 @@ class MassMethods:
         mass_gear_nose = None
         mass_electrical = None
         mass_misc = None
+
+
