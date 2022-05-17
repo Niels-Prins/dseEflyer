@@ -44,6 +44,15 @@ class MassMethods:
         self.v_tail_t_to_c = 1
         self.v_tail_t_max = 1
 
+        # Fuselage attributes
+        self.fuselage_area = 1
+        self.fuselage_length = 1
+        self.fuselage_height = 1
+        self.fuselage_width = 1
+        self.fuselage_radius = np.max(self.fuselage_height, self.fuselage_width)
+
+        #
+
         # Conversion factors.
         self.kg_to_pounds = 2.2046
         self.meters_to_feet = 3.2808
@@ -70,15 +79,39 @@ class MassMethods:
         mass_misc = None
 
     def raymer(self):
-        mass_wing = 0.036 * (self.meters_to_feet**2 * self.wing_area)**0.758 \
-                    * (self.wing_aspect_ratio / ((np.cos(self.wing_sweep_quarter))**2))**0.6 \
-                    * (0.5 * self.density * self.velocity**2 * self.pascal_to_empirical)**0.006 \
-                    * self.wing_taper**0.04 \
-                    * ((100 * self.wing_t_to_c) / (np.cos(self.wing_sweep_quarter)))**-0.3 \
-                    * (self.load_factor_ultimate * self.mass_takeoff)**0.49
+        mass_wing = (0.036 * (self.meters_to_feet ** 2 * self.wing_area) ** 0.758
+                     * (self.wing_aspect_ratio / ((np.cos(self.wing_sweep_quarter)) ** 2)) ** 0.6
+                     * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.006
+                     * self.wing_taper ** 0.04
+                     * ((100 * self.wing_t_to_c) / (np.cos(self.wing_sweep_quarter))) ** -0.3
+                     * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.49
+                     * 1 / self.kg_to_pounds)
 
-        mass_horizontal_tail = 0.016 * (self.load_factor_ultimate * self.mass_takeoff)
-        return mass_wing, mass_horizontal_tail
+        mass_h_tail = (0.016 * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.414
+                       * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.168
+                       * self.h_tail_area ** 0.896
+                       * ((100 * self.wing_t_to_c) / (np.cos(self.wing_sweep_quarter))) ** -0.12
+                       * (self.h_tail_aspect_ratio / ((np.cos(self.h_tail_sweep_quarter)) ** 2)) ** 0.043
+                       * self.h_tail_taper ** -0.12
+                       * 1 / self.kg_to_pounds)
+
+        mass_v_tail = (0.073 * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.376
+                       * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.112
+                       * self.v_tail_area ** 0.873
+                       * ((100 * self.wing_t_to_c) / (np.cos(self.v_tail_sweep_quarter))) ** -0.49
+                       * (self.wing_aspect_ratio / (np.cos(self.v_tail_sweep_quarter)) ** 2) ** 0.357
+                       * self.v_tail_taper ** 0.039
+                       * 1 / self.kg_to_pounds)
+
+        mass_fuselage = 0.052 *
+
+        mass_gear_main = None
+        mass_gear_nose = None
+        mass_control = None
+        mass_instruments = None
+        mass_misc = None
+
+        return mass_wing, mass_h_tail, mass_v_tail, mass_fuselage
 
     def torenbeek(self):
         mass_wing = None
