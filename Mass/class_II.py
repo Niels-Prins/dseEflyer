@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class MassMethods:
 
     def __init__(self):
