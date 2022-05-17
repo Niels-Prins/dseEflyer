@@ -61,7 +61,7 @@ class MassMethods:
         # Conversion factors.
         self.kg_to_pounds = 2.2046
         self.meters_to_feet = 3.2808
-        self.pascal_to_empirical = self.kg_to_pounds / self.meters_to_feet
+        self.pascal_to_empirical = 0.02089  # self.kg_to_pounds / self.meters_to_feet
 
         # Flight condition attributes.
         self.velocity = 77
