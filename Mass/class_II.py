@@ -49,7 +49,7 @@ class MassMethods:
         self.fuselage_length = 1
         self.fuselage_height = 1
         self.fuselage_width = 1
-        self.fuselage_radius = np.max(self.fuselage_height, self.fuselage_width) / 2
+        self.fuselage_radius = max(self.fuselage_height, self.fuselage_width) / 2
 
         # Gear attributes.
         self.gear_length = 0.5
@@ -98,10 +98,12 @@ class MassMethods:
                      * (1 / self.kg_to_pounds))
 
         mass_control = 0.0168 * self.mass_takeoff
-        mass_system = 1 / self.kg_to_pounds
-        mass_electric = 2 * (mass_control + mass_system)
 
-        mass_misc = None
+        mass_electric = 0.0268 * self.mass_takeoff
+
+        mass_misc = (0.0911 * (self.mass_takeoff * self.kg_to_pounds) ** 0.489) / self.kg_to_pounds
+
+        mass = np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear, mass_control, mass_electric, mass_misc])
 
     def raymer(self):
         mass_wing = (0.036 * (self.meters_to_feet ** 2 * self.wing_area) ** 0.758
@@ -146,15 +148,10 @@ class MassMethods:
                         * (self.wing_span * self.meters_to_feet) ** 0.371
                         * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds * 10 ** -4) ** 0.8
                         * 1 / self.kg_to_pounds)
+        mass_electric = None
+        mass_misc = None
 
-        mass_electrical = None
-
-        mass_misc = (0.0582 * self.mass_takeoff - 65
-                     * 1 / self.kg_to_pounds)
-
-        print(mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear_main, mass_gear_nose, mass_control, mass_electrical, mass_misc)
-
-        return mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear_main, mass_gear_nose, mass_control, mass_electrical, mass_misc
+        return mass_wing, mass_h_tail, mass_v_tail, mass_fuselage
 
     def torenbeek(self):
         mass_wing = None
@@ -163,7 +160,7 @@ class MassMethods:
         mass_fuselage = None
         mass_gear_main = None
         mass_gear_nose = None
-        mass_electrical = None
+        mass_electric = None
         mass_misc = None
 
     def usaf(self):
@@ -173,7 +170,10 @@ class MassMethods:
         mass_fuselage = None
         mass_gear_main = None
         mass_gear_nose = None
-        mass_electrical = None
+        mass_electric = None
         mass_misc = None
 
 
+if __name__ == '__main__':
+    class_II = MassMethods()
+    class_II.cessna()
