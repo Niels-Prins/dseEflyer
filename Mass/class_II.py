@@ -51,12 +51,12 @@ class MassMethods:
         self.fuselage_width = 1
         self.fuselage_radius = np.max(self.fuselage_height, self.fuselage_width) / 2
 
+        # Gear attributes.
+        self.gear_length = 0.5
+        self.gear_load_factor = 4
+
         # Empirical attributes.
         self.h_tail_arm = 0.40 * self.wing_span
-
-        # Landing gear attributes
-        self.landing_load_factor = 4    # 3.5-5.5 G
-
 
         # Conversion factors.
         self.kg_to_pounds = 2.2046
@@ -85,9 +85,12 @@ class MassMethods:
                        * (1 / (np.cos(self.v_tail_sweep_quarter) ** 0.882))
                        * (0.0026 / self.kg_to_pounds))
 
-        mass_fuselage = None
-        mass_gear_main = None
-        mass_gear_nose = None
+        mass_fuselage = ((self.mass_takeoff * self.kg_to_pounds) ** 0.692
+                         * (self.fuselage_radius * self.meters_to_feet) ** 0.374
+                         * (self.fuselage_length * self.meters_to_feet) ** 0.590
+                         * (0.0468 / self.kg_to_pounds))
+
+        mass_gear = None
         mass_control = None
         mass_instruments = None
         mass_misc = None
