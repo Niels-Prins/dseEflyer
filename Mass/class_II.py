@@ -9,7 +9,7 @@ class MassMethods:
     def __init__(self):
         # Load factor attributes.
         self.safety_margin = 1.5
-        self.load_factor = 1
+        self.load_factor = 4
         self.load_factor_ultimate = self.load_factor * self.load_factor
 
         # Class I attributes.
@@ -40,7 +40,7 @@ class MassMethods:
         self.v_tail_area = 1.40
         self.v_tail_span = 2.00
         self.v_tail_sweep_quarter = 10 * (np.pi / 180)
-        self.v_tail_taper = 2.8
+        self.v_tail_taper = 0.65
         self.v_tail_t_max = 0.12
 
         # Fuselage attributes.
@@ -75,12 +75,12 @@ class MassMethods:
 
         mass_h_tail = ((self.mass_takeoff * self.kg_to_pounds) ** 0.887
                        * (self.h_tail_area * self.meters_to_feet ** 2) ** 0.101
-                       * ((self.h_tail_aspect_ratio ** 0.138) / (self.h_tail_t_max ** 0.223))
+                       * ((self.h_tail_aspect_ratio ** 0.138) / ((self.h_tail_t_max * self.meters_to_feet) ** 0.223))
                        * (0.0183 / self.kg_to_pounds))
 
         mass_v_tail = ((self.mass_takeoff * self.kg_to_pounds) ** 0.567
                        * (self.v_tail_area * self.meters_to_feet ** 2) ** 0.125
-                       * ((self.v_tail_aspect_ratio ** 0.482) / (self.v_tail_t_max ** 0.747))
+                       * ((self.v_tail_aspect_ratio ** 0.482) / ((self.v_tail_t_max * self.meters_to_feet) ** 0.747))
                        * (1 / (np.cos(self.v_tail_sweep_quarter) ** 0.882))
                        * (0.0026 / self.kg_to_pounds))
 
@@ -128,12 +128,12 @@ class MassMethods:
                        * self.v_tail_taper ** 0.039
                        * 1 / self.kg_to_pounds)
 
-        mass_fuselage = (0.052 * self.fuselage_area ** 1.086
+        mass_fuselage = (0.052 * (self.fuselage_area * self.meters_to_feet ** 2) ** 1.086
                          * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.177
                          * (self.h_tail_arm * self.meters_to_feet) ** -0.051
-                         * ((self.fuselage_length / self.fuselage_width) * self.meters_to_feet) ** -0.072
+                         * (self.fuselage_length / self.fuselage_width) ** -0.072
                          * (self.pressure * self.pascal_to_psf) ** 0.241
-                         * 1 / self.kg_to_pounds)
+                         * (1 / self.kg_to_pounds))
 
         mass_gear_main = (0.095 * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.749
                           * (self.gear_length * self.meters_to_feet) ** 0.409
@@ -171,12 +171,7 @@ class MassMethods:
 
         mass_v_tail = mass_h_tail
 
-        mass_fuselage = (0.052 * self.fuselage_area ** 1.086
-                         * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.177
-                         * (self.h_tail_arm * self.meters_to_feet) ** -0.051
-                         * ((self.fuselage_length / self.fuselage_width) * self.meters_to_feet) ** -0.072
-                         * (self.pressure * self.pascal_to_psf) ** 0.241
-                         * 1 / self.kg_to_pounds)
+        mass_fuselage = -1
 
         mass_gear_main = ((33 + 0.04 * (self.mass_takeoff * self.kg_to_pounds) ** 0.75
                            + 0.021 * (self.mass_takeoff * self.kg_to_pounds))
@@ -186,8 +181,8 @@ class MassMethods:
                           * (1 / self.kg_to_pounds))
 
         mass_gear = mass_gear_main + mass_gear_nose
-        mass_control = (0.23 / self.kg_to_pounds) * (self.mass_takeoff * self.kg_to_pounds) ** 0.0667
-        mass_electric = -1
+        mass_control = (0.23 / self.kg_to_pounds) * (self.mass_takeoff * self.kg_to_pounds) ** 0.667
+        mass_electric = (0.0078 * (self.mass_takeoff * self.kg_to_pounds) ** 1.2) / self.kg_to_pounds
         mass_misc = -1
 
         return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage,
@@ -238,6 +233,11 @@ class MassMethods:
         data_raymer = self.raymer()
         data_torenbeek = self.torenbeek()
         data_usaf = self.usaf()
+
+        print(np.sum(data_cessna) + 300 + 60)
+        print(np.sum(data_raymer) + 300 + 60)
+        print(np.sum(data_torenbeek) + 300 + 60)
+        print(np.sum(data_usaf) + 300 + 60)
 
         data = np.vstack((data_cessna, data_raymer, data_torenbeek, data_usaf))
         data = np.where(data < 0, None, data)
