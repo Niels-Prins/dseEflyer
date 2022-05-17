@@ -106,20 +106,20 @@ class MassMethods:
 
     def raymer(self):
         mass_wing = (0.036 * (self.meters_to_feet ** 2 * self.wing_area) ** 0.758
-                     * (self.wing_aspect_ratio / ((np.cos(self.wing_sweep_quarter)) ** 2)) ** 0.6
-                     * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.006
-                     * self.wing_taper ** 0.04
-                     * ((100 * self.wing_t_to_c) / (np.cos(self.wing_sweep_quarter))) ** -0.3
-                     * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.49
-                     * 1 / self.kg_to_pounds)
+                        * (self.wing_aspect_ratio / ((np.cos(self.wing_sweep_quarter)) ** 2)) ** 0.6
+                        * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.006
+                        * self.wing_taper ** 0.04
+                        * ((100 * self.wing_t_to_c) / (np.cos(self.wing_sweep_quarter))) ** -0.3
+                        * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.49
+                        * 1 / self.kg_to_pounds)
 
         mass_h_tail = (0.016 * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.414
-                       * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.168
-                       * self.h_tail_area ** 0.896
-                       * ((100 * self.wing_t_to_c) / (np.cos(self.wing_sweep_quarter))) ** -0.12
-                       * (self.h_tail_aspect_ratio / ((np.cos(self.h_tail_sweep_quarter)) ** 2)) ** 0.043
-                       * self.h_tail_taper ** -0.12
-                       * 1 / self.kg_to_pounds)
+                        * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.168
+                        * (self.h_tail_area * self.meters_to_feet ** 2) ** 0.896
+                        * ((100 * self.wing_t_to_c) / (np.cos(self.wing_sweep_quarter))) ** -0.12
+                        * (self.h_tail_aspect_ratio / ((np.cos(self.h_tail_sweep_quarter)) ** 2)) ** 0.043
+                        * self.h_tail_taper ** -0.12
+                        * 1 / self.kg_to_pounds)
 
         mass_v_tail = (0.073 * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.376
                        * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.112
@@ -145,10 +145,10 @@ class MassMethods:
 
         mass_control = (0.053 * (self.fuselage_length * self.meters_to_feet) ** 1.536
                         * (self.wing_span * self.meters_to_feet) ** 0.371
-                        * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds * 10 ** -4) ** 0.8
+                        * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds * (10 ** -4)) ** 0.8
                         * 1 / self.kg_to_pounds)
 
-        mass_electric = 1
+        mass_electric = -1
 
         mass_misc = (((0.0582 * self.mass_takeoff * self.kg_to_pounds) - 65)
                      * 1 / self.kg_to_pounds)
@@ -170,18 +170,51 @@ class MassMethods:
         mass_misc = None
 
     def usaf(self):
-        mass_wing = None
-        mass_h_tail = None
-        mass_v_tail = None
-        mass_fuselage = None
-        mass_gear_main = None
-        mass_gear_nose = None
-        mass_control = None
-        mass_electric = None
-        mass_misc = None
+        mass_wing = (96.948 * (((self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) / 10 ** 5) ** 0.65
+                        * (self.wing_aspect_ratio / (np.cos(self.wing_sweep_quarter)) ** 2) ** 0.57
+                        * (self.wing_area / 100) ** 0.61
+                        * (1 + self.wing_taper) / (2 * self.wing_t_to_c) ** 0.36
+                        * np.sqrt(1 + (self.velocity * self.meters_to_feet) / 500)) * 0.993
+                        * 1 / self.kg_to_pounds)
+
+        mass_h_tail = (71.927 * (((self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) / (10 ** 5)) ** 0.87
+                        * ((self.h_tail_area * self.meters_to_feet ** 2) / 100) ** 1.2
+                        * (self.h_tail_arm * self.meters_to_feet / 10) ** 0.483
+                        * np.sqrt((self.h_tail_span * self.meters_to_feet) / (self.h_tail_t_max * self.meters_to_feet)))
+                        * 0.458
+                        * 1 / self.kg_to_pounds)
+
+        mass_v_tail = (55.786 * (((self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) / (10 ** 5)) ** 0.87
+                        * (self.v_tail_area * self.meters_to_feet ** 2) / 100
+                        * np.sqrt((self.v_tail_span * self.meters_to_feet) / (self.v_tail_t_max * self.meters_to_feet))) ** 0.458
+                        * 1 / self.kg_to_pounds)
+
+        mass_fuselage = (200 * (((self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) / 10 ** 5) ** 0.286
+                        * ((self.fuselage_length * self.meters_to_feet) / 10) ** 0.857
+                        * (((self.fuselage_width + self.fuselage_height) * self.meters_to_feet) / 10)
+                        * ((self.velocity * self.meters_to_feet) / 100) ** 0.338) ** 1.1
+                        * 1 / self.kg_to_pounds)
+
+        mass_gear_main = (0.054 * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.684
+                          * (self.gear_length * self.meters_to_feet) ** 0.501
+                          * 1 / self.kg_to_pounds)
+
+        mass_gear_nose = 0      # Included in main
+
+        mass_control = (1.08 * (self.mass_takeoff * self.kg_to_pounds) ** 0.7
+                        * 1 / self.kg_to_pounds)
+
+        mass_electric = -1
+
+        mass_misc = (34.5 * 2 * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.25
+                     * 1 / self.kg_to_pounds)
+
+        return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear_main, mass_gear_nose,
+                                  mass_control, mass_electric, mass_misc]))
 
 
 if __name__ == '__main__':
     class_II = MassMethods()
     print(class_II.cessna())
     print(class_II.raymer())
+    print(class_II.usaf())
