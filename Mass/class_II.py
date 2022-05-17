@@ -1,5 +1,7 @@
 import numpy as np
 
+from class_I import class_I
+
 
 class MassMethods:
 
@@ -10,8 +12,7 @@ class MassMethods:
         self.load_factor_ultimate = self.load_factor * self.load_factor
 
         # Class I attributes.
-        self.mass_empty = 1
-        self.mass_takeoff = 1
+        self.mass_empty, self.mass_takeoff = class_I()
 
         # Wing attributes.
         self.wing_aspect_ratio = 1
@@ -24,14 +25,14 @@ class MassMethods:
         self.wing_t_max = 1
 
         # Horizontal tail attributes
-        self.horizontal_tail_aspect_ratio = 1
-        self.horizontal_tail_area = 1
-        self.horizontal_tail_span = 1
-        self.horizontal_tail_sweep_half = 1
-        self.horizontal_tail_sweep_quarter = 1
-        self.horizontal_tail_taper = 1
-        self.horizontal_tail_t_to_c = 1
-        self.horizontal_tail_t_max = 1
+        self.h_tail_aspect_ratio = 1
+        self.h_tail_area = 1
+        self.h_tail_span = 1
+        self.h_tail_sweep_half = 1
+        self.h_tail_sweep_quarter = 1
+        self.h_tail_taper = 1
+        self.h_tail_t_to_c = 1
+        self.h_tail_t_max = 1
 
         # Conversion factors.
         self.kg_to_pounds = 2.2046
