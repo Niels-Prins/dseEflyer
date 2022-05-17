@@ -30,8 +30,10 @@ class MassMethods:
         self.meters_to_feet = 3.2808
 
     def cessna(self):
-        asdkandf = 5
-        sdkfnsdf = 5
+        mass_wing = ((self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.397
+                     * (self.wing_area * self.meters_to_feet ** 2) ** 0.360
+                     * self.wing_aspect_ratio ** 1.712
+                     * (0.04674 / self.kg_to_pounds))
 
     def raymer(self):
         mass = 122
