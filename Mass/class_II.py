@@ -69,8 +69,17 @@ class MassMethods:
                      * self.wing_aspect_ratio ** 1.712
                      * (0.04674 / self.kg_to_pounds))
 
-        mass_h_tail = None
-        mass_v_tail = None
+        mass_h_tail = ((self.mass_takeoff * self.kg_to_pounds) ** 0.887
+                       * (self.h_tail_area * self.meters_to_feet ** 2) ** 0.101
+                       * ((self.h_tail_aspect_ratio ** 0.138) / (self.h_tail_t_max ** 0.223))
+                       * (0.0183 / self.kg_to_pounds))
+
+        mass_v_tail = ((self.mass_takeoff * self.kg_to_pounds) ** 0.567
+                       * (self.v_tail_area * self.meters_to_feet ** 2) ** 0.125
+                       * ((self.v_tail_aspect_ratio ** 0.482) / (self.v_tail_t_max ** 0.747))
+                       * (1 / (np.cos(self.v_tail_sweep_quarter) ** 0.882))
+                       * (0.0026 / self.kg_to_pounds))
+
         mass_fuselage = None
         mass_gear_main = None
         mass_gear_nose = None
