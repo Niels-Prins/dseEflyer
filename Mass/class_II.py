@@ -23,20 +23,22 @@ class MassMethods:
         self.wing_t_to_c = 1
         self.wing_t_max = 1
 
+        # Conversion factors.
+        self.kg_to_pounds = 2.2046
+        self.meters_to_feet = 3.2808
+
         # Flight condition attributes.
         self.velocity = 100
         self.density = 200
         self.pressure = (self.density / 2) * self.velocity ** 2
-
-        # Conversion factors.
-        self.kg_to_pounds = 2.2046
-        self.meters_to_feet = 3.2808
 
     def cessna(self):
         mass_wing = ((self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.397
                      * (self.wing_area * self.meters_to_feet ** 2) ** 0.360
                      * self.wing_aspect_ratio ** 1.712
                      * (0.04674 / self.kg_to_pounds))
+
+        conv = (self.kg_to_pounds / self.meters_to_feet)
 
     def raymer(self):
         mass = 122
