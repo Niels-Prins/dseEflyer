@@ -146,7 +146,9 @@ class MassMethods:
                         * (self.wing_span * self.meters_to_feet) ** 0.371
                         * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds * 10 ** -4) ** 0.8
                         * 1 / self.kg_to_pounds)
-        mass_electric = None
+
+        mass_electrical = None
+
         mass_misc = None
 
         return mass_wing, mass_h_tail, mass_v_tail, mass_fuselage
@@ -158,7 +160,7 @@ class MassMethods:
         mass_fuselage = None
         mass_gear_main = None
         mass_gear_nose = None
-        mass_electric = None
+        mass_electrical = None
         mass_misc = None
 
     def usaf(self):
@@ -168,5 +170,5 @@ class MassMethods:
         mass_fuselage = None
         mass_gear_main = None
         mass_gear_nose = None
-        mass_electric = None
+        mass_electrical = None
         mass_misc = None
