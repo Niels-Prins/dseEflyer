@@ -64,8 +64,8 @@ class MassMethods:
         self.pascal_to_empirical = self.kg_to_pounds / self.meters_to_feet
 
         # Flight condition attributes.
-        self.velocity = 100
-        self.density = 200
+        self.velocity = 77
+        self.density = 1.225
         self.pressure = (self.density / 2) * self.velocity ** 2
 
     def cessna(self):
