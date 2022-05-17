@@ -8,7 +8,7 @@ class MassMethods:
     def __init__(self):
         # Load factor attributes.
         self.safety_margin = 1.5
-        self.load_factor = 1
+        self.load_factor = 8
         self.load_factor_ultimate = self.load_factor * self.load_factor
 
         # Class I attributes.
@@ -28,20 +28,20 @@ class MassMethods:
         self.h_tail_aspect_ratio = 1
         self.h_tail_area = 1
         self.h_tail_span = 1
-        self.h_tail_sweep_half = 1
+        # self.h_tail_sweep_half = 1
         self.h_tail_sweep_quarter = 1
         self.h_tail_taper = 1
-        self.h_tail_t_to_c = 1
+        # self.h_tail_t_to_c = 1
         self.h_tail_t_max = 1
 
         # Vertical tail attributes.
         self.v_tail_aspect_ratio = 1
         self.v_tail_area = 1
         self.v_tail_span = 1
-        self.v_tail_sweep_half = 1
+        # self.v_tail_sweep_half = 1
         self.v_tail_sweep_quarter = 1
         self.v_tail_taper = 1
-        self.v_tail_t_to_c = 1
+        # self.v_tail_t_to_c = 1
         self.v_tail_t_max = 1
 
         # Fuselage attributes.
@@ -53,7 +53,7 @@ class MassMethods:
 
         # Gear attributes.
         self.gear_length = 0.5
-        self.gear_load_factor = 4
+        self.gear_load_factor = 4   # 3.5 - 5.5
 
         # Empirical attributes.
         self.h_tail_arm = 0.40 * self.wing_span
@@ -64,7 +64,7 @@ class MassMethods:
         self.pascal_to_empirical = 0.02089  # self.kg_to_pounds / self.meters_to_feet
 
         # Flight condition attributes.
-        self.velocity = 77
+        self.velocity = 77      # 150 kts
         self.density = 1.225
         self.pressure = (self.density / 2) * self.velocity ** 2
 
@@ -107,14 +107,14 @@ class MassMethods:
     def raymer(self):
         mass_wing = (0.036 * (self.meters_to_feet ** 2 * self.wing_area) ** 0.758
                         * (self.wing_aspect_ratio / ((np.cos(self.wing_sweep_quarter)) ** 2)) ** 0.6
-                        * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.006
+                        * (self.pressure * self.pascal_to_empirical) ** 0.006
                         * self.wing_taper ** 0.04
                         * ((100 * self.wing_t_to_c) / (np.cos(self.wing_sweep_quarter))) ** -0.3
                         * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.49
                         * 1 / self.kg_to_pounds)
 
         mass_h_tail = (0.016 * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.414
-                        * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.168
+                        * (self.pressure * self.pascal_to_empirical) ** 0.168
                         * (self.h_tail_area * self.meters_to_feet ** 2) ** 0.896
                         * ((100 * self.wing_t_to_c) / (np.cos(self.wing_sweep_quarter))) ** -0.12
                         * (self.h_tail_aspect_ratio / ((np.cos(self.h_tail_sweep_quarter)) ** 2)) ** 0.043
@@ -122,7 +122,7 @@ class MassMethods:
                         * 1 / self.kg_to_pounds)
 
         mass_v_tail = (0.073 * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.376
-                       * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.112
+                       * (self.pressure * self.pascal_to_empirical) ** 0.112
                        * self.v_tail_area ** 0.873
                        * ((100 * self.wing_t_to_c) / (np.cos(self.v_tail_sweep_quarter))) ** -0.49
                        * (self.wing_aspect_ratio / (np.cos(self.v_tail_sweep_quarter)) ** 2) ** 0.357
@@ -133,7 +133,7 @@ class MassMethods:
                          * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.177
                          * (self.h_tail_arm * self.meters_to_feet) ** -0.051
                          * ((self.fuselage_length / self.fuselage_width) * self.meters_to_feet) ** -0.072
-                         * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.241
+                         * (self.pressure * self.pascal_to_empirical) ** 0.241
                          * 1 / self.kg_to_pounds)
 
         mass_gear_main = (0.095 * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.749
@@ -176,7 +176,7 @@ class MassMethods:
                          * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.177
                          * (self.h_tail_arm * self.meters_to_feet) ** -0.051
                          * ((self.fuselage_length / self.fuselage_width) * self.meters_to_feet) ** -0.072
-                         * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.241
+                         * (self.pressure * self.pascal_to_empirical) ** 0.241
                          * 1 / self.kg_to_pounds)
 
         mass_gear_main = ((33 + 0.04 * (self.mass_takeoff * self.kg_to_pounds) ** 0.75
@@ -187,6 +187,7 @@ class MassMethods:
                           * (1 / self.kg_to_pounds))
 
         mass_gear = mass_gear_main + mass_gear_nose
+
         mass_control = (0.23 / self.kg_to_pounds) * (self.mass_takeoff * self.kg_to_pounds) ** 0.0667
         mass_electric = -1
         mass_misc = -1
@@ -229,7 +230,7 @@ class MassMethods:
 
         mass_electric = -1
 
-        mass_misc = (34.5 * 2 * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.25
+        mass_misc = (34.5 * 2 * (self.pressure * self.pascal_to_empirical) ** 0.25
                      * (1 / self.kg_to_pounds))
 
         return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage,
