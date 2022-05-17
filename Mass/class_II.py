@@ -97,10 +97,10 @@ class MassMethods:
                       * self.load_factor_ultimate * (self.gear_length * self.kg_to_pounds) ** 0.788)
                      * (1 / self.kg_to_pounds))
 
-        mass_electric_control = None
-        mass_electric_instruments = None
-        mass_electric_system = None
-        mass_electric = (mass_electric_control + mass_electric_instruments + mass_electric_system) / self.kg_to_pounds
+        mass_control = 1 / self.kg_to_pounds
+        mass_instruments = 1 / self.kg_to_pounds
+        mass_system = 1 / self.kg_to_pounds
+        mass_electric = mass_control + mass_instruments + mass_system
 
         mass_misc = None
 
