@@ -34,6 +34,16 @@ class MassMethods:
         self.h_tail_t_to_c = 1
         self.h_tail_t_max = 1
 
+        # Vertical tail attributes
+        self.v_tail_aspect_ratio = 1
+        self.v_tail_area = 1
+        self.v_tail_span = 1
+        self.v_tail_sweep_half = 1
+        self.v_tail_sweep_quarter = 1
+        self.v_tail_taper = 1
+        self.v_tail_t_to_c = 1
+        self.v_tail_t_max = 1
+
         # Conversion factors.
         self.kg_to_pounds = 2.2046
         self.meters_to_feet = 3.2808
@@ -50,6 +60,15 @@ class MassMethods:
                      * self.wing_aspect_ratio ** 1.712
                      * (0.04674 / self.kg_to_pounds))
 
+        mass_h_tail = None
+        mass_v_tail = None
+        mass_fuselage = None
+        mass_gear_main = None
+        mass_gear_nose = None
+        mass_control = None
+        mass_instruments = None
+        mass_misc = None
+
     def raymer(self):
         mass_wing = 0.036 * (self.meters_to_feet**2 * self.wing_area)**0.758 \
                     * (self.wing_aspect_ratio / ((np.cos(self.wing_sweep_quarter))**2))**0.6 \
@@ -62,7 +81,23 @@ class MassMethods:
         return mass_wing, mass_horizontal_tail
 
     def torenbeek(self):
-        pass
+        mass_wing = None
+        mass_h_tail = None
+        mass_v_tail = None
+        mass_fuselage = None
+        mass_gear_main = None
+        mass_gear_nose = None
+        mass_control = None
+        mass_instruments = None
+        mass_misc = None
 
     def usaf(self):
-        pass
+        mass_wing = None
+        mass_h_tail = None
+        mass_v_tail = None
+        mass_fuselage = None
+        mass_gear_main = None
+        mass_gear_nose = None
+        mass_control = None
+        mass_instruments = None
+        mass_misc = None
