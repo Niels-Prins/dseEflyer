@@ -180,7 +180,7 @@ class MassMethods:
                          * 1 / self.kg_to_pounds)
 
         mass_gear_main = ((33 + 0.04 * (self.mass_takeoff * self.kg_to_pounds) ** 0.75
-                           * 0.021 * (self.mass_takeoff * self.kg_to_pounds))
+                           + 0.021 * (self.mass_takeoff * self.kg_to_pounds))
                           * (2 / self.kg_to_pounds))
 
         mass_gear_nose = ((12 + 0.06 * (self.mass_takeoff * self.kg_to_pounds) ** 0.75)
@@ -230,7 +230,7 @@ class MassMethods:
         mass_electric = -1
 
         mass_misc = (34.5 * 2 * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.25
-                     * 1 / self.kg_to_pounds)
+                     * (1 / self.kg_to_pounds))
 
         return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage,
                                   mass_gear, mass_control, mass_electric, mass_misc]))
