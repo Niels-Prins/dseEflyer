@@ -1,0 +1,24 @@
+# geometry #
+
+chord		0.200	m
+span		0.600	m
+sweep		5.000	deg
+taper		0.500	deg
+dihedral        5.000	deg
+
+# positioning #
+
+X_le	        0.040	m
+Y_le		0.000	m
+Z_le		0.000	m
+
+# controls #
+
+start 		0.000	m
+end 		0.300	m
+
+motion		Y	X,Y,Z
+deflection	True	boolean
+
+alpha		0.520	1/deg
+moment	       -0.010	1/deg

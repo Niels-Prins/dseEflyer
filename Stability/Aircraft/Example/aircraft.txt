@@ -1,0 +1,12 @@
+# mass properties #
+
+mass			0.270	kg
+I_XX  			0.012	kg*m^2
+I_YY  			0.002	kg*m^2
+I_ZZ 			0.014	kg*m^2
+I_XZ 			0.002	kg*m^2
+
+# atmosphere conditions #
+
+rho			1.225	kg/m^3
+V			6.000	m/s
