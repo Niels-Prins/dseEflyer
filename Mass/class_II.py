@@ -23,6 +23,16 @@ class MassMethods:
         self.wing_t_to_c = 1
         self.wing_t_max = 1
 
+        # Horizontal tail attributes
+        self.horizontal_tail_aspect_ratio = 1
+        self.horizontal_tail_area = 1
+        self.horizontal_tail_span = 1
+        self.horizontal_tail_sweep_half = 1
+        self.horizontal_tail_sweep_quarter = 1
+        self.horizontal_tail_taper = 1
+        self.horizontal_tail_t_to_c = 1
+        self.horizontal_tail_t_max = 1
+
         # Conversion factors.
         self.kg_to_pounds = 2.2046
         self.meters_to_feet = 3.2808
@@ -40,8 +50,14 @@ class MassMethods:
                      * (0.04674 / self.kg_to_pounds))
 
     def raymer(self):
-        mass = 122
-        return mass
+        mass_wing = 0.036 * (self.meters_to_feet**2 * self.wing_area)**0.758 \
+                    * (self.wing_aspect_ratio / ((np.cos(self.wing_sweep_quarter))**2))**0.6 \
+                    * (0.5 * self.density * self.velocity**2 * self.pascal_to_empirical)**0.006 \
+                    * self.wing_taper**0.04 \
+                    * ((100 * self.wing_t_to_c) / (np.cos(self.wing_sweep_quarter)))**-0.3 \
+                    * (self.load_factor_ultimate * self.mass_takeoff)**0.49
+
+        return mass_wing
 
     def torenbeek(self):
         pass
