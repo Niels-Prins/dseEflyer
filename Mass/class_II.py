@@ -64,8 +64,8 @@ class MassMethods:
         self.pascal_to_empirical = self.kg_to_pounds / self.meters_to_feet
 
         # Flight condition attributes.
-        self.velocity = 100
-        self.density = 200
+        self.velocity = 77
+        self.density = 1.225
         self.pressure = (self.density / 2) * self.velocity ** 2
 
     def cessna(self):
@@ -98,12 +98,11 @@ class MassMethods:
                      * (1 / self.kg_to_pounds))
 
         mass_control = 0.0168 * self.mass_takeoff
-
         mass_electric = 0.0268 * self.mass_takeoff
-
         mass_misc = (0.0911 * (self.mass_takeoff * self.kg_to_pounds) ** 0.489) / self.kg_to_pounds
 
-        mass = np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear, mass_control, mass_electric, mass_misc])
+        return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage,
+                                  mass_gear, mass_control, mass_electric, mass_misc]))
 
     def raymer(self):
         mass_wing = (0.036 * (self.meters_to_feet ** 2 * self.wing_area) ** 0.758
