@@ -25,6 +25,10 @@ class MassMethods:
         self.density = 200
         self.pressure = (self.density / 2) * self.velocity ** 2
 
+        # Conversion factors.
+        self.kg_to_pounds = 2.2046
+        self.meters_to_feet = 3.2808
+
     def cessna(self):
         asdkandf = 5
         sdkfnsdf = 5
