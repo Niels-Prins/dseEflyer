@@ -93,6 +93,7 @@ class MassMethods:
         mass_gear = None
         mass_control = None
         mass_instruments = None
+        mass_electrical = None
         mass_misc = None
 
     def raymer(self):
@@ -127,10 +128,21 @@ class MassMethods:
                          * (0.5 * self.density * self.velocity ** 2 * self.pascal_to_empirical) ** 0.241
                          * 1 / self.kg_to_pounds)
 
-        mass_gear_main = None
-        mass_gear_nose = None
-        mass_control = None
+        mass_gear_main = (0.095 * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds) ** 0.749
+                          * (self.gear_length * self.meters_to_feet) ** 0.409
+                          * 1 / self.kg_to_pounds)
+
+        mass_gear_nose = (0.125 * (self.gear_load_factor * self.mass_takeoff * self.mass_takeoff) ** 0.566
+                          * (self.gear_length * self.meters_to_feet) ** 0.846
+                          * 1 / self.kg_to_pounds)
+
+        mass_control = (0.053 * (self.fuselage_length * self.meters_to_feet) ** 1.536
+                        * (self.wing_span * self.meters_to_feet) ** 0.371
+                        * (self.load_factor_ultimate * self.mass_takeoff * self.kg_to_pounds * 10 ** -4) ** 0.8
+                        * 1 / self.kg_to_pounds)
+
         mass_instruments = None
+        mass_electrical = None
         mass_misc = None
 
         return mass_wing, mass_h_tail, mass_v_tail, mass_fuselage
@@ -144,6 +156,7 @@ class MassMethods:
         mass_gear_nose = None
         mass_control = None
         mass_instruments = None
+        mass_electrical = None
         mass_misc = None
 
     def usaf(self):
@@ -155,4 +168,5 @@ class MassMethods:
         mass_gear_nose = None
         mass_control = None
         mass_instruments = None
+        mass_electrical = None
         mass_misc = None
