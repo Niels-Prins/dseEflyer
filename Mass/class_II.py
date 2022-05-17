@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 from class_I import class_I
 
@@ -235,10 +236,23 @@ class MassMethods:
         return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage,
                                   mass_gear, mass_control, mass_electric, mass_misc]))
 
+    def dataframe(self):
+        data_cessna = self.cessna()
+        data_raymer = self.raymer()
+        data_torenbeek = self.torenbeek()
+        data_usaf = self.usaf()
+
+        data = np.vstack((data_cessna, data_raymer, data_torenbeek, data_usaf))
+        data = np.where(data < 0, None, data)
+
+        row_labels = np.array(['Cessna', 'Raymer', 'Torenbeek', 'USAF'])
+        column_labels = np.array(['Wing', 'H-tail', 'V-tail', 'Fuselage', 'Gear', 'Control', 'Electric', 'Misc'])
+
+        dataframe = pd.DataFrame(data, columns=column_labels, index=row_labels)
+
+        print(dataframe)
+
 
 if __name__ == '__main__':
     class_II = MassMethods()
-    print(class_II.cessna())
-    print(class_II.raymer())
-    print(class_II.torenbeek())
-    print(class_II.usaf())
+    class_II.dataframe()
