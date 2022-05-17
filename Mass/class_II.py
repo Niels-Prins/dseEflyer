@@ -7,7 +7,8 @@ class MassMethods:
         asdkandf = 5
 
     def raymer(self):
-        pass
+        mass = 122
+        return mass
 
     def torenbeek(self):
         pass
