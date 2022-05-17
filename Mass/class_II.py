@@ -180,7 +180,7 @@ class MassMethods:
                          * 1 / self.kg_to_pounds)
 
         mass_gear_main = ((33 + 0.04 * (self.mass_takeoff * self.kg_to_pounds) ** 0.75
-                           * 0.021 * (self.mass_takeoff * self.kg_to_pounds))
+                           + 0.021 * (self.mass_takeoff * self.kg_to_pounds))
                           * (2 / self.kg_to_pounds))
 
         mass_gear_nose = ((12 + 0.06 * (self.mass_takeoff * self.kg_to_pounds) ** 0.75)
@@ -210,3 +210,4 @@ if __name__ == '__main__':
     class_II = MassMethods()
     print(class_II.cessna())
     print(class_II.raymer())
+    print(class_II.torenbeek())
