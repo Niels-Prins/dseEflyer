@@ -57,7 +57,8 @@ class MassMethods:
                     * ((100 * self.wing_t_to_c) / (np.cos(self.wing_sweep_quarter)))**-0.3 \
                     * (self.load_factor_ultimate * self.mass_takeoff)**0.49
 
-        return mass_wing
+        mass_horizontal_tail = 0.016 * (self.load_factor_ultimate * self.mass_takeoff)
+        return mass_wing, mass_horizontal_tail
 
     def torenbeek(self):
         pass
