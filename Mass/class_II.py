@@ -139,7 +139,7 @@ class MassMethods:
                           * (self.gear_length * self.meters_to_feet) ** 0.409
                           * 1 / self.kg_to_pounds)
 
-        mass_gear_nose = (0.125 * (self.gear_load_factor * self.mass_takeoff * self.mass_takeoff) ** 0.566
+        mass_gear_nose = (0.125 * (self.gear_load_factor * self.mass_takeoff * self.kg_to_pounds) ** 0.566
                           * (self.gear_length * self.meters_to_feet) ** 0.846
                           * 1 / self.kg_to_pounds)
 
@@ -153,9 +153,10 @@ class MassMethods:
         mass_misc = (((0.0582 * self.mass_takeoff * self.kg_to_pounds) - 65)
                      * 1 / self.kg_to_pounds)
 
-        print(mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear_main, mass_gear_nose, mass_control, mass_electric, mass_misc )
+        mass_total = np.sum([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear_main, mass_gear_nose, mass_control, mass_electric, mass_misc])
 
-        return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear_main, mass_gear_nose, mass_control, mass_electric, mass_misc]))
+        return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear_main, mass_gear_nose,
+                                  mass_control, mass_electric, mass_misc, mass_total]))
 
     def torenbeek(self):
         mass_wing = None
@@ -180,5 +181,5 @@ class MassMethods:
 
 if __name__ == '__main__':
     class_II = MassMethods()
-    class_II.cessna()
-    class_II.raymer()
+    print(class_II.cessna())
+    print(class_II.raymer())
