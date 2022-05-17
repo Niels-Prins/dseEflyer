@@ -24,7 +24,7 @@ class MassMethods:
         self.wing_t_to_c = 1
         self.wing_t_max = 1
 
-        # Horizontal tail attributes
+        # Horizontal tail attributes.
         self.h_tail_aspect_ratio = 1
         self.h_tail_area = 1
         self.h_tail_span = 1
@@ -34,7 +34,7 @@ class MassMethods:
         self.h_tail_t_to_c = 1
         self.h_tail_t_max = 1
 
-        # Vertical tail attributes
+        # Vertical tail attributes.
         self.v_tail_aspect_ratio = 1
         self.v_tail_area = 1
         self.v_tail_span = 1
@@ -44,14 +44,14 @@ class MassMethods:
         self.v_tail_t_to_c = 1
         self.v_tail_t_max = 1
 
-        # Fuselage attributes
+        # Fuselage attributes.
         self.fuselage_area = 1
         self.fuselage_length = 1
         self.fuselage_height = 1
         self.fuselage_width = 1
         self.fuselage_radius = np.max(self.fuselage_height, self.fuselage_width) / 2
 
-        # Emperical attributes
+        # Empirical attributes.
         self.h_tail_arm = 0.40 * self.wing_span
 
         # Landing gear attributes
@@ -61,7 +61,7 @@ class MassMethods:
         # Conversion factors.
         self.kg_to_pounds = 2.2046
         self.meters_to_feet = 3.2808
-        self.pascal_to_empirical = (self.kg_to_pounds / self.meters_to_feet)
+        self.pascal_to_empirical = self.kg_to_pounds / self.meters_to_feet
 
         # Flight condition attributes.
         self.velocity = 100
