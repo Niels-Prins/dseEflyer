@@ -242,4 +242,5 @@ if __name__ == '__main__':
     class_II = MassMethods()
     print(class_II.cessna())
     print(class_II.raymer())
+    print(class_II.torenbeek())
     print(class_II.usaf())
