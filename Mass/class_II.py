@@ -29,20 +29,16 @@ class MassMethods:
         self.h_tail_aspect_ratio = 1
         self.h_tail_area = 1
         self.h_tail_span = 1
-        self.h_tail_sweep_half = 1
         self.h_tail_sweep_quarter = 1
         self.h_tail_taper = 1
-        self.h_tail_t_to_c = 1
         self.h_tail_t_max = 1
 
         # Vertical tail attributes.
         self.v_tail_aspect_ratio = 1
         self.v_tail_area = 1
         self.v_tail_span = 1
-        self.v_tail_sweep_half = 1
         self.v_tail_sweep_quarter = 1
         self.v_tail_taper = 1
-        self.v_tail_t_to_c = 1
         self.v_tail_t_max = 1
 
         # Fuselage attributes.
