@@ -18,14 +18,14 @@ class MassMethods:
         self.mass_empty, self.mass_takeoff = 1029, 1633
 
         # Wing attributes.
-        self.wing_aspect_ratio = 5.8
-        self.wing_area = 13.1
-        self.wing_span = 8.71
-        self.wing_sweep_half = -7.45 * (np.pi/180)
-        self.wing_sweep_quarter = -3.74 *(np.pi/180)
-        self.wing_taper = 0.45
+        self.wing_aspect_ratio = 10.12
+        self.wing_area = 13.46
+        self.wing_span = 11.67
+        self.wing_sweep_half = 0
+        self.wing_sweep_quarter = 0
+        self.wing_taper = 0.5
         self.wing_t_to_c = 0.15
-        self.wing_t_max = 0.31
+        self.wing_t_max = 0.24
 
         # Horizontal tail attributes.
         self.h_tail_aspect_ratio = 5.56
