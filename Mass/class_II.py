@@ -63,7 +63,7 @@ class MassMethods:
 
         # Gear attributes.
         self.gear_length = 0.50
-        self.gear_load_factor = 4
+        self.gear_load_factor = 5.5
 
         # Empirical attributes.
         self.h_tail_arm = 0.40 * self.wing_span
@@ -289,7 +289,7 @@ class MassMethods:
         # Correction factors.
         data[:, 0] = np.round(data[:, 0] * 0.40)
         data[:, 3] = np.round(data[:, 3] * 0.40)
-        data[:, 4] = np.round(data[:, 4] * 0.70)
+        data[:, 4] = np.round(data[:, 4] * 0.60)
         data[:, 5] = np.round(data[:, 5] * 0.60)
         data[:, 7] = np.round(data[:, 7] * 0.50)
 
