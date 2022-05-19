@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from class_I import class_I
 
@@ -44,6 +45,7 @@ class MassMethods:
         self.h_tail_sweep_quarter = 0
         self.h_tail_taper = 0.65
         self.h_tail_t_max = 0.12
+        self.h_tail_C_L_alpha = None
 
         # Vertical tail attributes.
         self.v_tail_aspect_ratio = 2.78
@@ -303,7 +305,6 @@ class MassMethods:
         moment_bat = ((self.mass_bat_1 * self.arm_bat_1)
                       + (self.mass_bat_2 * self.arm_bat_2)
                       + (self.mass_bat_3 * self.arm_bat_3))
-        moment_occupants = (self.mass_occupant_1 * self.arm_occupant_1) + (self.mass_occupant_2 * self.arm_occupant_2)
         moment_motor = self.mass_motor * self.arm_motor
 
         moment_h_tail = self.mass_takeoff_2[0, 1] * self.arm_h_tail
@@ -366,12 +367,9 @@ class MassMethods:
     def scissors(self):
         wing_area_net = self.wing_area - (self.fuselage_width * self.wing_chord_root)
 
-        h_tail_arm = self.arm_h_tail
-        h_tail_speed_ratio = 0.85
-
-        C_L_alpha_h_tail = ((2 * np.pi * self.h_tail_aspect_ratio)
-                            / (2 + np.sqrt(4 + (self.h_tail_aspect_ratio / 0.95) ** 2
-                               * (1 + (np.tan(self.h_tail_sweep_half) ** 2)))))
+        self.h_tail_C_L_alpha = ((2 * np.pi * self.h_tail_aspect_ratio)
+                                 / (2 + np.sqrt(4 + (self.h_tail_aspect_ratio / 0.95) ** 2
+                                    * (1 + (np.tan(self.h_tail_sweep_half) ** 2)))))
 
         C_L_alpha_aircraft = (self.wing_C_L_alpha * (1 + 2.15 * (self.fuselage_width / self.wing_span))
                               * (wing_area_net / self.wing_area)
@@ -382,8 +380,25 @@ class MassMethods:
 
         X_ac_fuselage_1 = ((1.8 * self.fuselage_width * self.fuselage_height * (self.fuselage_length - self.wing_X_LE))
                            / (- C_L_alpha_aircraft * self.wing_area * self.wing_MAC))
-        X_ac_fuselage_2 = (0.273 * self.fuselage_width * self.wing_area * (self.wing_span - self.fuselage_width)) / ((1 + self.wing_taper) * self.wing_span * self.wing_MAC ** 2 * ())
-        X_ac = (self.wing_X_ac + X_ac_fuselage_1 + X_ac_fuselage_2) * self.wing_MAC + self.wing_X_LE
+        X_ac_fuselage_2 = (((0.273 * self.fuselage_width * self.wing_area * (self.wing_span - self.fuselage_width))
+                            * np.tan(self.wing_sweep_quarter))
+                           / ((1 + self.wing_taper) * self.wing_span * self.wing_MAC ** 2
+                              * (self.wing_span + 2.15 * self.fuselage_width)))
+
+        X_ac = self.wing_X_ac + X_ac_fuselage_1 + X_ac_fuselage_2
+        X_cg = np.arange(X_ac - 0.05, 1, 0.01)
+
+        X_tail = self.arm_h_tail
+        h_tail_arm = X_tail - (X_ac * self.wing_MAC) - self.wing_X_LE
+        h_tail_speed_ratio = 0.85
+
+        denominator = ((self.wing_C_L_alpha / self.h_tail_C_L_alpha)
+                       * (1 - downwash) * (h_tail_arm / self.wing_MAC) * h_tail_speed_ratio)
+
+        area_ratio = (X_cg / denominator) - ((X_ac - 0.05) / denominator)
+
+        plt.plot(X_cg, area_ratio)
+        plt.show()
 
     def main(self, iteration=0.02):
 
@@ -414,3 +429,4 @@ class MassMethods:
 if __name__ == '__main__':
     class_II = MassMethods()
     class_II.main()
+    class_II.scissors()
