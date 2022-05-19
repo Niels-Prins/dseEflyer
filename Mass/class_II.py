@@ -372,7 +372,11 @@ class MassMethods:
         print(dataframe)
 
     def scissors(self):
-        h_tail_C_L_alpha = (2 * np.pi * self.h_tail_aspect_ratio) / (2 + np.sqrt(4 + (self.h_tail_aspect_ratio / 0.95) ** 2))
+        C_L_alpha_h_tail = ((2 * np.pi * self.h_tail_aspect_ratio) /
+                            (2 + np.sqrt(4 + (self.h_tail_aspect_ratio / 0.95) ** 2
+                                         * (1 + (np.tan(self.h_tail_sweep_half) ** 2)))))
+
+        C_L_alpha_aircraft = self.wing_C_L_alpha
 
     def main(self, iteration=0.02):
 
