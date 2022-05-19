@@ -45,6 +45,7 @@ class MassMethods:
         self.h_tail_sweep_quarter = 0
         self.h_tail_taper = 0.725
         self.h_tail_t_max = 0.12            # Unknown
+        self.h_tail_C_L_alpha = None
 
         # Vertical tail attributes.
         self.v_tail_aspect_ratio = 1.65
@@ -53,6 +54,7 @@ class MassMethods:
         self.v_tail_sweep_quarter = 27 * (np.pi / 180)
         self.v_tail_taper = 0.45
         self.v_tail_t_max = 0.12            # Unknown
+        self.v_tail_C_L_alpha = None
 
         # Fuselage attributes.
         self.fuselage_area = 21
