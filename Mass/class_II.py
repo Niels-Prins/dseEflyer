@@ -109,6 +109,7 @@ class MassMethods:
         self.mass_takeoff_2 = None
 
         self.wing_X_LE = None
+        self.test = None
 
     def cessna(self):
         mass_wing = ((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.397
