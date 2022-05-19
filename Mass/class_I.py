@@ -8,6 +8,4 @@ def class_I():
     occupants = 180
     TOM = OEM + occupants
 
-    print(TOM)
-
     return OEM, TOM, batteries, motor, occupants

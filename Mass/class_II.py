@@ -391,7 +391,11 @@ class MassMethods:
                               * (self.wing_span + 2.15 * self.fuselage_width)))
 
         X_ac = self.wing_X_ac + X_ac_fuselage_1 + X_ac_fuselage_2
-        X_cg = np.arange(X_ac - 0.05, 1, 0.01)
+        X_cg = np.arange(0, 1, 0.01)
+
+        C_m_ac = -0.06
+        C_L_aircraft = 1.6
+        C_L_h = -1.0
 
         X_tail = self.arm_h_tail
         h_tail_arm = X_tail - (X_ac * self.wing_MAC) - self.wing_X_LE
@@ -400,9 +404,17 @@ class MassMethods:
         denominator = ((self.wing_C_L_alpha / self.h_tail_C_L_alpha)
                        * (1 - downwash) * (h_tail_arm / self.wing_MAC) * h_tail_speed_ratio)
 
-        area_ratio = (X_cg / denominator) - ((X_ac - 0.05) / denominator)
+        area_ratio_stability = (X_cg / denominator) - ((X_ac - 0.05) / denominator)
+        area_ratio_control = (X_cg - X_ac + (C_m_ac / C_L_aircraft)) * ((C_L_aircraft * self.wing_MAC) /
+                                                                        (C_L_h * h_tail_arm * h_tail_speed_ratio))
 
-        plt.plot(X_cg, area_ratio)
+        plt.plot(X_cg, area_ratio_stability, label='Stability')
+        plt.plot(X_cg, area_ratio_control, label='Controllability')
+        plt.xlabel('Sh/S [-]')
+        plt.ylabel('Xcg [% MAC]')
+        plt.xlim(0, 1)
+        plt.ylim(0, 1)
+        plt.legend()
         plt.show()
 
     def main(self, iterations=100):
