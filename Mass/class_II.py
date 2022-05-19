@@ -36,20 +36,20 @@ class MassMethods:
         self.wing_lift_alpha = 6.56
 
         # Horizontal tail attributes.
-        self.h_tail_aspect_ratio = 5.56
-        self.h_tail_area = 2.80
-        self.h_tail_span = 4.00
-        self.h_tail_sweep_quarter = 0
-        self.h_tail_taper = 0.65
-        self.h_tail_t_max = 0.12
+        self.h_tail_aspect_ratio = 5.15
+        self.h_tail_area = 2.791062747
+        self.h_tail_span = 3.791302302
+        self.h_tail_sweep_quarter = 5 * (np.pi/180)
+        self.h_tail_taper = 0.725
+        self.h_tail_t_max = 0.12                    # Unknown
 
         # Vertical tail attributes.
-        self.v_tail_aspect_ratio = 2.78
-        self.v_tail_area = 1.40
-        self.v_tail_span = 2.00
-        self.v_tail_sweep_quarter = 10 * (np.pi / 180)
-        self.v_tail_taper = 0.65
-        self.v_tail_t_max = 0.12
+        self.v_tail_aspect_ratio = 1.65
+        self.v_tail_area = 1.307037875
+        self.v_tail_span = 1.46854094
+        self.v_tail_sweep_quarter = 27 * (np.pi / 180)
+        self.v_tail_taper = 0.45
+        self.v_tail_t_max = 0.12                    # Unknown
 
         # Fuselage attributes.
         self.fuselage_area = 21
