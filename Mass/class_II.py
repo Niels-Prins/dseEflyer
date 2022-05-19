@@ -18,9 +18,9 @@ class MassMethods:
         self.load_factor_ultimate = self.load_factor * self.load_factor
 
         # Class I attributes.
-        # self.mass_empty_1, self.mass_takeoff_1, self.mass_battery, self.mass_motor, self.mass_occupants = class_I()
+        self.mass_empty_1, self.mass_takeoff_1, self.mass_battery, self.mass_motor, self.mass_occupants = class_I()
 
-        self.mass_empty_1, self.mass_takeoff_1, self.mass_battery, self.mass_motor, self.mass_occupants = 1029, 1633, 308, 60, 180
+        # self.mass_empty_1, self.mass_takeoff_1, self.mass_battery, self.mass_motor, self.mass_occupants = 1029, 1633, 308, 60, 180
 
         # Wing attributes.
         self.wing_aspect_ratio = 5.8
@@ -210,7 +210,7 @@ class MassMethods:
         mass_wing = (self.load_factor_ultimate ** 0.55 * ((self.wing_span * self.wing_area * self.meters_to_feet ** 3) /
                                                           (self.wing_t_max * self.meters_to_feet * self.mass_takeoff_1 *
                                                            self.kg_to_pounds * np.cos(self.wing_sweep_half))) ** 0.30
-                     * (self.wing_span * self.meters_to_feet) / np.cos(self.wing_sweep_half) ** 0.75
+                     * ((self.wing_span * self.meters_to_feet) / np.cos(self.wing_sweep_half)) ** 0.75
                      * (1 + np.sqrt((6.3 * np.cos(self.wing_sweep_half)) / (self.wing_span * self.meters_to_feet)))
                      * (0.00125 / self.kg_to_pounds) * (self.mass_takeoff_1 * self.kg_to_pounds))
 
@@ -401,7 +401,10 @@ class MassMethods:
         plt.plot(X_cg, area_ratio)
         plt.show()
 
-    def main(self, iteration=0.02):
+    def main(self, iteration=0.01):
+        new_mass_takeoff, self.mass_takeoff_2, methods_data = self.combine()
+
+        print(np.sum(self.mass_takeoff_2), self.mass_takeoff_1)
 
         while self.mass_takeoff_1 / self.combine()[0] > (1 + iteration):
             self.mass_takeoff_1, self.mass_takeoff_2, methods_data = self.combine()
