@@ -86,8 +86,8 @@ class MassMethods:
         self.mass_occupant_2 = self.mass_occupants / 2
 
         # Fuselage group moment arms as fractions of fuselage length.
-        self.arm_h_tail = 1.00 * self.fuselage_length
-        self.arm_v_tail = 1.00 * self.fuselage_length
+        self.arm_h_tail = 0.95 * self.fuselage_length
+        self.arm_v_tail = 0.95 * self.fuselage_length
         self.arm_fuselage = 0.35 * self.fuselage_length
         self.arm_bat_1 = 0.20 * self.fuselage_length
         self.arm_bat_2 = 0.60 * self.fuselage_length
@@ -437,6 +437,7 @@ class MassMethods:
 
         dataframe = pd.DataFrame(methods_data, columns=column_labels, index=row_labels)
 
+        print()
         print(dataframe)
         print()
 
