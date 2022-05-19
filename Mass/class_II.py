@@ -33,6 +33,7 @@ class MassMethods:
         self.wing_chord_root = 1.58
         self.wing_MAC = ((2 / 3) * self.wing_chord_root *
                          ((1 + self.wing_taper + self.wing_taper ** 2) / (1 + self.wing_taper)))
+        self.wing_lift_alpha = 6.56
 
         # Horizontal tail attributes.
         self.h_tail_aspect_ratio = 5.56
@@ -101,10 +102,22 @@ class MassMethods:
         self.arm_gear = 0.50 * self.wing_MAC
         self.arm_EOM = 0.35 * self.wing_MAC
 
+        # Stability attributes.
+
+        self.wing_area_net = self.wing_area - (self.fuselage_width * self.wing_chord_root)
+
+        self.X_ac_wing = 0.25
+        self.X_ac_fuselage_1 = None
+        self.X_ac_fuselage_2 = None
+        self.X_ac = self.X_ac_wing + self.X_ac_fuselage_1 + self.X_ac_fuselage_2
+        self.X_ac_h_tail = None
+
+        self.h_tail_arm = self.X_ac_h_tail - self.X_ac
+        self.h_tail_speed_ratio = 0.85
+
         # To be calculated attributes.
         self.mass_empty_2 = None
         self.mass_takeoff_2 = None
-        self.CG = None
 
     def cessna(self):
         mass_wing = ((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.397
@@ -357,6 +370,9 @@ class MassMethods:
         dataframe = pd.DataFrame(data_CG, columns=column_labels, index=row_labels)
 
         print(dataframe)
+
+    def scissors(self):
+        h_tail_C_L_alpha = (2 * np.pi * self.h_tail_aspect_ratio) / (2 + np.sqrt(4 + (self.h_tail_aspect_ratio / 0.95) ** 2))
 
     def main(self, iteration=0.02):
 
