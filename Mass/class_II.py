@@ -39,6 +39,7 @@ class MassMethods:
         self.h_tail_aspect_ratio = 5.56
         self.h_tail_area = 2.80
         self.h_tail_span = 4.00
+        self.h_tail_sweep_half = 0
         self.h_tail_sweep_quarter = 0
         self.h_tail_taper = 0.65
         self.h_tail_t_max = 0.12
@@ -372,7 +373,7 @@ class MassMethods:
         print(dataframe)
 
     def scissors(self):
-        h_tail_C_L_alpha = (2 * np.pi * self.h_tail_aspect_ratio) / (2 + np.sqrt(4 + (self.h_tail_aspect_ratio / 0.95) ** 2))
+        h_tail_C_L_alpha = (2 * np.pi * self.h_tail_aspect_ratio) / (2 + np.sqrt(4 + (self.h_tail_aspect_ratio / 0.95) ** 2 * (1 + (np.tan(self.h_tail_sweep_half)))))
 
     def main(self, iteration=0.02):
 
