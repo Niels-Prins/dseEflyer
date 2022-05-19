@@ -282,17 +282,19 @@ class MassMethods:
         data_usaf = self.usaf()
 
         data = np.vstack((data_cessna, data_raymer, data_torenbeek, data_usaf))
+        data_totals = np.round(np.array([np.sum(data[i]) for i in range(len(data))])).reshape(-1, 1)
+        data = np.hstack((data, data_totals))
 
         # Correction factors.
-        data[:, 0] = np.round(data[:, 0] * 0.40)
-        data[:, 3] = np.round(data[:, 3] * 0.40)
+        data[:, 0] = np.round(data[:, 0] * 0.50)
+        data[:, 3] = np.round(data[:, 3] * 0.50)
         data[:, 4] = np.round(data[:, 4] * 0.60)
         data[:, 5] = np.round(data[:, 5] * 0.60)
         data[:, 7] = np.round(data[:, 7] * 0.50)
 
         average = []
 
-        for i in range(len(data[0])):
+        for i in range(len(data[0]) - 1):
             average_column = np.sum(data[:, i]) / len(np.where(data[:, i] > 0.1 * np.sum(data[:, i]))[0])
             average.append(round(average_column))
 
@@ -301,7 +303,7 @@ class MassMethods:
 
         data_average = np.vstack((average, relative))
 
-        return np.sum(data_average), data_average, data
+        return np.sum(data_average[0]), data_average, data
 
     def positioning(self):
         # Fuselage group.
@@ -369,7 +371,7 @@ class MassMethods:
         print()
         print(f'Wing leading edge position: {round(self.wing_X_LE, 2)} [m]')
 
-    def scissors(self, ratio=0.3):
+    def scissors(self, ratio=0.25):
         wing_area_net = self.wing_area - (self.fuselage_width * self.wing_chord_root)
 
         self.h_tail_C_L_alpha = ((2 * np.pi * self.h_tail_aspect_ratio)
@@ -396,7 +398,6 @@ class MassMethods:
 
         X_tail = self.arm_h_tail
         h_tail_arm = (X_tail - (X_ac * self.wing_MAC) - self.wing_X_LE)
-        print(h_tail_arm)
         h_tail_speed_ratio = 0.85
 
         downwash = ((7 * self.wing_C_L_alpha)
@@ -416,10 +417,10 @@ class MassMethods:
         plt.plot(X_cg, area_ratio_control, label='Controllability')
         plt.plot([min_cg, max_cg], [ratio, ratio], label='CG range')
         plt.plot()
-        plt.xlabel('Sh/S [-]')
-        plt.ylabel('Xcg [% MAC]')
+        plt.xlabel('Xcg [% MAC]')
+        plt.ylabel('Sh/S [-]')
         plt.xlim(0, 1)
-        plt.ylim(0, 1)
+        plt.ylim(0, 0.5)
         plt.legend()
         plt.show()
 
@@ -431,7 +432,7 @@ class MassMethods:
 
         row_labels = np.array(['Cessna', 'Raymer', 'Torenbeek', 'USAF'])
         column_labels = np.array(['Wing', 'H-tail', 'V-tail', 'Fuselage', 'Gear', 'Control',
-                                  'Electric', 'Misc', 'Batteries', 'Motor', 'Occupants'])
+                                  'Electric', 'Misc', 'Batteries', 'Motor', 'Occupants', 'Totals'])
 
         dataframe = pd.DataFrame(methods_data, columns=column_labels, index=row_labels)
 

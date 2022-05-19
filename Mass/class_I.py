@@ -1,5 +1,5 @@
 def class_I():
-    structure = 500
+    structure = 360
     batteries = 210
     motor = 60
     margin = 0.2
