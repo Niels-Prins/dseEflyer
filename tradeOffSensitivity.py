@@ -21,44 +21,46 @@ for i in range(2, 9):
 
     P = P.drop(P.index[1], axis=0).rename(columns={"Unnamed: 0": "DesignOptions"})
     idx = P.columns.get_loc("Score")
-    lastRow = P.index[P["DesignOptions"] == "Definitions"].to_list()[0] - 1
+    lastRow = P.index[P["DesignOptions"] == "Definitions"].to_list()[0] - 2
     P = P.drop(P.columns[idx + 1 :], axis=1).drop(P.index[lastRow:], axis=0)
 
     initWeight = P.loc[[0]].drop(["DesignOptions", "Score"], axis=1).to_dict("list")
-
-    #%%
     for key in initWeight:
-        value = float(initWeight[key][0])
+        initWeight[key] = initWeight[key][0]
+        value = float(initWeight[key])
         value_dict[key] = [value + percentage for percentage in range_list]
 
     P = P.drop(P.index[0], axis=0).reset_index(drop=True)
 
-    test = P["DesignOptions"].to_dict()
-    for key in test.values():
-        winnerDict[key] = 0
+    designOptionsDict = P["DesignOptions"].to_dict()
+    for key in designOptionsDict.values():
+        scores_weights[key] = 0
+        scores_dropout[key] = 0
 
     keys, values = zip(*value_dict.items())
     combi_dict = [
         {key: value for (key, value) in (zip(keys, v))} for v in it.product(*values)
     ]
 
-    combi_dict = [x for x in combi_dict if np.isclose(sum(x.values()),1)]
+    combi_dict = [x for x in combi_dict if np.isclose(sum(x.values()), 1)]
 
     #%%
-    for key in tqdm(combi_dict):
-        values = pd.DataFrame(key, index=[0]).astype(float)
-        values = list(key.values())
-        Q = P.copy().drop(["DesignOptions", "Score"], axis=1).astype(float)
-        Q = (
-            Q.apply(lambda x: x * values, axis=1)
-            .reset_index(drop=True)
-            .div(sum(values))
-        )
-        idx = Q.sum(axis=1).idxmax()
-        winnerDict[test[idx]] += 1
-    
-    total = sum(winnerDict.values())
-    for key in winnerDict:
-        print(f"{key} & {round((winnerDict[key]/total) * 100, 2)} \\ \hline %")
+    for weightcombi in tqdm(combi_dict):
+        scores_weights = score_calc(weightcombi, scores_weights, designOptionsDict)
 
-# %%
+    total_combi_weight = sum(scores_weights.values())
+
+    #Criterion Dropout
+    for key in initWeight:
+        temp = initWeight.copy()
+        temp[key] = 0
+        scores_dropout = score_calc(temp, scores_dropout, designOptionsDict)
+        
+    total_dropout = sum(scores_dropout.values())
+
+    for key in scores_weights:
+        print(
+            f"{key} & {round((scores_weights[key]/total_combi_weight) * 100, 2)}\% & {round((scores_dropout[key]/total_dropout) * 100, 2)}\% \\\ \hline"
+        )
+
+ # %%
