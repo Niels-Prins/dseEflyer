@@ -79,9 +79,8 @@ class MassMethods:
         self.pressure = (self.density / 2) * self.velocity ** 2
 
         # Mass fractions.
-        self.mass_bat_1 = self.mass_battery / 3
-        self.mass_bat_2 = self.mass_battery / 3
-        self.mass_bat_3 = self.mass_battery / 3
+        self.mass_bat_1 = (self.mass_battery * 1) / 4
+        self.mass_bat_2 = (self.mass_battery * 3) / 4
 
         self.mass_occupant_1 = self.mass_occupants / 2
         self.mass_occupant_2 = self.mass_occupants / 2
@@ -91,8 +90,7 @@ class MassMethods:
         self.arm_v_tail = 1.00 * self.fuselage_length
         self.arm_fuselage = 0.35 * self.fuselage_length
         self.arm_bat_1 = 0.20 * self.fuselage_length
-        self.arm_bat_2 = 0.40 * self.fuselage_length
-        self.arm_bat_3 = 0.60 * self.fuselage_length
+        self.arm_bat_2 = 0.60 * self.fuselage_length
         self.arm_motor = 0.75 * self.fuselage_length
         self.arm_control = 0.60 * self.fuselage_length
         self.arm_electric = 0.30 * self.fuselage_length
@@ -307,9 +305,7 @@ class MassMethods:
 
     def positioning(self):
         # Fuselage group.
-        moment_bat = ((self.mass_bat_1 * self.arm_bat_1)
-                      + (self.mass_bat_2 * self.arm_bat_2)
-                      + (self.mass_bat_3 * self.arm_bat_3))
+        moment_bat = (self.mass_bat_1 * self.arm_bat_1) + (self.mass_bat_2 * self.arm_bat_2)
         moment_motor = self.mass_motor * self.arm_motor
 
         moment_h_tail = self.mass_takeoff_2[0, 1] * self.arm_h_tail
@@ -367,9 +363,13 @@ class MassMethods:
 
         dataframe = pd.DataFrame(data_CG, columns=column_labels, index=row_labels)
 
-        print(dataframe)
+        self.CG = data_CG
 
-    def scissors(self):
+        print(dataframe)
+        print()
+        print(f'Wing leading edge: {round(self.wing_X_LE, 2)} [m]')
+
+    def scissors(self, ratio=0.3):
         wing_area_net = self.wing_area - (self.fuselage_width * self.wing_chord_root)
 
         self.h_tail_C_L_alpha = ((2 * np.pi * self.h_tail_aspect_ratio)
@@ -408,8 +408,13 @@ class MassMethods:
         area_ratio_control = (X_cg - X_ac + (C_m_ac / C_L_aircraft)) * ((C_L_aircraft * self.wing_MAC) /
                                                                         (C_L_h * h_tail_arm * h_tail_speed_ratio))
 
+        min_cg = np.min(self.CG[:, 2] / 100)
+        max_cg = np.max(self.CG[:, 2] / 100)
+
         plt.plot(X_cg, area_ratio_stability, label='Stability')
         plt.plot(X_cg, area_ratio_control, label='Controllability')
+        plt.plot([min_cg, max_cg], [ratio, ratio], label='CG range')
+        plt.plot()
         plt.xlabel('Sh/S [-]')
         plt.ylabel('Xcg [% MAC]')
         plt.xlim(0, 1)
