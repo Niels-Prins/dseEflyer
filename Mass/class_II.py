@@ -12,17 +12,17 @@ pd.set_option('display.width', None)
 class MassMethods:
 
     def __init__(self):
-        # Load factor attributes.
-        self.safety_margin = 1.5
-        self.load_factor = 4
-        self.load_factor_ultimate = self.load_factor * self.load_factor
-
         # Class I attributes.
         self.mass_empty_1, self.mass_takeoff_1, self.mass_battery, self.mass_motor, self.mass_occupants = class_I()
 
+        # Load factor attributes.
+        self.safety_margin = 1.5
+        self.load_factor = 8
+        self.load_factor_ultimate = self.load_factor * self.load_factor
+
         # Wing attributes.
-        self.wing_aspect_ratio = 5.8
-        self.wing_area = 13.1
+        self.wing_aspect_ratio = 5.80
+        self.wing_area = 13.10
         self.wing_span = 8.72
         self.wing_sweep_half = -7.45 * (np.pi / 180)
         self.wing_sweep_quarter = -3.74 * (np.pi / 180)
@@ -37,32 +37,32 @@ class MassMethods:
 
         # Horizontal tail attributes.
         self.h_tail_aspect_ratio = 5.15
-        self.h_tail_area = 2.791062747
-        self.h_tail_span = 3.791302302
+        self.h_tail_area = 2.79
+        self.h_tail_span = 3.79
         self.h_tail_sweep_half = 0
         self.h_tail_sweep_quarter = 0
-        self.h_tail_taper = 0.725
-        self.h_tail_t_max = 0.12            # Unknown
+        self.h_tail_taper = 0.73
+        self.h_tail_t_max = 0.12
         self.h_tail_C_L_alpha = None
 
         # Vertical tail attributes.
         self.v_tail_aspect_ratio = 1.65
-        self.v_tail_area = 1.307037875
-        self.v_tail_span = 1.46854094
+        self.v_tail_area = 1.31
+        self.v_tail_span = 1.47
         self.v_tail_sweep_quarter = 27 * (np.pi / 180)
         self.v_tail_taper = 0.45
-        self.v_tail_t_max = 0.12            # Unknown
+        self.v_tail_t_max = 0.12
         self.v_tail_C_L_alpha = None
 
         # Fuselage attributes.
-        self.fuselage_area = 21
-        self.fuselage_length = 6.5
-        self.fuselage_height = 1.575
-        self.fuselage_width = 0.8
+        self.fuselage_area = 21.00
+        self.fuselage_length = 6.50
+        self.fuselage_height = 1.58
+        self.fuselage_width = 0.80
         self.fuselage_radius = max(self.fuselage_height, self.fuselage_width) / 2
 
         # Gear attributes.
-        self.gear_length = 0.5
+        self.gear_length = 0.50
         self.gear_load_factor = 4
 
         # Empirical attributes.
@@ -108,7 +108,8 @@ class MassMethods:
         self.mass_takeoff_2 = None
 
         self.wing_X_LE = None
-        self.test = None
+        self.aircraft_X_CG = None
+        self.aircraft_C_L_alpha = None
 
     def cessna(self):
         mass_wing = ((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.397
@@ -286,9 +287,11 @@ class MassMethods:
         data = np.vstack((data_cessna, data_raymer, data_torenbeek, data_usaf))
 
         # Correction factors.
-        data[:, 3] = np.round(data[:, 3] * 0.75)
-        data[:, 4] = np.round(data[:, 3] * 0.50)
-        data[:, 7] = np.round(data[:, 3] * 0.50)
+        data[:, 0] = np.round(data[:, 0] * 0.40)
+        data[:, 3] = np.round(data[:, 3] * 0.40)
+        data[:, 4] = np.round(data[:, 4] * 0.70)
+        data[:, 5] = np.round(data[:, 5] * 0.60)
+        data[:, 7] = np.round(data[:, 7] * 0.50)
 
         average = []
 
@@ -363,11 +366,11 @@ class MassMethods:
 
         dataframe = pd.DataFrame(data_CG, columns=column_labels, index=row_labels)
 
-        self.CG = data_CG
+        self.aircraft_X_CG = data_CG
 
         print(dataframe)
         print()
-        print(f'Wing leading edge: {round(self.wing_X_LE, 2)} [m]')
+        print(f'Wing leading edge position: {round(self.wing_X_LE, 2)} [m]')
 
     def scissors(self, ratio=0.3):
         wing_area_net = self.wing_area - (self.fuselage_width * self.wing_chord_root)
@@ -376,15 +379,12 @@ class MassMethods:
                                  / (2 + np.sqrt(4 + (self.h_tail_aspect_ratio / 0.95) ** 2
                                     * (1 + (np.tan(self.h_tail_sweep_half) ** 2)))))
 
-        C_L_alpha_aircraft = (self.wing_C_L_alpha * (1 + 2.15 * (self.fuselage_width / self.wing_span))
-                              * (wing_area_net / self.wing_area)
-                              + (np.pi / 2) * ((self.fuselage_width ** 2) / self.wing_area))
-
-        downwash = ((7 * self.wing_C_L_alpha)
-                    / (4 * np.pi * self.h_tail_aspect_ratio * (self.wing_taper * self.h_tail_arm) ** 0.25))
+        self.aircraft_C_L_alpha = (self.wing_C_L_alpha * (1 + 2.15 * (self.fuselage_width / self.wing_span))
+                                   * (wing_area_net / self.wing_area)
+                                   + (np.pi / 2) * ((self.fuselage_width ** 2) / self.wing_area))
 
         X_ac_fuselage_1 = ((1.8 * self.fuselage_width * self.fuselage_height * (self.fuselage_length - self.wing_X_LE))
-                           / (- C_L_alpha_aircraft * self.wing_area * self.wing_MAC))
+                           / (- self.aircraft_C_L_alpha * self.wing_area * self.wing_MAC))
         X_ac_fuselage_2 = (((0.273 * self.fuselage_width * self.wing_area * (self.wing_span - self.fuselage_width))
                             * np.tan(self.wing_sweep_quarter))
                            / ((1 + self.wing_taper) * self.wing_span * self.wing_MAC ** 2
@@ -401,6 +401,9 @@ class MassMethods:
         h_tail_arm = X_tail - (X_ac * self.wing_MAC) - self.wing_X_LE
         h_tail_speed_ratio = 0.85
 
+        downwash = ((7 * self.wing_C_L_alpha)
+                    / (4 * np.pi * self.h_tail_aspect_ratio * (self.wing_taper * h_tail_arm) ** 0.25))
+
         denominator = ((self.wing_C_L_alpha / self.h_tail_C_L_alpha)
                        * (1 - downwash) * (h_tail_arm / self.wing_MAC) * h_tail_speed_ratio)
 
@@ -408,8 +411,8 @@ class MassMethods:
         area_ratio_control = (X_cg - X_ac + (C_m_ac / C_L_aircraft)) * ((C_L_aircraft * self.wing_MAC) /
                                                                         (C_L_h * h_tail_arm * h_tail_speed_ratio))
 
-        min_cg = np.min(self.CG[:, 2] / 100)
-        max_cg = np.max(self.CG[:, 2] / 100)
+        min_cg = np.min(self.aircraft_X_CG[:, 2] / 100)
+        max_cg = np.max(self.aircraft_X_CG[:, 2] / 100)
 
         plt.plot(X_cg, area_ratio_stability, label='Stability')
         plt.plot(X_cg, area_ratio_control, label='Controllability')
@@ -422,7 +425,7 @@ class MassMethods:
         plt.legend()
         plt.show()
 
-    def main(self, iterations=100):
+    def main(self, iterations=10):
         self.mass_takeoff_1, self.mass_takeoff_2, methods_data = self.combine()
 
         for i in range(iterations):
