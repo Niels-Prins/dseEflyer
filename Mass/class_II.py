@@ -34,6 +34,7 @@ class MassMethods:
         self.wing_MAC = ((2 / 3) * self.wing_chord_root *
                          ((1 + self.wing_taper + self.wing_taper ** 2) / (1 + self.wing_taper)))
         self.wing_C_L_alpha = 6.56
+        self.wing_X_ac = 0.25
 
         # Horizontal tail attributes.
         self.h_tail_aspect_ratio = 5.56
@@ -103,22 +104,11 @@ class MassMethods:
         self.arm_gear = 0.50 * self.wing_MAC
         self.arm_EOM = 0.35 * self.wing_MAC
 
-        # Stability attributes.
-
-        self.wing_area_net = self.wing_area - (self.fuselage_width * self.wing_chord_root)
-
-        self.X_ac_wing = 0.25
-        self.X_ac_fuselage_1 = None
-        self.X_ac_fuselage_2 = None
-        self.X_ac = self.X_ac_wing + self.X_ac_fuselage_1 + self.X_ac_fuselage_2
-        self.X_ac_h_tail = None
-
-        self.h_tail_arm = self.X_ac_h_tail - self.X_ac
-        self.h_tail_speed_ratio = 0.85
-
         # To be calculated attributes.
         self.mass_empty_2 = None
         self.mass_takeoff_2 = None
+
+        self.wing_X_LE = None
 
     def cessna(self):
         mass_wing = ((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.397
@@ -338,27 +328,27 @@ class MassMethods:
         mass_eom = mass_wing + mass_fuselage
         arm_eom = 0.35 * self.wing_MAC
 
-        arm_wing_LE = arm_fuselage - arm_eom + (mass_wing / mass_fuselage) * ((arm_wing - arm_eom) * self.wing_MAC)
+        self.wing_X_LE = arm_fuselage - arm_eom + (mass_wing / mass_fuselage) * ((arm_wing - arm_eom) * self.wing_MAC)
 
-        CG_0 = np.round(((((arm_wing_LE + arm_wing) * mass_wing) + (arm_fuselage * mass_fuselage))
+        CG_0 = np.round(((((self.wing_X_LE + arm_wing) * mass_wing) + (arm_fuselage * mass_fuselage))
                          / (mass_wing + mass_fuselage)), 2)
         CG_0_mass = mass_eom
-        CG_0_MAC = np.round(((CG_0 - arm_wing_LE) / self.wing_MAC) * 100, 2)
+        CG_0_MAC = np.round(((CG_0 - self.wing_X_LE) / self.wing_MAC) * 100, 2)
 
         CG_1_front = np.round((((mass_eom * CG_0) + self.arm_occupant_1 * self.mass_occupant_1)
                                / (mass_eom + self.mass_occupant_1)), 2)
         CG_1_front_mass = mass_eom + self.mass_occupant_1
-        CG_1_front_MAC = np.round(((CG_1_front - arm_wing_LE) / self.wing_MAC) * 100, 2)
+        CG_1_front_MAC = np.round(((CG_1_front - self.wing_X_LE) / self.wing_MAC) * 100, 2)
 
         CG_1_rear = np.round((((mass_eom * CG_0) + self.arm_occupant_2 * self.mass_occupant_2)
                               / (mass_eom + self.mass_occupant_2)), 2)
         CG_1_rear_mass = mass_eom + self.mass_occupant_2
-        CG_1_rear_MAC = np.round(((CG_1_rear - arm_wing_LE) / self.wing_MAC) * 100, 2)
+        CG_1_rear_MAC = np.round(((CG_1_rear - self.wing_X_LE) / self.wing_MAC) * 100, 2)
 
         CG_2 = np.round((((mass_eom * CG_0) + (self.arm_occupant_1 * self.mass_occupant_1) +
                           (self.arm_occupant_2 * self.mass_occupant_2)) / (mass_eom + self.mass_occupants)), 2)
         CG_2_mass = mass_eom + self.mass_occupants
-        CG_2_MAC = np.round(((CG_2 - arm_wing_LE) / self.wing_MAC) * 100, 2)
+        CG_2_MAC = np.round(((CG_2 - self.wing_X_LE) / self.wing_MAC) * 100, 2)
 
         data_CG = np.array([[CG_0_mass, CG_0, CG_0_MAC],
                             [CG_1_front_mass, CG_1_front, CG_1_front_MAC],
@@ -373,11 +363,26 @@ class MassMethods:
         print(dataframe)
 
     def scissors(self):
-        C_L_alpha_h_tail = ((2 * np.pi * self.h_tail_aspect_ratio) /
-                            (2 + np.sqrt(4 + (self.h_tail_aspect_ratio / 0.95) ** 2
-                                         * (1 + (np.tan(self.h_tail_sweep_half) ** 2)))))
+        wing_area_net = self.wing_area - (self.fuselage_width * self.wing_chord_root)
 
-        C_L_alpha_aircraft = self.wing_C_L_alpha
+        h_tail_arm = self.arm_h_tail
+        h_tail_speed_ratio = 0.85
+
+        C_L_alpha_h_tail = ((2 * np.pi * self.h_tail_aspect_ratio)
+                            / (2 + np.sqrt(4 + (self.h_tail_aspect_ratio / 0.95) ** 2
+                               * (1 + (np.tan(self.h_tail_sweep_half) ** 2)))))
+
+        C_L_alpha_aircraft = (self.wing_C_L_alpha * (1 + 2.15 * (self.fuselage_width / self.wing_span))
+                              * (wing_area_net / self.wing_area)
+                              + (np.pi / 2) * ((self.fuselage_width ** 2) / self.wing_area))
+
+        downwash = ((7 * self.wing_C_L_alpha)
+                    / (4 * np.pi * self.h_tail_aspect_ratio * (self.wing_taper * self.h_tail_arm) ** 0.25))
+
+        X_ac_fuselage_1 = ((1.8 * self.fuselage_width * self.fuselage_height * (self.fuselage_length - self.wing_X_LE))
+                           / (- C_L_alpha_aircraft * self.wing_area * self.wing_MAC))
+        X_ac_fuselage_2 = (0.273 * self.fuselage_width * self.wing_area * (self.wing_span - self.fuselage_width)) / ((1 + self.wing_taper) * self.wing_span * self.wing_MAC ** 2 * ())
+        X_ac = (self.wing_X_ac + X_ac_fuselage_1 + X_ac_fuselage_2) * self.wing_MAC + self.wing_X_LE
 
     def main(self, iteration=0.02):
 
