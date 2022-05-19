@@ -85,11 +85,13 @@ plt.plot(
 )
 
 #Set the grid nicely
-plt.grid(b=True, which="major", color="#666666", linestyle="-")
+plt.grid(visible=True, which="major", color="#666666", linestyle="-")
 plt.minorticks_on()
-plt.grid(b=True, which="minor", color="#999999", linestyle="-", alpha=0.2)
+plt.grid(visible=True, which="minor", color="#999999", linestyle="-", alpha=0.2)
 plt.yticks(np.arange(-6,9,1))
-plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
 
+plt.legend(loc="upper left")
+plt.xlabel("Operating Velocities")
+plt.ylabel("G-load")
 plt.show()
 #%%
