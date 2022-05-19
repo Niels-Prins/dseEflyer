@@ -91,10 +91,10 @@ class MassMethods:
         self.arm_fuselage = 0.35 * self.fuselage_length
         self.arm_bat_1 = 0.20 * self.fuselage_length
         self.arm_bat_2 = 0.60 * self.fuselage_length
-        self.arm_motor = 0.75 * self.fuselage_length
+        self.arm_motor = 0.70 * self.fuselage_length
         self.arm_control = 0.60 * self.fuselage_length
         self.arm_electric = 0.30 * self.fuselage_length
-        self.arm_misc = 0.75 * self.fuselage_length
+        self.arm_misc = 0.70 * self.fuselage_length
         self.arm_occupant_1 = 0.30 * self.fuselage_length
         self.arm_occupant_2 = 0.50 * self.fuselage_length
 
