@@ -20,8 +20,6 @@ class MassMethods:
         # Class I attributes.
         self.mass_empty_1, self.mass_takeoff_1, self.mass_battery, self.mass_motor, self.mass_occupants = class_I()
 
-        # self.mass_empty_1, self.mass_takeoff_1, self.mass_battery, self.mass_motor, self.mass_occupants = 1029, 1633, 308, 60, 180
-
         # Wing attributes.
         self.wing_aspect_ratio = 5.8
         self.wing_area = 13.1
@@ -288,6 +286,12 @@ class MassMethods:
         data_usaf = self.usaf()
 
         data = np.vstack((data_cessna, data_raymer, data_torenbeek, data_usaf))
+
+        # Correction factors.
+        data[:, 3] = np.round(data[:, 3] * 0.75)
+        data[:, 4] = np.round(data[:, 3] * 0.50)
+        data[:, 7] = np.round(data[:, 3] * 0.50)
+
         average = []
 
         for i in range(len(data[0])):
@@ -401,12 +405,10 @@ class MassMethods:
         plt.plot(X_cg, area_ratio)
         plt.show()
 
-    def main(self, iteration=0.01):
-        new_mass_takeoff, self.mass_takeoff_2, methods_data = self.combine()
+    def main(self, iterations=100):
+        self.mass_takeoff_1, self.mass_takeoff_2, methods_data = self.combine()
 
-        print(np.sum(self.mass_takeoff_2), self.mass_takeoff_1)
-
-        while self.mass_takeoff_1 / self.combine()[0] > (1 + iteration):
+        for i in range(iterations):
             self.mass_takeoff_1, self.mass_takeoff_2, methods_data = self.combine()
 
         row_labels = np.array(['Cessna', 'Raymer', 'Torenbeek', 'USAF'])
