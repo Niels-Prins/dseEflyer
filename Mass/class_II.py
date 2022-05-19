@@ -291,7 +291,7 @@ class MassMethods:
 
         data_average = np.vstack((average, relative))
 
-        return np.sum(data_average), data_average
+        return np.sum(data_average), data_average, data
 
     def positioning(self):
         # Fuselage group.
@@ -361,7 +361,16 @@ class MassMethods:
     def main(self, iteration=0.02):
 
         while self.mass_takeoff_1 / self.combine()[0] > (1 + iteration):
-            self.mass_takeoff_1, self.mass_takeoff_2 = self.combine()
+            self.mass_takeoff_1, self.mass_takeoff_2, methods_data = self.combine()
+
+        row_labels = np.array(['Cessna', 'Raymer', 'Torenbeek', 'USAF'])
+        column_labels = np.array(['Wing', 'H-tail', 'V-tail', 'Fuselage', 'Gear', 'Control',
+                                  'Electric', 'Misc', 'Batteries', 'Motor', 'Occupants'])
+
+        dataframe = pd.DataFrame(methods_data, columns=column_labels, index=row_labels)
+
+        print(dataframe)
+        print()
 
         row_labels = np.array(['Average [kg]', 'Average [%]'])
         column_labels = np.array(['Wing', 'H-tail', 'V-tail', 'Fuselage', 'Gear', 'Control',
