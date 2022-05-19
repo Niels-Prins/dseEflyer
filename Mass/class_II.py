@@ -55,9 +55,9 @@ class MassMethods:
 
         # Fuselage attributes.
         self.fuselage_area = 21
-        self.fuselage_length = 7.92
-        self.fuselage_height = 1.3
-        self.fuselage_width = 1.3
+        self.fuselage_length = 6.5
+        self.fuselage_height = 1.575
+        self.fuselage_width = 0.8
         self.fuselage_radius = max(self.fuselage_height, self.fuselage_width) / 2
 
         # Gear attributes.
