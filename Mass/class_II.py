@@ -29,7 +29,7 @@ class MassMethods:
         self.wing_taper = 0.45
         self.wing_t_to_c = 0.15
         self.wing_t_max = 0.31
-        self.wing_chord_root = 1.58
+        self.wing_chord_root = 2.07
         self.wing_MAC = ((2 / 3) * self.wing_chord_root *
                          ((1 + self.wing_taper + self.wing_taper ** 2) / (1 + self.wing_taper)))
         self.wing_C_L_alpha = 6.56
