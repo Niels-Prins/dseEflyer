@@ -72,6 +72,7 @@ class MassMethods:
         self.kg_to_pounds = 2.2046
         self.meters_to_feet = 3.2808
         self.pascal_to_psf = 0.0209
+        self.ms_to_knots = 1 / 0.514444444
 
         # Flight condition attributes.
         self.velocity = 77
@@ -123,27 +124,27 @@ class MassMethods:
                        * (0.0554 / self.kg_to_pounds))
 
         mass_v_tail = ((self.mass_takeoff_1 * self.kg_to_pounds) ** 0.567
-                       * (self.v_tail_area * self.meters_to_feet ** 2) ** 0.125
+                       * (self.v_tail_area * self.meters_to_feet ** 2) ** 0.149
                        * ((self.v_tail_aspect_ratio ** 0.482) / ((self.v_tail_t_max * self.meters_to_feet) ** 0.747))
                        * (1 / (np.cos(self.v_tail_sweep_quarter) ** 0.882))
                        * (0.1077 / self.kg_to_pounds))
 
         mass_fuselage = ((self.mass_takeoff_1 * self.kg_to_pounds) ** 0.692
-                         * (self.fuselage_radius * self.meters_to_feet) ** 0.374
+                         * 2 ** 0.374
                          * (self.fuselage_length * self.meters_to_feet) ** 0.590
                          * (0.04682 / self.kg_to_pounds))
 
-        mass_gear = (0.013 * (self.mass_takeoff_1 * self.kg_to_pounds)
-                     + 0.362 * (self.mass_takeoff_1 * self.kg_to_pounds) ** 0.417 * self.gear_load_factor ** 0.950 * (
+        mass_gear = ((0.013 * (self.mass_takeoff_1 * self.kg_to_pounds)
+                     + 0.146 * (self.mass_takeoff_1 * self.kg_to_pounds) ** 0.417 * self.gear_load_factor ** 0.950 * (
                                  self.gear_length * self.meters_to_feet) ** 0.183
-                     + 6.2 + 0.0013 * (self.mass_takeoff_1 * self.kg_to_pounds) + 0.007157 * (
+                     + 6.2 + 0.0013 * (self.mass_takeoff_1 * self.kg_to_pounds) + 0.000143 * (
                                  self.mass_takeoff_1 * self.kg_to_pounds) ** 0.749 * self.gear_load_factor * (
                                  self.gear_length * self.meters_to_feet) ** 0.788
-                     + 0.014 * (self.mass_takeoff_1 * self.kg_to_pounds)) / self.kg_to_pounds
+                     + 0.014 * (self.mass_takeoff_1 * self.kg_to_pounds))) * (1 / self.kg_to_pounds)
 
         mass_control = 0.0168 * self.mass_takeoff_1
         mass_electric = 0.0268 * self.mass_takeoff_1
-        mass_misc = (0.0911 * (self.mass_takeoff_1 * self.kg_to_pounds) ** 0.489) / self.kg_to_pounds
+        mass_misc = (0.911 * (self.mass_takeoff_1 * self.kg_to_pounds) ** 0.489) / self.kg_to_pounds
 
         return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear, mass_control,
                                   mass_electric, mass_misc, self.mass_battery, self.mass_motor, self.mass_occupants]))
@@ -226,7 +227,7 @@ class MassMethods:
                           * (1 / self.kg_to_pounds))
 
         mass_gear = mass_gear_main + mass_gear_nose
-        mass_control = (0.33 / self.kg_to_pounds) * (self.mass_takeoff_1 * self.kg_to_pounds) ** 0.667
+        mass_control = (0.33 / self.kg_to_pounds) * (self.mass_takeoff_1 * self.kg_to_pounds) ** (2 / 3)
         mass_electric = (0.0078 * (self.mass_takeoff_1 * self.kg_to_pounds) ** 1.2) / self.kg_to_pounds
         mass_misc = 0
 
@@ -234,33 +235,29 @@ class MassMethods:
                                   mass_electric, mass_misc, self.mass_battery, self.mass_motor, self.mass_occupants]))
 
     def usaf(self):
-        mass_wing = (96.948 * (((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) / 10 ** 5) ** 0.65
-                               * (self.wing_aspect_ratio / (np.cos(self.wing_sweep_quarter)) ** 2) ** 0.57
+        mass_wing = (96.948 * (((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) / (10 ** 5)) ** 0.65
+                               * (self.wing_aspect_ratio / (np.cos(self.wing_sweep_quarter))) ** 0.57
                                * ((self.wing_area * self.meters_to_feet ** 2) / 100) ** 0.61
                                * ((1 + self.wing_taper) / (2 * self.wing_t_to_c)) ** 0.36
-                               * np.sqrt(1 + (self.velocity * self.meters_to_feet) / 500)) * 0.993
+                               * np.sqrt(1 + ((self.velocity * self.ms_to_knots) / 500))) * 0.993
                      * (1 / self.kg_to_pounds))
 
-        mass_h_tail = (
-                    127 * (((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) / (10 ** 5)) ** 0.87
+        mass_h_tail = (127 * (((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) / (10 ** 5)) ** 0.87
                            * ((self.h_tail_area * self.meters_to_feet ** 2) / 100) ** 1.2 * 0.289
-                           * ((self.h_tail_arm * self.meters_to_feet / 10)) ** 0.483
-                           * np.sqrt(
-                        (self.h_tail_span * self.meters_to_feet) / (self.h_tail_t_max * self.meters_to_feet))) ** 0.458
+                           * (self.h_tail_arm * self.meters_to_feet / 10) ** 0.483
+                           * np.sqrt((self.h_tail_span * self.meters_to_feet) / (self.h_tail_t_max * self.meters_to_feet))) ** 0.458
                     * (1 / self.kg_to_pounds))
 
         mass_v_tail = (
                     98.5 * (((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) / (10 ** 5)) ** 0.87
                             * ((self.v_tail_area * self.meters_to_feet ** 2) / 100) ** 1.2 * 0.289
-                            * np.sqrt(
-                        (self.v_tail_span * self.meters_to_feet) / (self.v_tail_t_max * self.meters_to_feet))) ** 0.458
+                            * np.sqrt((self.v_tail_span * self.meters_to_feet) / (self.v_tail_t_max * self.meters_to_feet))) ** 0.458
                     * 1 / self.kg_to_pounds)
 
-        mass_fuselage = (
-                    200 * (((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) / 10 ** 5) ** 0.286
+        mass_fuselage = (200 * (((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) / (10 ** 5)) ** 0.286
                            * ((self.fuselage_length * self.meters_to_feet) / 10) ** 0.857
                            * (((self.fuselage_width + self.fuselage_height) * self.meters_to_feet) / 10)
-                           * ((self.velocity * self.meters_to_feet) / 100) ** 0.338) ** 1.1
+                           * ((self.velocity * self.ms_to_knots) / 100) ** 0.338) ** 1.1
                     * 1 / self.kg_to_pounds)
 
         mass_gear = (0.054 * (self.gear_load_factor * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.684

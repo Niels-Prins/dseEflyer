@@ -1,6 +1,6 @@
 def class_I():
-    structure = 345
-    batteries = 220
+    structure = 500
+    batteries = 210
     motor = 60
     margin = 0.2
     OEM = (1 + margin) * (structure + batteries + motor)
