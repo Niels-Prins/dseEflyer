@@ -33,7 +33,7 @@ class MassMethods:
         self.wing_chord_root = 1.58
         self.wing_MAC = ((2 / 3) * self.wing_chord_root *
                          ((1 + self.wing_taper + self.wing_taper ** 2) / (1 + self.wing_taper)))
-        self.wing_lift_alpha = 6.56
+        self.wing_C_L_alpha = 6.56
 
         # Horizontal tail attributes.
         self.h_tail_aspect_ratio = 5.56
@@ -373,7 +373,11 @@ class MassMethods:
         print(dataframe)
 
     def scissors(self):
-        h_tail_C_L_alpha = (2 * np.pi * self.h_tail_aspect_ratio) / (2 + np.sqrt(4 + (self.h_tail_aspect_ratio / 0.95) ** 2 * (1 + (np.tan(self.h_tail_sweep_half)))))
+        C_L_alpha_h_tail = ((2 * np.pi * self.h_tail_aspect_ratio) /
+                            (2 + np.sqrt(4 + (self.h_tail_aspect_ratio / 0.95) ** 2
+                                         * (1 + (np.tan(self.h_tail_sweep_half) ** 2)))))
+
+        C_L_alpha_aircraft = self.wing_C_L_alpha
 
     def main(self, iteration=0.02):
 
