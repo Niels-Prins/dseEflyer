@@ -80,8 +80,8 @@ class MassMethods:
         self.pressure = (self.density / 2) * self.velocity ** 2
 
         # Mass fractions.
-        self.mass_bat_1 = (self.mass_battery * 1) / 4
-        self.mass_bat_2 = (self.mass_battery * 3) / 4
+        self.mass_bat_1 = (self.mass_battery * 2) / 4
+        self.mass_bat_2 = (self.mass_battery * 2) / 4
 
         self.mass_occupant_1 = self.mass_occupants / 2
         self.mass_occupant_2 = self.mass_occupants / 2
@@ -90,7 +90,7 @@ class MassMethods:
         self.arm_h_tail = 0.95 * self.fuselage_length
         self.arm_v_tail = 0.95 * self.fuselage_length
         self.arm_fuselage = 0.35 * self.fuselage_length
-        self.arm_bat_1 = 0.20 * self.fuselage_length
+        self.arm_bat_1 = 0.10 * self.fuselage_length
         self.arm_bat_2 = 0.60 * self.fuselage_length
         self.arm_motor = 0.70 * self.fuselage_length
         self.arm_control = 0.60 * self.fuselage_length
@@ -395,7 +395,8 @@ class MassMethods:
         C_L_h = -1.0
 
         X_tail = self.arm_h_tail
-        h_tail_arm = X_tail - (X_ac * self.wing_MAC) - self.wing_X_LE
+        h_tail_arm = (X_tail - (X_ac * self.wing_MAC) - self.wing_X_LE)
+        print(h_tail_arm)
         h_tail_speed_ratio = 0.85
 
         downwash = ((7 * self.wing_C_L_alpha)
