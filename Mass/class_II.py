@@ -108,6 +108,7 @@ class MassMethods:
         self.mass_empty_2 = None
         self.mass_takeoff_2 = None
 
+        self.wing_X_LE_correction = 0.2
         self.wing_X_LE = None
         self.aircraft_X_CG = None
         self.aircraft_C_L_alpha = None
@@ -333,27 +334,28 @@ class MassMethods:
         mass_eom = mass_wing + mass_fuselage
         arm_eom = 0.35 * self.wing_MAC
 
-        self.wing_X_LE = arm_fuselage - arm_eom + (mass_wing / mass_fuselage) * ((arm_wing - arm_eom) * self.wing_MAC)
+        self.wing_X_LE = arm_fuselage - arm_eom + (mass_wing / mass_fuselage) * ((arm_wing - arm_eom) * self.wing_MAC) \
+                         + self.wing_X_LE_correction
 
         CG_0 = np.round(((((self.wing_X_LE + arm_wing) * mass_wing) + (arm_fuselage * mass_fuselage))
                          / (mass_wing + mass_fuselage)), 2)
         CG_0_mass = mass_eom
-        CG_0_MAC = np.round(((CG_0 - self.wing_X_LE) / self.wing_MAC) * 100, 2)
+        CG_0_MAC = np.round(((CG_0 - self.wing_X_LE) / self.wing_MAC) * 100)
 
         CG_1_front = np.round((((mass_eom * CG_0) + self.arm_occupant_1 * self.mass_occupant_1)
                                / (mass_eom + self.mass_occupant_1)), 2)
         CG_1_front_mass = mass_eom + self.mass_occupant_1
-        CG_1_front_MAC = np.round(((CG_1_front - self.wing_X_LE) / self.wing_MAC) * 100, 2)
+        CG_1_front_MAC = np.round(((CG_1_front - self.wing_X_LE) / self.wing_MAC) * 100)
 
         CG_1_rear = np.round((((mass_eom * CG_0) + self.arm_occupant_2 * self.mass_occupant_2)
                               / (mass_eom + self.mass_occupant_2)), 2)
         CG_1_rear_mass = mass_eom + self.mass_occupant_2
-        CG_1_rear_MAC = np.round(((CG_1_rear - self.wing_X_LE) / self.wing_MAC) * 100, 2)
+        CG_1_rear_MAC = np.round(((CG_1_rear - self.wing_X_LE) / self.wing_MAC) * 100)
 
         CG_2 = np.round((((mass_eom * CG_0) + (self.arm_occupant_1 * self.mass_occupant_1) +
                           (self.arm_occupant_2 * self.mass_occupant_2)) / (mass_eom + self.mass_occupants)), 2)
         CG_2_mass = mass_eom + self.mass_occupants
-        CG_2_MAC = np.round(((CG_2 - self.wing_X_LE) / self.wing_MAC) * 100, 2)
+        CG_2_MAC = np.round(((CG_2 - self.wing_X_LE) / self.wing_MAC) * 100)
 
         data_CG = np.array([[CG_0_mass, CG_0, CG_0_MAC],
                             [CG_1_front_mass, CG_1_front, CG_1_front_MAC],
@@ -371,7 +373,7 @@ class MassMethods:
         print()
         print(f'Wing leading edge position: {round(self.wing_X_LE, 2)} [m]')
 
-    def scissors(self, ratio=0.25):
+    def scissors(self, ratio=0.20):
         wing_area_net = self.wing_area - (self.fuselage_width * self.wing_chord_root)
 
         beta = np.sqrt(1 - 0.232 ** 2)
@@ -396,7 +398,7 @@ class MassMethods:
 
         C_m_ac = -0.06
         C_L_aircraft = 1.6
-        C_L_h = -1.0
+        C_L_h = -0.35 * (self.h_tail_aspect_ratio) ** (1 / 3)
 
         X_tail = self.arm_h_tail
         h_tail_arm = (X_tail - (X_ac * self.wing_MAC) - self.wing_X_LE)
@@ -415,9 +417,10 @@ class MassMethods:
         min_cg = np.min(self.aircraft_X_CG[:, 2] / 100)
         max_cg = np.max(self.aircraft_X_CG[:, 2] / 100)
 
-        plt.plot(X_cg, area_ratio_stability, label='Stability')
-        plt.plot(X_cg, area_ratio_control, label='Controllability')
-        plt.plot([min_cg, max_cg], [ratio, ratio], label='CG range')
+        plt.plot(X_cg, area_ratio_stability, label='Stability', c='blue')
+        plt.plot(X_cg, area_ratio_stability - 0.05, label='Stab. without margin', c='green')
+        plt.plot(X_cg, area_ratio_control, label='Controllability', c='red')
+        plt.plot([min_cg, max_cg], [ratio, ratio], label='CG range', c='black')
         plt.plot()
         plt.xlabel('Xcg [% MAC]')
         plt.ylabel('Sh/S [-]')
