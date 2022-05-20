@@ -374,9 +374,11 @@ class MassMethods:
     def scissors(self, ratio=0.25):
         wing_area_net = self.wing_area - (self.fuselage_width * self.wing_chord_root)
 
+        beta = np.sqrt(1 - 0.232 ** 2)
+
         self.h_tail_C_L_alpha = ((2 * np.pi * self.h_tail_aspect_ratio)
-                                 / (2 + np.sqrt(4 + (self.h_tail_aspect_ratio / 0.95) ** 2
-                                    * (1 + (np.tan(self.h_tail_sweep_half) ** 2)))))
+                                 / (2 + np.sqrt(4 + (self.h_tail_aspect_ratio * beta / 0.95) ** 2
+                                    * (1 + (np.tan(self.h_tail_sweep_half) ** 2) / beta ** 2))))
 
         self.aircraft_C_L_alpha = (self.wing_C_L_alpha * (1 + 2.15 * (self.fuselage_width / self.wing_span))
                                    * (wing_area_net / self.wing_area)
