@@ -62,7 +62,7 @@ class MassMethods:
         self.fuselage_radius = max(self.fuselage_height, self.fuselage_width) / 2
 
         # Gear attributes.
-        self.gear_length = 0.50
+        self.gear_length = 0.5
         self.gear_load_factor = 5.5
 
         # Empirical attributes.
