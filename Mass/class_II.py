@@ -386,8 +386,8 @@ class MassMethods:
                                    * (wing_area_net / self.wing_area)
                                    + (np.pi / 2) * ((self.fuselage_width ** 2) / self.wing_area))
 
-        X_ac_fuselage_1 = ((1.8 * self.fuselage_width * self.fuselage_height * (self.fuselage_length - self.wing_X_LE))
-                           / (- self.aircraft_C_L_alpha * self.wing_area * self.wing_MAC))
+        X_ac_fuselage_1 = ((-1.8 * self.fuselage_width * self.fuselage_height * self.wing_X_LE)
+                           / (self.aircraft_C_L_alpha * self.wing_area * self.wing_MAC))
         X_ac_fuselage_2 = (((0.273 * self.fuselage_width * self.wing_area * (self.wing_span - self.fuselage_width))
                             * np.tan(self.wing_sweep_quarter))
                            / ((1 + self.wing_taper) * self.wing_span * self.wing_MAC ** 2
@@ -398,7 +398,7 @@ class MassMethods:
 
         C_m_ac = -0.06
         C_L_aircraft = 1.6
-        C_L_h = -0.35 * (self.h_tail_aspect_ratio) ** (1 / 3)
+        C_L_h = -0.35 * self.h_tail_aspect_ratio ** (1 / 3)
 
         X_tail = self.arm_h_tail
         h_tail_arm = (X_tail - (X_ac * self.wing_MAC) - self.wing_X_LE)
