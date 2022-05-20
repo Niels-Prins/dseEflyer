@@ -73,49 +73,50 @@ alt_0 = 0
 alt_6000= 1828
 threshold = 240000/eff_fan/eff_engine
 
-thr_thres_cl_0 = 2523
-thr_thres_cl_6000 = 2109
-thr_thres_to_0 = 1421
-thr_thres_to_6000 = 1188
-thr_thres_la_0 = 1684
-thr_thres_la_6000 = 1408
+thr_thres_cl_0 = 2523 / eff_engine / eff_fan
+thr_thres_cl_6000 = 2109 / eff_engine / eff_fan
+thr_thres_to_0 = 1421 / eff_engine / eff_fan
+thr_thres_to_6000 = 1188 / eff_engine / eff_fan
+thr_thres_la_0 = 1684     / eff_engine / eff_fan
+thr_thres_la_6000 = 1408 / eff_engine / eff_fan
 rpmlower = 4000
 rpmupper = 8000
-margin = 1.02
+rpmspacing = 50
+margin = 1.015
 
 for D_cl in np.arange(0.4, 1, 0.01):
     for e_d_cl in np.arange(0.8, 1.01, 0.01):
-        for n_cl in np.arange(rpmlower/60, rpmupper/60, 50/60):
+        for n_cl in np.arange(rpmlower/60, rpmupper/60, rpmspacing/60):
             mflow_cl_0 = ISA(alt_0)[2] * np.pi * D_cl ** 2 / 4 * V_cl
             Thr_cl_0 = kt * n_cl ** 2 * D_cl ** 4 * ISA(alt_0)[2]
             Torque_cl_0 = kq * n_cl ** 2 * D_cl ** 5 * ISA(alt_0)[2]
             Pr_cl_0 = Preq(alt_0, Thr_cl_0, D_cl, V_cl, e_d_cl)
             if thr_thres_cl_0 <= Thr_cl_0 <= margin * thr_thres_cl_0:
-                for n_cl_2 in np.arange(rpmlower / 60, rpmupper / 60, 50 / 60):
+                for n_cl_2 in np.arange(rpmlower / 60, rpmupper / 60, rpmspacing / 60):
                     mflow_cl_6000 = ISA(alt_6000)[2] * np.pi * D_cl ** 2 / 4 * V_cl
                     Thr_cl_6000 = kt * n_cl_2 ** 2 * D_cl ** 4 * ISA(alt_6000)[2]
                     Torque_cl_6000 = kq * n_cl_2 ** 2 * D_cl ** 5 * ISA(alt_6000)[2]
                     Pr_cl_6000 = Preq(alt_6000, Thr_cl_6000, D_cl, V_cl, e_d_cl)
                     if thr_thres_cl_6000 <= Thr_cl_6000 <= margin * thr_thres_cl_6000:
-                        for n_to in np.arange(rpmlower / 60, rpmupper / 60, 50 / 60):
+                        for n_to in np.arange(rpmlower / 60, rpmupper / 60, rpmspacing / 60):
                             mflow_to_0 = ISA(alt_0)[2] * np.pi * D_cl ** 2 / 4 * V_to
                             Thr_to_0 = kt * n_to ** 2 * D_cl ** 4 * ISA(alt_0)[2]
                             Torque_to_0 = kq * n_to ** 2 * D_cl ** 5 * ISA(alt_0)[2]
                             Pr_to_0 = Preq(alt_0,Thr_to_0, D_cl, V_to, e_d_cl)
                             if thr_thres_to_0 <= Thr_to_0 <= margin * thr_thres_to_0:
-                                for n_to_2 in np.arange(rpmlower / 60, rpmupper / 60, 50 / 60):
+                                for n_to_2 in np.arange(rpmlower / 60, rpmupper / 60, rpmspacing / 60):
                                     mflow_to_6000 = ISA(alt_6000)[2] * np.pi * D_cl ** 2 / 4 * V_to
                                     Thr_to_6000 = kt * n_to_2 ** 2 * D_cl ** 4 * ISA(alt_6000)[2]
                                     Torque_to_6000 = kq * n_to_2 ** 2 * D_cl ** 5 * ISA(alt_6000)[2]
                                     Pr_to_6000 = Preq(alt_6000,Thr_to_6000, D_cl, V_cl, e_d_cl)
                                     if thr_thres_to_6000 <= Thr_to_6000 <= margin * thr_thres_to_6000:
-                                        for n_la in np.arange(rpmlower / 60, rpmupper / 60, 50 / 60):
+                                        for n_la in np.arange(rpmlower / 60, rpmupper / 60, rpmspacing / 60):
                                             mflow_la_0 = ISA(alt_0)[2] * np.pi * D_cl ** 2 / 4 * V_la
                                             Thr_la_0 = kt * n_la ** 2 * D_cl ** 4 * ISA(alt_0)[2]
                                             Torque_la_0 = kq * n_la ** 2 * D_cl ** 5 * ISA(alt_0)[2]
                                             Pr_la_0 = Preq(alt_0, Thr_la_0, D_cl, V_cl, e_d_cl)
                                             if  thr_thres_la_0 <= Thr_la_0 <= margin *thr_thres_la_0:
-                                                for n_la_2 in np.arange(rpmlower / 60, rpmupper / 60, 50 / 60):
+                                                for n_la_2 in np.arange(rpmlower / 60, rpmupper / 60, rpmspacing / 60):
                                                     mflow_la_6000 = ISA(alt_6000)[2] * np.pi * D_cl ** 2 / 4 * V_la
                                                     Thr_la_6000 = kt * n_la_2 ** 2 * D_cl ** 4 * ISA(alt_6000)[2]
                                                     Torque_la_6000 = kq * n_la_2 ** 2 * D_cl ** 5 * ISA(alt_6000)[2]
@@ -144,6 +145,13 @@ df = pd.DataFrame(lst_cl_0, columns=["Diameter","e_d", "Max RPM", 'Min RPM',
                                         "Mass_flow_to_6000","Mass_flow_la_0", "Mass_flow_la_6000"])
 df.to_excel("Prop_sizing_final.xlsx", index=False)
 print(df)
+
+plt.plot(df["Diameter"], df["Max RPM"], label = "Max RPM")
+plt.plot(df["Diameter"], df["Min RPM"], label = "Min RPM")
+plt.ylabel("RPM")
+plt.xlabel("Diameter")
+plt.legend()
+plt.show()
 #
 # for D_cl in np.arange(0.1, 1.5, 0.01):
 #     for n_cl in np.arange(5000 / 60, 8000 / 60, 50 / 60):
