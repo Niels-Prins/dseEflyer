@@ -287,9 +287,10 @@ class MassMethods:
         data = np.hstack((data, data_totals))
 
         # Correction factors.
-        data[:, 0] = np.round(data[:, 0] * 0.40)
+        data[:, 0] = np.round(data[:, 0] * 0.50)
         data[:, 3] = np.round(data[:, 3] * 0.70)
-        data[:, 5] = np.round(data[:, 5] * 0.70)
+        data[:, 4] = np.round(data[:, 4] * 0.70)
+        data[:, 5] = np.round(data[:, 5] * 0.50)
 
         average = []
 
