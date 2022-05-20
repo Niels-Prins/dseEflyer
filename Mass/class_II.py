@@ -287,16 +287,15 @@ class MassMethods:
         data = np.hstack((data, data_totals))
 
         # Correction factors.
-        data[:, 0] = np.round(data[:, 0] * 0.50)
-        data[:, 3] = np.round(data[:, 3] * 0.50)
-        data[:, 4] = np.round(data[:, 4] * 0.60)
-        data[:, 5] = np.round(data[:, 5] * 0.60)
-        data[:, 7] = np.round(data[:, 7] * 0.50)
+        data[:, 0] = np.round(data[:, 0] * 0.40)
+        data[:, 3] = np.round(data[:, 3] * 0.70)
+        data[:, 5] = np.round(data[:, 5] * 0.70)
 
         average = []
 
         for i in range(len(data[0]) - 1):
-            average_column = np.sum(data[:, i]) / len(np.where(data[:, i] > 0.1 * np.sum(data[:, i]))[0])
+            average_column = np.sum(data[:, i]) / len(np.where(data[:, i] >
+                                                               0.2 * (np.sum(data[:, i]) / len(data[:, i])))[0])
             average.append(round(average_column))
 
         average = np.array(average)
