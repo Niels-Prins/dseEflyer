@@ -36,12 +36,12 @@ class MassMethods:
         self.wing_X_ac = 0.25
 
         # Horizontal tail attributes.
-        self.h_tail_aspect_ratio = 5.15
-        self.h_tail_area = 2.79
-        self.h_tail_span = 3.79
+        self.h_tail_aspect_ratio = 5.15  # 5.00
+        self.h_tail_area = 2.79  # 2.00
+        self.h_tail_span = 3.79  # 3.80
         self.h_tail_sweep_half = 0
-        self.h_tail_sweep_quarter = 0
-        self.h_tail_taper = 0.73
+        self.h_tail_sweep_quarter = 5 * (np.pi / 180)
+        self.h_tail_taper = 0.73  # 0.70
         self.h_tail_t_max = 0.12
         self.h_tail_C_L_alpha = None
 
