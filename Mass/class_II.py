@@ -373,7 +373,7 @@ class MassMethods:
         print()
         print(f'Wing leading edge position: {round(self.wing_X_LE, 2)} [m]')
 
-    def scissors(self, ratio=0.20):
+    def scissors(self, ratio=0.15):
         wing_area_net = self.wing_area - (self.fuselage_width * self.wing_chord_root)
 
         beta = np.sqrt(1 - 0.232 ** 2)
@@ -396,11 +396,12 @@ class MassMethods:
         X_ac = self.wing_X_ac + X_ac_fuselage_1 + X_ac_fuselage_2
         X_cg = np.arange(0, 1, 0.01)
 
-        C_m_ac = -0.06
+        C_m_ac = 0.0
         C_L_aircraft = 1.6
         C_L_h = -0.35 * self.h_tail_aspect_ratio ** (1 / 3)
 
         X_tail = self.arm_h_tail
+
         h_tail_arm = (X_tail - (X_ac * self.wing_MAC) - self.wing_X_LE)
         h_tail_speed_ratio = 0.85
 
