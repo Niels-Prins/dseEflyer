@@ -2,18 +2,16 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from class_I import class_I
-
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
 
 
-class MassMethods:
+class Design:
 
     def __init__(self):
         # Class I attributes.
-        self.mass_empty_1, self.mass_takeoff_1, self.mass_battery, self.mass_motor, self.mass_occupants = class_I()
+        self.mass_empty_1, self.mass_takeoff_1, self.mass_battery, self.mass_motor, self.mass_occupants = self.class_I()
 
         # Load factor attributes.
         self.safety_margin = 1.5
@@ -22,14 +20,14 @@ class MassMethods:
 
         # Wing attributes.
         self.wing_aspect_ratio = 5.80
-        self.wing_area = 13.10
-        self.wing_span = 8.72
+        self.wing_area = 14.80
+        self.wing_span = 9.3
         self.wing_sweep_half = -7.45 * (np.pi / 180)
         self.wing_sweep_quarter = -3.74 * (np.pi / 180)
         self.wing_taper = 0.45
         self.wing_t_to_c = 0.15
         self.wing_t_max = 0.31
-        self.wing_chord_root = 2.07
+        self.wing_chord_root = 2.2
         self.wing_MAC = ((2 / 3) * self.wing_chord_root *
                          ((1 + self.wing_taper + self.wing_taper ** 2) / (1 + self.wing_taper)))
         self.wing_C_L_alpha = 6.56
@@ -56,7 +54,7 @@ class MassMethods:
 
         # Fuselage attributes.
         self.fuselage_area = 21.00
-        self.fuselage_length = 6.50
+        self.fuselage_length = 7.68
         self.fuselage_height = 1.58
         self.fuselage_width = 0.80
         self.fuselage_radius = max(self.fuselage_height, self.fuselage_width) / 2
@@ -80,8 +78,8 @@ class MassMethods:
         self.pressure = (self.density / 2) * self.velocity ** 2
 
         # Mass fractions.
-        self.mass_bat_1 = (self.mass_battery * 2) / 4
-        self.mass_bat_2 = (self.mass_battery * 2) / 4
+        self.mass_bat_1 = (self.mass_battery * 4) / 10
+        self.mass_bat_2 = (self.mass_battery * 6) / 10
 
         self.mass_occupant_1 = self.mass_occupants / 2
         self.mass_occupant_2 = self.mass_occupants / 2
@@ -113,174 +111,203 @@ class MassMethods:
         self.aircraft_X_CG = None
         self.aircraft_C_L_alpha = None
 
-    def cessna(self):
-        mass_wing = ((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.397
-                     * (self.wing_area * self.meters_to_feet ** 2) ** 0.360
-                     * self.wing_aspect_ratio ** 1.712
-                     * (0.04674 / self.kg_to_pounds))
+    @staticmethod
+    def class_I():
+        structure = 350
+        batteries = 424
+        motor = 66
+        margin = 0.20
+        OEM = (1 + margin) * (structure + batteries + motor)
 
-        mass_h_tail = ((self.mass_takeoff_1 * self.kg_to_pounds) ** 0.887
-                       * (self.h_tail_area * self.meters_to_feet ** 2) ** 0.101
-                       * ((self.h_tail_aspect_ratio ** 0.138) / ((self.h_tail_t_max * self.meters_to_feet) ** 0.223))
-                       * (0.0554 / self.kg_to_pounds))
+        occupants = 180
+        TOM = OEM + occupants
 
-        mass_v_tail = ((self.mass_takeoff_1 * self.kg_to_pounds) ** 0.567
-                       * (self.v_tail_area * self.meters_to_feet ** 2) ** 0.149
-                       * ((self.v_tail_aspect_ratio ** 0.482) / ((self.v_tail_t_max * self.meters_to_feet) ** 0.747))
-                       * (1 / (np.cos(self.v_tail_sweep_quarter) ** 0.882))
-                       * (0.1077 / self.kg_to_pounds))
+        print(f'Class I OEM: {OEM} \nClass I TOM: {TOM}')
 
-        mass_fuselage = ((self.mass_takeoff_1 * self.kg_to_pounds) ** 0.692
-                         * 2 ** 0.374
-                         * (self.fuselage_length * self.meters_to_feet) ** 0.590
-                         * (0.04682 / self.kg_to_pounds))
+        return OEM, TOM, batteries, motor, occupants
 
-        mass_gear = ((0.013 * (self.mass_takeoff_1 * self.kg_to_pounds)
-                     + 0.146 * (self.mass_takeoff_1 * self.kg_to_pounds) ** 0.417 * self.gear_load_factor ** 0.950 * (
-                                 self.gear_length * self.meters_to_feet) ** 0.183
-                     + 6.2 + 0.0013 * (self.mass_takeoff_1 * self.kg_to_pounds) + 0.000143 * (
-                                 self.mass_takeoff_1 * self.kg_to_pounds) ** 0.749 * self.gear_load_factor * (
-                                 self.gear_length * self.meters_to_feet) ** 0.788
-                     + 0.014 * (self.mass_takeoff_1 * self.kg_to_pounds))) * (1 / self.kg_to_pounds)
+    def class_II(self):
 
-        mass_control = 0.0168 * self.mass_takeoff_1
-        mass_electric = 0.0268 * self.mass_takeoff_1
-        mass_misc = (0.911 * (self.mass_takeoff_1 * self.kg_to_pounds) ** 0.489) / self.kg_to_pounds
+        def cessna():
+            mass_wing = ((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.397
+                         * (self.wing_area * self.meters_to_feet ** 2) ** 0.360
+                         * self.wing_aspect_ratio ** 1.712
+                         * (0.04674 / self.kg_to_pounds))
 
-        return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear, mass_control,
-                                  mass_electric, mass_misc, self.mass_battery, self.mass_motor, self.mass_occupants]))
+            mass_h_tail = ((self.mass_takeoff_1 * self.kg_to_pounds) ** 0.887
+                           * (self.h_tail_area * self.meters_to_feet ** 2) ** 0.101
+                           * ((self.h_tail_aspect_ratio ** 0.138) / (
+                                (self.h_tail_t_max * self.meters_to_feet) ** 0.223))
+                           * (0.0554 / self.kg_to_pounds))
 
-    def raymer(self):
-        mass_wing = (0.036 * (self.meters_to_feet ** 2 * self.wing_area) ** 0.758
-                     * (self.wing_aspect_ratio / ((np.cos(self.wing_sweep_quarter)) ** 2)) ** 0.6
-                     * (self.pressure * self.pascal_to_psf) ** 0.006
-                     * self.wing_taper ** 0.04
-                     * ((100 * self.wing_t_to_c) / (np.cos(self.wing_sweep_quarter))) ** -0.3
-                     * (self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.49
-                     * 1 / self.kg_to_pounds)
+            mass_v_tail = ((self.mass_takeoff_1 * self.kg_to_pounds) ** 0.567
+                           * (self.v_tail_area * self.meters_to_feet ** 2) ** 0.149
+                           * ((self.v_tail_aspect_ratio ** 0.482) / (
+                                (self.v_tail_t_max * self.meters_to_feet) ** 0.747))
+                           * (1 / (np.cos(self.v_tail_sweep_quarter) ** 0.882))
+                           * (0.1077 / self.kg_to_pounds))
 
-        mass_h_tail = (0.016 * (self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.414
-                       * (self.pressure * self.pascal_to_psf) ** 0.168
-                       * (self.h_tail_area * self.meters_to_feet ** 2) ** 0.896
-                       * ((100 * self.wing_t_to_c) / (np.cos(self.wing_sweep_quarter))) ** -0.12
-                       * (self.h_tail_aspect_ratio / ((np.cos(self.h_tail_sweep_quarter)) ** 2)) ** 0.043
-                       * self.h_tail_taper ** -0.02
-                       * 1 / self.kg_to_pounds)
+            mass_fuselage = ((self.mass_takeoff_1 * self.kg_to_pounds) ** 0.692
+                             * 2 ** 0.374
+                             * (self.fuselage_length * self.meters_to_feet) ** 0.590
+                             * (0.04682 / self.kg_to_pounds))
 
-        mass_v_tail = (0.073 * (self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.376
-                       * (self.pressure * self.pascal_to_psf) ** 0.112
-                       * (self.v_tail_area * self.meters_to_feet ** 2) ** 0.873
-                       * ((100 * self.wing_t_to_c) / (np.cos(self.v_tail_sweep_quarter))) ** -0.49
-                       * (self.wing_aspect_ratio / (np.cos(self.v_tail_sweep_quarter)) ** 2) ** 0.357
-                       * self.v_tail_taper ** 0.039
-                       * 1 / self.kg_to_pounds)
+            mass_gear = ((0.013 * (self.mass_takeoff_1 * self.kg_to_pounds)
+                          + 0.146 * (
+                                      self.mass_takeoff_1 * self.kg_to_pounds) ** 0.417 * self.gear_load_factor ** 0.950 * (
+                                  self.gear_length * self.meters_to_feet) ** 0.183
+                          + 6.2 + 0.0013 * (self.mass_takeoff_1 * self.kg_to_pounds) + 0.000143 * (
+                                  self.mass_takeoff_1 * self.kg_to_pounds) ** 0.749 * self.gear_load_factor * (
+                                  self.gear_length * self.meters_to_feet) ** 0.788
+                          + 0.014 * (self.mass_takeoff_1 * self.kg_to_pounds))) * (1 / self.kg_to_pounds)
 
-        mass_fuselage = (0.052 * (self.fuselage_area * self.meters_to_feet ** 2) ** 1.086
-                         * (self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.177
-                         * (self.h_tail_arm * self.meters_to_feet) ** -0.051
-                         * (self.fuselage_length / self.fuselage_width) ** -0.072
-                         * (self.pressure * self.pascal_to_psf) ** 0.241
+            mass_control = 0.0168 * self.mass_takeoff_1
+            mass_electric = 0.0268 * self.mass_takeoff_1
+            mass_misc = (0.911 * (self.mass_takeoff_1 * self.kg_to_pounds) ** 0.489) / self.kg_to_pounds
+
+            return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear, mass_control,
+                                      mass_electric, mass_misc, self.mass_battery, self.mass_motor,
+                                      self.mass_occupants]))
+
+        def raymer():
+            mass_wing = (0.036 * (self.meters_to_feet ** 2 * self.wing_area) ** 0.758
+                         * (self.wing_aspect_ratio / ((np.cos(self.wing_sweep_quarter)) ** 2)) ** 0.6
+                         * (self.pressure * self.pascal_to_psf) ** 0.006
+                         * self.wing_taper ** 0.04
+                         * ((100 * self.wing_t_to_c) / (np.cos(self.wing_sweep_quarter))) ** -0.3
+                         * (self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.49
+                         * 1 / self.kg_to_pounds)
+
+            mass_h_tail = (0.016 * (self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.414
+                           * (self.pressure * self.pascal_to_psf) ** 0.168
+                           * (self.h_tail_area * self.meters_to_feet ** 2) ** 0.896
+                           * ((100 * self.wing_t_to_c) / (np.cos(self.wing_sweep_quarter))) ** -0.12
+                           * (self.h_tail_aspect_ratio / ((np.cos(self.h_tail_sweep_quarter)) ** 2)) ** 0.043
+                           * self.h_tail_taper ** -0.02
+                           * 1 / self.kg_to_pounds)
+
+            mass_v_tail = (0.073 * (self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.376
+                           * (self.pressure * self.pascal_to_psf) ** 0.112
+                           * (self.v_tail_area * self.meters_to_feet ** 2) ** 0.873
+                           * ((100 * self.wing_t_to_c) / (np.cos(self.v_tail_sweep_quarter))) ** -0.49
+                           * (self.wing_aspect_ratio / (np.cos(self.v_tail_sweep_quarter)) ** 2) ** 0.357
+                           * self.v_tail_taper ** 0.039
+                           * 1 / self.kg_to_pounds)
+
+            mass_fuselage = (0.052 * (self.fuselage_area * self.meters_to_feet ** 2) ** 1.086
+                             * (self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.177
+                             * (self.h_tail_arm * self.meters_to_feet) ** -0.051
+                             * (self.fuselage_length / self.fuselage_width) ** -0.072
+                             * (self.pressure * self.pascal_to_psf) ** 0.241
+                             * (1 / self.kg_to_pounds))
+
+            mass_gear_main = (0.095 * (self.gear_load_factor * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.768
+                              * (self.gear_length * self.meters_to_feet) ** 0.409
+                              * 1 / self.kg_to_pounds)
+
+            mass_gear_nose = (0.125 * (self.gear_load_factor * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.566
+                              * (self.gear_length * self.meters_to_feet) ** 0.845
+                              * 1 / self.kg_to_pounds)
+
+            mass_gear = mass_gear_main + mass_gear_nose
+
+            mass_control = (0.053 * (self.fuselage_length * self.meters_to_feet) ** 1.536
+                            * (self.wing_span * self.meters_to_feet) ** 0.371
+                            * (self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds * 10 ** -4) ** 0.8
+                            * 1 / self.kg_to_pounds)
+
+            mass_electric = 0
+
+            mass_misc = (((0.0582 * self.mass_takeoff_1 * self.kg_to_pounds) - 65)
+                         * 1 / self.kg_to_pounds)
+
+            return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear, mass_control,
+                                      mass_electric, mass_misc, self.mass_battery, self.mass_motor,
+                                      self.mass_occupants]))
+
+        def torenbeek():
+            mass_wing = (self.load_factor_ultimate ** 0.55 * (
+                        (self.wing_span * self.wing_area * self.meters_to_feet ** 3) /
+                        (self.wing_t_max * self.meters_to_feet * self.mass_takeoff_1 *
+                         self.kg_to_pounds * np.cos(self.wing_sweep_half))) ** 0.30
+                         * ((self.wing_span * self.meters_to_feet) / np.cos(self.wing_sweep_half)) ** 0.75
+                         * (1 + np.sqrt((6.3 * np.cos(self.wing_sweep_half)) / (self.wing_span * self.meters_to_feet)))
+                         * (0.00125 / self.kg_to_pounds) * (self.mass_takeoff_1 * self.kg_to_pounds))
+
+            mass_h_tail = ((((self.h_tail_area + self.v_tail_area) * self.meters_to_feet ** 2) ** 2) ** 0.75
+                           * (0.02 / self.kg_to_pounds) * self.load_factor_ultimate ** 0.75)
+
+            mass_v_tail = mass_h_tail
+
+            mass_fuselage = 0
+
+            mass_gear_main = ((33 + 0.04 * (self.mass_takeoff_1 * self.kg_to_pounds) ** 0.75
+                               + 0.021 * (self.mass_takeoff_1 * self.kg_to_pounds))
+                              * (1 / self.kg_to_pounds))
+
+            mass_gear_nose = ((12 + 0.06 * (self.mass_takeoff_1 * self.kg_to_pounds) ** 0.75)
+                              * (1 / self.kg_to_pounds))
+
+            mass_gear = mass_gear_main + mass_gear_nose
+            mass_control = (0.33 / self.kg_to_pounds) * (self.mass_takeoff_1 * self.kg_to_pounds) ** (2 / 3)
+            mass_electric = (0.0078 * (self.mass_takeoff_1 * self.kg_to_pounds) ** 1.2) / self.kg_to_pounds
+            mass_misc = 0
+
+            return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear, mass_control,
+                                      mass_electric, mass_misc, self.mass_battery, self.mass_motor,
+                                      self.mass_occupants]))
+
+        def usaf():
+            mass_wing = (96.948 * (
+                        ((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) / (10 ** 5)) ** 0.65
+                        * (self.wing_aspect_ratio / (np.cos(self.wing_sweep_quarter))) ** 0.57
+                        * ((self.wing_area * self.meters_to_feet ** 2) / 100) ** 0.61
+                        * ((1 + self.wing_taper) / (2 * self.wing_t_to_c)) ** 0.36
+                        * np.sqrt(1 + ((self.velocity * self.ms_to_knots) / 500))) * 0.993
                          * (1 / self.kg_to_pounds))
 
-        mass_gear_main = (0.095 * (self.gear_load_factor * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.768
-                          * (self.gear_length * self.meters_to_feet) ** 0.409
-                          * 1 / self.kg_to_pounds)
+            mass_h_tail = (127 * (
+                        ((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) / (10 ** 5)) ** 0.87
+                        * ((self.h_tail_area * self.meters_to_feet ** 2) / 100) ** 1.2 * 0.289
+                        * (self.h_tail_arm * self.meters_to_feet / 10) ** 0.483
+                        * np.sqrt(
+                    (self.h_tail_span * self.meters_to_feet) / (self.h_tail_t_max * self.meters_to_feet))) ** 0.458
+                           * (1 / self.kg_to_pounds))
 
-        mass_gear_nose = (0.125 * (self.gear_load_factor * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.566
-                          * (self.gear_length * self.meters_to_feet) ** 0.845
-                          * 1 / self.kg_to_pounds)
-
-        mass_gear = mass_gear_main + mass_gear_nose
-
-        mass_control = (0.053 * (self.fuselage_length * self.meters_to_feet) ** 1.536
-                        * (self.wing_span * self.meters_to_feet) ** 0.371
-                        * (self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds * 10 ** -4) ** 0.8
-                        * 1 / self.kg_to_pounds)
-
-        mass_electric = 0
-
-        mass_misc = (((0.0582 * self.mass_takeoff_1 * self.kg_to_pounds) - 65)
-                     * 1 / self.kg_to_pounds)
-
-        return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear, mass_control,
-                                  mass_electric, mass_misc, self.mass_battery, self.mass_motor, self.mass_occupants]))
-
-    def torenbeek(self):
-        mass_wing = (self.load_factor_ultimate ** 0.55 * ((self.wing_span * self.wing_area * self.meters_to_feet ** 3) /
-                                                          (self.wing_t_max * self.meters_to_feet * self.mass_takeoff_1 *
-                                                           self.kg_to_pounds * np.cos(self.wing_sweep_half))) ** 0.30
-                     * ((self.wing_span * self.meters_to_feet) / np.cos(self.wing_sweep_half)) ** 0.75
-                     * (1 + np.sqrt((6.3 * np.cos(self.wing_sweep_half)) / (self.wing_span * self.meters_to_feet)))
-                     * (0.00125 / self.kg_to_pounds) * (self.mass_takeoff_1 * self.kg_to_pounds))
-
-        mass_h_tail = ((((self.h_tail_area + self.v_tail_area) * self.meters_to_feet ** 2) ** 2) ** 0.75
-                       * (0.02 / self.kg_to_pounds) * self.load_factor_ultimate ** 0.75)
-
-        mass_v_tail = mass_h_tail
-
-        mass_fuselage = 0
-
-        mass_gear_main = ((33 + 0.04 * (self.mass_takeoff_1 * self.kg_to_pounds) ** 0.75
-                           + 0.021 * (self.mass_takeoff_1 * self.kg_to_pounds))
-                          * (1 / self.kg_to_pounds))
-
-        mass_gear_nose = ((12 + 0.06 * (self.mass_takeoff_1 * self.kg_to_pounds) ** 0.75)
-                          * (1 / self.kg_to_pounds))
-
-        mass_gear = mass_gear_main + mass_gear_nose
-        mass_control = (0.33 / self.kg_to_pounds) * (self.mass_takeoff_1 * self.kg_to_pounds) ** (2 / 3)
-        mass_electric = (0.0078 * (self.mass_takeoff_1 * self.kg_to_pounds) ** 1.2) / self.kg_to_pounds
-        mass_misc = 0
-
-        return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear, mass_control,
-                                  mass_electric, mass_misc, self.mass_battery, self.mass_motor, self.mass_occupants]))
-
-    def usaf(self):
-        mass_wing = (96.948 * (((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) / (10 ** 5)) ** 0.65
-                               * (self.wing_aspect_ratio / (np.cos(self.wing_sweep_quarter))) ** 0.57
-                               * ((self.wing_area * self.meters_to_feet ** 2) / 100) ** 0.61
-                               * ((1 + self.wing_taper) / (2 * self.wing_t_to_c)) ** 0.36
-                               * np.sqrt(1 + ((self.velocity * self.ms_to_knots) / 500))) * 0.993
-                     * (1 / self.kg_to_pounds))
-
-        mass_h_tail = (127 * (((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) / (10 ** 5)) ** 0.87
-                           * ((self.h_tail_area * self.meters_to_feet ** 2) / 100) ** 1.2 * 0.289
-                           * (self.h_tail_arm * self.meters_to_feet / 10) ** 0.483
-                           * np.sqrt((self.h_tail_span * self.meters_to_feet) / (self.h_tail_t_max * self.meters_to_feet))) ** 0.458
-                    * (1 / self.kg_to_pounds))
-
-        mass_v_tail = (
+            mass_v_tail = (
                     98.5 * (((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) / (10 ** 5)) ** 0.87
                             * ((self.v_tail_area * self.meters_to_feet ** 2) / 100) ** 1.2 * 0.289
-                            * np.sqrt((self.v_tail_span * self.meters_to_feet) / (self.v_tail_t_max * self.meters_to_feet))) ** 0.458
+                            * np.sqrt(
+                        (self.v_tail_span * self.meters_to_feet) / (self.v_tail_t_max * self.meters_to_feet))) ** 0.458
                     * 1 / self.kg_to_pounds)
 
-        mass_fuselage = (200 * (((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) / (10 ** 5)) ** 0.286
-                           * ((self.fuselage_length * self.meters_to_feet) / 10) ** 0.857
-                           * (((self.fuselage_width + self.fuselage_height) * self.meters_to_feet) / 10)
-                           * ((self.velocity * self.ms_to_knots) / 100) ** 0.338) ** 1.1
-                    * 1 / self.kg_to_pounds)
+            mass_fuselage = (200 * (
+                        ((self.load_factor_ultimate * self.mass_takeoff_1 * self.kg_to_pounds) / (10 ** 5)) ** 0.286
+                        * ((self.fuselage_length * self.meters_to_feet) / 10) ** 0.857
+                        * (((self.fuselage_width + self.fuselage_height) * self.meters_to_feet) / 10)
+                        * ((self.velocity * self.ms_to_knots) / 100) ** 0.338) ** 1.1
+                             * 1 / self.kg_to_pounds)
 
-        mass_gear = (0.054 * (self.gear_load_factor * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.684
-                     * (self.gear_length * self.meters_to_feet) ** 0.501
-                     * 1 / self.kg_to_pounds)
+            mass_gear = (0.054 * (self.gear_load_factor * self.mass_takeoff_1 * self.kg_to_pounds) ** 0.684
+                         * (self.gear_length * self.meters_to_feet) ** 0.501
+                         * 1 / self.kg_to_pounds)
 
-        mass_control = (1.066 * (self.mass_takeoff_1 * self.kg_to_pounds) ** 0.626
-                        * 1 / self.kg_to_pounds)
+            mass_control = (1.066 * (self.mass_takeoff_1 * self.kg_to_pounds) ** 0.626
+                            * 1 / self.kg_to_pounds)
 
-        mass_electric = 0
+            mass_electric = 0
 
-        mass_misc = (34.5 * 2 * (self.pressure * self.pascal_to_psf) ** 0.25
-                     * (1 / self.kg_to_pounds))
+            mass_misc = (34.5 * 2 * (self.pressure * self.pascal_to_psf) ** 0.25
+                         * (1 / self.kg_to_pounds))
 
-        return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear, mass_control,
-                                  mass_electric, mass_misc, self.mass_battery, self.mass_motor, self.mass_occupants]))
+            return np.round(np.array([mass_wing, mass_h_tail, mass_v_tail, mass_fuselage, mass_gear, mass_control,
+                                      mass_electric, mass_misc, self.mass_battery, self.mass_motor,
+                                      self.mass_occupants]))
 
-    def combine(self):
-        data_cessna = self.cessna()
-        data_raymer = self.raymer()
-        data_torenbeek = self.torenbeek()
-        data_usaf = self.usaf()
+        data_cessna = cessna()
+        data_raymer = raymer()
+        data_torenbeek = torenbeek()
+        data_usaf = usaf()
 
         data = np.vstack((data_cessna, data_raymer, data_torenbeek, data_usaf))
 
@@ -432,10 +459,10 @@ class MassMethods:
         plt.show()
 
     def main(self, iterations=10):
-        self.mass_takeoff_1, self.mass_takeoff_2, methods_data = self.combine()
+        self.mass_takeoff_1, self.mass_takeoff_2, methods_data = self.class_II()
 
         for i in range(iterations):
-            self.mass_takeoff_1, self.mass_takeoff_2, methods_data = self.combine()
+            self.mass_takeoff_1, self.mass_takeoff_2, methods_data = self.class_II()
 
         row_labels = np.array(['Cessna', 'Raymer', 'Torenbeek', 'USAF'])
         column_labels = np.array(['Wing', 'H-tail', 'V-tail', 'Fuselage', 'Gear', 'Control',
@@ -460,6 +487,6 @@ class MassMethods:
 
 
 if __name__ == '__main__':
-    class_II = MassMethods()
+    class_II = Design()
     class_II.main()
     class_II.scissors()
