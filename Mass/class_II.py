@@ -283,14 +283,15 @@ class MassMethods:
         data_usaf = self.usaf()
 
         data = np.vstack((data_cessna, data_raymer, data_torenbeek, data_usaf))
-        data_totals = np.round(np.array([np.sum(data[i]) for i in range(len(data))])).reshape(-1, 1)
-        data = np.hstack((data, data_totals))
 
         # Correction factors.
         data[:, 0] = np.round(data[:, 0] * 0.50)
         data[:, 3] = np.round(data[:, 3] * 0.70)
-        data[:, 4] = np.round(data[:, 4] * 0.70)
-        data[:, 5] = np.round(data[:, 5] * 0.50)
+        data[:, 4] = np.round(data[:, 4] * 0.90)
+        data[:, 5] = np.round(data[:, 5] * 0.70)
+
+        data_totals = np.round(np.array([np.sum(data[i]) for i in range(len(data))])).reshape(-1, 1)
+        data = np.hstack((data, data_totals))
 
         average = []
 
@@ -373,7 +374,7 @@ class MassMethods:
         print()
         print(f'Wing leading edge position: {round(self.wing_X_LE, 2)} [m]')
 
-    def scissors(self, ratio=0.15):
+    def scissors(self, ratio=0.20):
         wing_area_net = self.wing_area - (self.fuselage_width * self.wing_chord_root)
 
         beta = np.sqrt(1 - 0.232 ** 2)

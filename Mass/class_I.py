@@ -1,23 +1,13 @@
-# def class_I():
-#     structure = 360
-#     batteries = 210
-#     motor = 60
-#     margin = 0.2
-#     OEM = (1 + margin) * (structure + batteries + motor)
-#
-#     occupants = 180
-#     TOM = OEM + occupants
-#
-#     return OEM, TOM, batteries, motor, occupants
-
 def class_I():
-    structure = 345
-    batteries = 365
-    motor = 60
-    margin = 0.3
+    structure = 350
+    batteries = 424
+    motor = 66
+    margin = 0.20
     OEM = (1 + margin) * (structure + batteries + motor)
 
     occupants = 180
     TOM = OEM + occupants
+
+    print(f'Class I OEM: {OEM} \nClass I TOM: {TOM}')
 
     return OEM, TOM, batteries, motor, occupants
