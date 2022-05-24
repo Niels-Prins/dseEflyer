@@ -10,23 +10,26 @@ lbs = 2.20462  # [kg]
 
 W_airframe = 1035 * lbs  # [lbs] Weight of structure
 V_h = 150  # [kts]max airspeed
-N = 20  # [-] Number of planned aircraft to be produced in 5 years
-F_cert1 = 1  # Certification in CS-23
+N = 60  # [-] Number of planned aircraft to be produced in 5 years
 F_cf1 = 1  # 1.03 for a complex flap system,4 ¼1 if a simple flap system
-composites = 0  # Fraction of composites of aircraft
+composites = 0.2  # Fraction of composites of aircraft
 F_comp1 = 1 + composites  #
-F_press1 = 1  # Unpressuried aircraft
-
 
 Q_m = 2  # production rate per month
-F_cf2 = 1  # 1.02 for complex flap, 1 for simple flap
-F_comp2 = 1 + composites
-F_press2 = 1  # For unpressurised cabin
 F_taper = 1  # tapered wing
 
-F_cert3 = 1  # Certification
-F_cf3 = 1  # Simple flap system
 F_comp3 = 1 + 0.25 * composites
+
+N_p = 1 # number of prototypes
+
+F_cert6 = 5 # CS-23 certification
+
+# hourly rates
+R_eng = 92 #[$/hour] in 2012
+R_tool = 61 #[$/hour] in 2012
+R_man = 53 #[$/hour] in 2021
+
+cpi = 1.021*1.015*1.0001 * 1.013*1.021*1.024*1.018*1.012*1.047
 
 
 #%%
@@ -37,9 +40,7 @@ H_engr = (
     * (W_airframe ** 0.791)
     * (V_h ** 1.526)
     * (N ** 0.183)
-    * F_cert1
     * F_comp1
-    * F_press1
 )
 
 # Tooling workhours
@@ -49,9 +50,7 @@ H_tool = (
     * (V_h ** 0.899)
     * (N ** 0.178)
     * (Q_m ** 0.066)
-    * F_cf2
     * F_comp1
-    * F_press2
     * F_taper
 )
 
@@ -61,10 +60,39 @@ H_mfg = (
     * (W_airframe ** 0.74)
     * (V_h ** 0.543)
     * (N ** 0.524)
-    * F_cert3
-    * F_cf3
     * F_comp3
 )
+# Total cost of engineering
+C_engr =  H_engr*R_eng* cpi
 
+#Total cost of development
+C_dev = 0.06458 *(W_airframe ** 0.873) * (V_h**1.89) * (N_p**0.346) * cpi * F_comp1
+
+# Total cost of Flight test Operations 
+C_ft = 0.009646 * (W_airframe ** 1.16) * (V_h**1.3718) * (N_p**1.281) * F_cert6
+
+#Total cost of tooling 
+C_tool = H_tool*R_tool*cpi
+
+# Total cost of manufacturing
+C_mfg = H_mfg*R_man*cpi
+#Total cost of quality control 
+C_qc = 0.13 * C_mfg *F_comp1
+#Total cost of manufacturing
+C_mat = 24.896*(W_airframe ** 0.689) * (V_h**0.624) * (N**0.792)*cpi
+
+batteries = 50000
+C_vsc = 10000 + 13000 + batteries
+#Variable cost
+C_var = (C_mfg +C_qc + C_mat)/N + C_vsc
+
+euro = 0.93
+#Fixed cost (cost to certify)
+C_fix = (C_engr*0 + C_dev*0 + C_ft + C_tool ) *euro
+
+# Cost per unit 
+C_unit = (C_fix / N + C_var ) * euro
+
+print(f"Fixed Cost = €{round(C_fix)} \nVariable cost = €{round(C_var)} \nPrice per unit = €{round(C_unit)}")
 
 # %%
