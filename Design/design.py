@@ -90,8 +90,10 @@ class Design:
         else:
             self.fuselage_max_area = self.fuselage_main_height * self.fuselage_main_width
 
+        self.wing_area_net = self.wing_area - (self.wing_chord_root * self.fuselage_main_width)
+
         # Gear attributes.
-        self.gear_length = 0.5
+        self.gear_length = 0.64
         self.gear_load_factor = 5.5
 
         # Empirical attributes.
@@ -493,24 +495,29 @@ class Design:
 
         def lift_curve():
             k2_k1 = 1 - ((10 * self.fuselage_width) / (self.fuselage_length))
-            C_L_alpha_nose = 2 * k2_k1 * ((self.fuselage_width * self.fuselage_height) / self.wing_area)
+            C_L_alpha_nose = 2 * k2_k1 * ((self.fuselage_max_width * self.fuselage_max_height) / self.wing_area)
 
-            K_nose = (C_L_alpha_nose / self.wing_C_L_alpha) * \
-                     (self.wing_area / (self.wing_area - (self.fuselage_width * self.wing_chord_root)))
+            K_nose = (C_L_alpha_nose / self.wing_C_L_alpha) * (self.wing_area / self.wing_area_net)
 
-            K_wing = (0.1714 * (self.fuselage_width / self.wing_span) ** 2
+            K_wing = (0.1714 * (self.fuselage_max_width / self.wing_span) ** 2
                       + 0.8326 * (self.fuselage_width / self.wing_span) + 0.9974)
 
-            K_body = (0.7810 * (self.fuselage_width / self.wing_span) ** 2
-                      + 1.1976 * (self.fuselage_width / self.wing_span) + 0.0088)
+            K_fuselage = (0.7810 * (self.fuselage_width / self.wing_span) ** 2
+                          + 1.1976 * (self.fuselage_width / self.wing_span) + 0.0088)
 
-            C_L_wf = self.wing_C_L_alpha
+            C_L_wf = self.wing_C_L_alpha * (K_nose + K_wing + K_fuselage) * (self.wing_area_net / self.wing_area)
+
+            return C_L_wf
 
         def drag_curve():
-            pass
+            C_D_f = None
+
+            return C_D_f
 
         def aerodynamic_center():
-            pass
+            X_ac_wf = None
+
+            return X_ac_wf
 
     def fuselage(self, heights, lengths, widths, circular=True, step=0.1):
 
