@@ -67,8 +67,11 @@ class Design:
         self.fuselage_tail_length = 2
         self.fuselage_length = self.fuselage_nose_length + self.fuselage_main_length + self.fuselage_tail_length
 
-        self.fuselage_nose_height_begin = 0.50
+        self.fuselage_nose_height_start = 0.50
         self.fuselage_nose_height_end = 1.60
+        self.fuselage_nose_height_slope = ((self.fuselage_nose_height_end / self.fuselage_nose_height_start) /
+                                           self.fuselage_nose_length)
+
         self.fuselage_nose_width_start = 0.50
         self.fuselage_nose_width_end = 0.80
         self.fuselage_nose_width_slope = ((self.fuselage_nose_width_end / self.fuselage_nose_width_start) /
@@ -147,8 +150,6 @@ class Design:
         # Added attributes ...
         self.mach = 0.23
         self.fuselage_frontal = 1.42
-        self.fuselage_top_area = 12
-        self.alpha = 5 * (np.pi / 180)
 
     @staticmethod
     def class_I():
@@ -401,8 +402,8 @@ class Design:
         mass_eom = mass_wing + mass_fuselage
         arm_eom = 0.35 * self.wing_MAC
 
-        self.wing_X_LE = arm_fuselage - arm_eom + (mass_wing / mass_fuselage) * ((arm_wing - arm_eom) * self.wing_MAC) \
-                         + self.wing_X_LE_correction
+        self.wing_X_LE = (arm_fuselage - arm_eom + (mass_wing / mass_fuselage) * ((arm_wing - arm_eom) * self.wing_MAC)
+                          + self.wing_X_LE_correction)
 
         CG_0 = np.round(((((self.wing_X_LE + arm_wing) * mass_wing) + (arm_fuselage * mass_fuselage))
                          / (mass_wing + mass_fuselage)), 2)
@@ -440,7 +441,7 @@ class Design:
         print()
         print(f'Wing leading edge position: {round(self.wing_X_LE, 2)} [m]')
 
-    def scissors(self, ratio=0.20):
+    def scissors(self, ratio=0.20, show=False):
         wing_area_net = self.wing_area - (self.fuselage_width * self.wing_chord_root)
 
         beta = np.sqrt(1 - 0.232 ** 2)
@@ -461,6 +462,7 @@ class Design:
                               * (self.wing_span + 2.15 * self.fuselage_width)))
 
         X_ac = self.wing_X_ac + X_ac_fuselage_1 + X_ac_fuselage_2
+
         X_cg = np.arange(0, 1, 0.01)
 
         C_m_ac = 0.0
@@ -495,9 +497,11 @@ class Design:
         plt.xlim(0, 1)
         plt.ylim(0, 0.5)
         plt.legend()
-        plt.show()
 
-    def fuselage_corrections(self):
+        if show:
+            plt.show()
+
+    def fuselage_corrections(self, alpha):
 
         def lift_curve():
 
@@ -513,39 +517,66 @@ class Design:
             K_fuselage = (0.7810 * (self.fuselage_width / self.wing_span) ** 2
                           + 1.1976 * (self.fuselage_width / self.wing_span) + 0.0088)
 
-            C_L_wf = self.wing_C_L_alpha * (K_nose + K_wing + K_fuselage) * (self.wing_area_net / self.wing_area)
+            C_L_alpha_wf = self.wing_C_L_alpha * (K_nose + K_wing + K_fuselage) * (self.wing_area_net / self.wing_area)
 
             # SEAD method.
-            C_L_wf_sead = (self.wing_C_L_alpha * (1 + 2.25 * (self.fuselage_max_width / self.wing_span)) *
-                           (self.wing_area_net / self.wing_area)
-                           + (np.pi / 2) * (self.fuselage_max_width ** 2 / self.wing_area))
+            C_L_alpha_wf_sead = (self.wing_C_L_alpha * (1 + 2.25 * (self.fuselage_max_width / self.wing_span)) *
+                                 (self.wing_area_net / self.wing_area)
+                                 + (np.pi / 2) * (self.fuselage_max_width ** 2 / self.wing_area))
 
-            print(np.round(C_L_wf, 2), np.round(C_L_wf_sead, 2), np.round(self.wing_C_L_alpha, 2))
-
-            return C_L_wf
+            return C_L_alpha_wf, C_L_alpha_nose, K_wing, K_fuselage
 
         def drag_curve():
             n = (np.sqrt(self.fuselage_length / self.fuselage_width) / 19) + 0.5
 
-            C_d_c = (-2.77 * (self.mach * np.sin(self.alpha)) ** 4 + 3.88
-                     * (self.mach * np.sin(self.alpha)) ** 3 - 0.527
-                     * (self.mach * np.sin(self.alpha)) ** 2 + 0.0166
-                     * (self.mach * np.sin(self.alpha)) + 1.2)
+            C_d_c = (-2.77 * (self.mach * np.sin(alpha)) ** 4 + 3.88
+                     * (self.mach * np.sin(alpha)) ** 3 - 0.527
+                     * (self.mach * np.sin(alpha)) ** 2 + 0.0166
+                     * (self.mach * np.sin(alpha)) + 1.2)
 
             top_area = ((self.fuselage_nose_width_start + self.fuselage_nose_width_end) * (self.fuselage_nose_length / 2)
                         + self.fuselage_main_length * self.fuselage_main_width
                         + (self.fuselage_tail_width_start + self.fuselage_tail_width_end) * (self.fuselage_tail_length / 2))
 
-            C_D_f = ((2 * self.alpha ** 2 * ((self.fuselage_tail_height_end *
-                                              self.fuselage_tail_width_end) / self.wing_area))
-                     + (n * C_d_c * abs(self.alpha ** 3) * (top_area / self.wing_area)))
-
-            print(C_D_f)
+            C_D_f = ((2 * alpha ** 2 * ((self.fuselage_tail_height_end
+                                         * self.fuselage_tail_width_end) / self.wing_area))
+                     + (n * C_d_c * abs(alpha ** 3) * (top_area / self.wing_area)))
 
             return C_D_f
 
         def aerodynamic_center():
-            X_ac_wf = None
+            C_L_alpha_wf, C_L_alpha_nose, K_wing, K_fuselage = lift_curve()
+
+            # All measured at the root chord!
+            X_ac_nose = - ((2 * self.fuselage_nose_height_slope * self.fuselage_nose_width_slope
+                           * self.fuselage_nose_length ** 2 * ((self.wing_X_LE / 2) - (self.fuselage_nose_length)))
+                           / (self.wing_chord_root * self.fuselage_max_width))
+
+            print(X_ac_nose)
+
+            # Should have sweep correction implemented!
+            X_ac_wing = self.wing_X_LE + (self.wing_MAC / 4)
+            C_L_alpha_wing_fuselage = self.wing_C_L_alpha * K_wing * (self.wing_area_net / self.wing_area)
+
+            print(X_ac_wing)
+
+            X_ac_fuselage = ((20 / 21) * np.sqrt(self.fuselage_max_width / self.wing_span) *
+                             ((self.wing_span - self.fuselage_max_width) / self.wing_chord_root)
+                             * np.tan(self.wing_sweep_quarter) + 0.25)
+
+            C_L_alpha_fuselage_wing = self.wing_C_L_alpha * K_fuselage * (self.wing_area_net / self.wing_area)
+
+            print(X_ac_fuselage)
+
+            X_ac_wf = ((((X_ac_nose * C_L_alpha_nose)
+                         + (X_ac_wing * C_L_alpha_wing_fuselage)
+                         + (X_ac_fuselage * C_L_alpha_fuselage_wing)) / C_L_alpha_wf) * self.wing_chord_root)
+
+            X_ac_wf_mac = (X_ac_wf - self.wing_X_LE) / self.wing_MAC
+
+            # print(X_ac_wf)
+            #
+            # print(X_ac_wf_mac)
 
             return X_ac_wf
 
@@ -585,4 +616,4 @@ if __name__ == '__main__':
     class_II = Design()
     class_II.main()
     class_II.scissors()
-    class_II.fuselage_corrections()
+    class_II.fuselage_corrections(alpha=5 * (np.pi / 180))
