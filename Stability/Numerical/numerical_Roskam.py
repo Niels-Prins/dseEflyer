@@ -6,6 +6,8 @@ This file calculates the control derivatives numerically
 """
 
 # Inputs
+# page 1962 Roskam
+# page 2073 sideslip derivatives
 
 
 
