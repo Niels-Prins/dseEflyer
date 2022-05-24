@@ -111,7 +111,7 @@ class Control:
         self.aircraft_X_CG = None
         self.aircraft_C_L_alpha = None
 
-        # Added attributes
+        # Added attributes ...
         self.mach = 0.23
         self.fuselage_base = self.fuselage_width * self.wing_chord_root
         self.fuselage_frontal = 1.42
