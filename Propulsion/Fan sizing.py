@@ -1,21 +1,39 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-
-
-# constants
-eff_fan = 0.885  # [-] this value is taken from the snorri book, should be updated later on should reference
-eff_engine = 0.95  # [-]
-volt = 400  # [v]
-e_d = 1  # [-] A4/AR, can be changed later
+""""###############################################################################################################"""
+""""Constants"""
+""""###############################################################################################################"""
 rho0 = 1.225  # [kg/m3]
-h = 0  # [m]
-AR = 5.84  # [-]
 kt = 1.032914
 kq = 0.1110977401
 Q = 113
+V_cl = 77.17  # [m/s]
+V_to = 28.29
+V_la = 33.438
+P_required = 323000  # [W]
 
-# definitions
+lst_cl_0= []
+
+alt_0 = 0
+alt_6000= 1828
+
+thr_thres_cl_0 = 2864
+thr_thres_cl_6000 = 2394
+thr_thres_to_0 = 1613
+thr_thres_to_6000 = 1348
+thr_thres_la_0 = 1812
+thr_thres_la_6000 = 1598
+
+rpmlower = 4000
+rpmupper = 8000
+rpmspacing = 100
+marginlower = 1
+marginupper = 1.1
+
+""""###############################################################################################################"""
+""""Definitions"""
+""""###############################################################################################################"""
 def ISA(h):
     T0 = 288.15
     p0 = 101325.0
@@ -26,23 +44,6 @@ def ISA(h):
     p = p0 * (T / T0) ** (-g0 / (R * a1))
     rho1 = (p / (R * T))
     return [T, p, rho1]
-
-def thrust(eff_fan, eff_engine, P_req, V):
-    return (eff_fan * eff_engine * P_req) / V
-
-def area_prop(Thr, V, P_req, rho, e_d):
-    return (Thr ** (1.5) / P_req) ** 2 / (4 * rho * e_d)
-
-def RPM(P_req, e_d, kt, h, D):
-    T0 = 288.15
-    p0 = 101325.0
-    g0 = 9.80665
-    R = 287.0
-    a1 = -0.0065
-    T = T0 + a1 * (h - 0)
-    p = p0 * (T / T0) ** (-g0 / (R * a1))
-    rho1 = (p / (R * T))
-    return ((np.pi*P_req**2*e_d)/(kt**3*rho1**2*D**10))**(1/6)*60
 
 def Preq(h,Thr, D,V,e_d):
     T0 = 288.15
@@ -55,37 +56,9 @@ def Preq(h,Thr, D,V,e_d):
     rho1 = (p / (R * T))
     return 0.75 * Thr * V + np.sqrt(((Thr**2 * V**2)/16) + ((Thr**3) / (rho1 *np.pi*e_d*D**2)))
 
-V_cl = 77.17  # [m/s]
-V_to = 28.29
-V_la = 33.438
-
-P_required = 323000  # [W]
-P_req_eff = P_required * eff_engine * eff_fan
-lowerbound = P_req_eff - 100000
-upperbound = P_req_eff + 100000
-lst_cl_0= []
-lst_cl_6000= []
-lst_to_0= []
-lst_to_6000= []
-lst_la_0= []
-lst_la_6000= []
-
-alt_0 = 0
-alt_6000= 1828
-
-thr_thres_cl_0 = 2864
-thr_thres_cl_6000 = 2394
-thr_thres_to_0 = 1613
-thr_thres_to_6000 = 1348
-thr_thres_la_0 = 1812
-thr_thres_la_6000 = 1598
-rpmlower = 4000
-rpmupper = 8000
-rpmspacing = 100
-marginlower = 1
-marginupper = 1.1
-
-
+""""###############################################################################################################"""
+""""Loop for calculation"""
+""""###############################################################################################################"""
 for D_cl in np.arange(0.4, 1, 0.01):
     for e_d_cl in np.arange(0.8, 1.01, 0.01):
         for n_cl in np.arange(rpmlower/60, rpmupper/60, rpmspacing/60):
@@ -192,14 +165,9 @@ df = pd.DataFrame(lst_cl_0, columns=[ "Diameter", "Area","e_d", "Max RPM", 'Min 
                                       "Exit_speed_V4_to_6000", "Exit_speed_V4_la_0", "Exit_speed_V4_la_6000",
                                       "Torque_power_cl_0", "Torque_power_cl_6000", "Torque_power_to_0", "Torque_power_to_6000",
                                      "Torque_power_la_0","Torque_power_la_0"])
+
 df.to_excel("Prop_sizing_final.xlsx", index=False)
+df_new = df.loc[326]
+print(df_new)
 
-print(df)
 
-
-plt.plot(df["Diameter"], df["Max RPM"], label = "Max RPM")
-plt.plot(df["Diameter"], df["Min RPM"], label = "Min RPM")
-plt.ylabel("RPM")
-plt.xlabel("Diameter")
-plt.legend()
-plt.show()
