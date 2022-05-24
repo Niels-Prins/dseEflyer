@@ -45,6 +45,21 @@ def ISA(h):
     rho1 = (p / (R * T))
     return [T, p, rho1]
 
+def Massflow(alt,D,V):
+    return ISA(alt)[2] * np.pi * D ** 2 / 4 * V
+
+def Thrust(kt,n,D,alt):
+    return kt * n ** 2 * D ** 4 * ISA(alt)[2]
+
+def Torque(kq,n,D,alt):
+    return kq * n ** 2 * D ** 5 * ISA(alt)[2]
+
+def V_induced(e_d,V,D,Thr, alt):
+    return (0.5 * e_d - 1) * V + np.sqrt( (e_d*V/2)**2 + (e_d*Thr) / (ISA(alt)[2] * np.pi *D**2/4))
+
+def P_torque(w,Q)
+    return w*Q
+
 def Preq(h,Thr, D,V,e_d):
     T0 = 288.15
     p0 = 101325.0
@@ -56,13 +71,19 @@ def Preq(h,Thr, D,V,e_d):
     rho1 = (p / (R * T))
     return 0.75 * Thr * V + np.sqrt(((Thr**2 * V**2)/16) + ((Thr**3) / (rho1 *np.pi*e_d*D**2)))
 
+def V3(V,w):
+    return V + w
+
+def V4(V, e_d):
+    return V / e_d
+
 """"###############################################################################################################"""
 """"Loop for calculation"""
 """"###############################################################################################################"""
 for D_cl in np.arange(0.4, 1, 0.01):
     for e_d_cl in np.arange(0.8, 1.01, 0.01):
         for n_cl in np.arange(rpmlower/60, rpmupper/60, rpmspacing/60):
-            mflow_cl_0 = ISA(alt_0)[2] * np.pi * D_cl ** 2 / 4 * V_cl
+            mflow_cl_0 = Massflow(alt_0, D_cl, V_cl)
             Thr_cl_0 = kt * n_cl ** 2 * D_cl ** 4 * ISA(alt_0)[2]
             Torque_cl_0 = kq * n_cl ** 2 * D_cl ** 5 * ISA(alt_0)[2]
             Pr_cl_0 = Preq(alt_0, Thr_cl_0, D_cl, V_cl, e_d_cl)
@@ -72,7 +93,7 @@ for D_cl in np.arange(0.4, 1, 0.01):
             V_4_cl_0 = V_3_cl_0 / e_d_cl
             if marginlower * thr_thres_cl_0 <= Thr_cl_0 <= marginupper * thr_thres_cl_0 and  P_required <= Pr_cl_0 <= 1.002 * P_required:
                 for n_cl_2 in np.arange(rpmlower / 60, rpmupper / 60, rpmspacing / 60):
-                    mflow_cl_6000 = ISA(alt_6000)[2] * np.pi * D_cl ** 2 / 4 * V_cl
+                    mflow_cl_6000 = Massflow(alt_6000, D_cl, V_cl)
                     Thr_cl_6000 = kt * n_cl_2 ** 2 * D_cl ** 4 * ISA(alt_6000)[2]
                     Torque_cl_6000 = kq * n_cl_2 ** 2 * D_cl ** 5 * ISA(alt_6000)[2]
                     Pr_cl_6000 = Preq(alt_6000, Thr_cl_6000, D_cl, V_cl, e_d_cl)
@@ -83,7 +104,7 @@ for D_cl in np.arange(0.4, 1, 0.01):
                     V_4_cl_6000 = V_3_cl_6000 / e_d_cl
                     if marginlower *thr_thres_cl_6000 <= Thr_cl_6000 <= marginupper * thr_thres_cl_6000:
                         for n_to in np.arange(rpmlower / 60, rpmupper / 60, rpmspacing / 60):
-                            mflow_to_0 = ISA(alt_0)[2] * np.pi * D_cl ** 2 / 4 * V_to
+                            mflow_to_0 = Massflow(alt_0, D_cl, V_to)
                             Thr_to_0 = kt * n_to ** 2 * D_cl ** 4 * ISA(alt_0)[2]
                             Torque_to_0 = kq * n_to ** 2 * D_cl ** 5 * ISA(alt_0)[2]
                             Pr_to_0 = Preq(alt_0,Thr_to_0, D_cl, V_to, e_d_cl)
@@ -95,7 +116,7 @@ for D_cl in np.arange(0.4, 1, 0.01):
                             V_4_to_0 = V_3_to_0 / e_d_cl
                             if marginlower *thr_thres_to_0 <= Thr_to_0 <= marginupper * thr_thres_to_0:
                                 for n_to_2 in np.arange(rpmlower / 60, rpmupper / 60, rpmspacing / 60):
-                                    mflow_to_6000 = ISA(alt_6000)[2] * np.pi * D_cl ** 2 / 4 * V_to
+                                    mflow_to_6000 = Massflow(alt_6000, D_cl, V_to)
                                     Thr_to_6000 = kt * n_to_2 ** 2 * D_cl ** 4 * ISA(alt_6000)[2]
                                     Torque_to_6000 = kq * n_to_2 ** 2 * D_cl ** 5 * ISA(alt_6000)[2]
                                     Pr_to_6000 = Preq(alt_6000,Thr_to_6000, D_cl, V_cl, e_d_cl)
@@ -107,7 +128,7 @@ for D_cl in np.arange(0.4, 1, 0.01):
                                     V_4_to_6000 = V_3_to_6000 / e_d_cl
                                     if marginlower *thr_thres_to_6000 <= Thr_to_6000 <= marginupper * thr_thres_to_6000:
                                         for n_la in np.arange(rpmlower / 60, rpmupper / 60, rpmspacing / 60):
-                                            mflow_la_0 = ISA(alt_0)[2] * np.pi * D_cl ** 2 / 4 * V_la
+                                            mflow_la_0 = Massflow(alt_0, D_cl, V_la)
                                             Thr_la_0 = kt * n_la ** 2 * D_cl ** 4 * ISA(alt_0)[2]
                                             Torque_la_0 = kq * n_la ** 2 * D_cl ** 5 * ISA(alt_0)[2]
                                             Pr_la_0 = Preq(alt_0, Thr_la_0, D_cl, V_cl, e_d_cl)
@@ -119,7 +140,7 @@ for D_cl in np.arange(0.4, 1, 0.01):
                                             V_4_la_0 = V_3_la_0 / e_d_cl
                                             if marginlower *  thr_thres_la_0 <= Thr_la_0 <= marginupper *thr_thres_la_0:
                                                 for n_la_2 in np.arange(rpmlower / 60, rpmupper / 60, rpmspacing / 60):
-                                                    mflow_la_6000 = ISA(alt_6000)[2] * np.pi * D_cl ** 2 / 4 * V_la
+                                                    mflow_la_6000 = Massflow(alt_6000, D_cl, V_la)
                                                     Thr_la_6000 = kt * n_la_2 ** 2 * D_cl ** 4 * ISA(alt_6000)[2]
                                                     Torque_la_6000 = kq * n_la_2 ** 2 * D_cl ** 5 * ISA(alt_6000)[2]
                                                     Pr_la_6000 = Preq(alt_6000, Thr_la_6000, D_cl, V_la, e_d_cl)
