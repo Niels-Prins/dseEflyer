@@ -63,14 +63,14 @@ class Design:
         self.fuselage_circular = False
 
         self.fuselage_nose_length = 2
-        self.fuselage_main_length = 3.68
+        self.fuselage_main_length = 3.70
         self.fuselage_tail_length = 2
         self.fuselage_length = self.fuselage_nose_length + self.fuselage_main_length + self.fuselage_tail_length
 
-        self.fuselage_nose_height_begin = 0.5
-        self.fuselage_nose_height_end = 1
-        self.fuselage_nose_width_start = 0.5
-        self.fuselage_nose_width_end = 0.52
+        self.fuselage_nose_height_begin = 0.50
+        self.fuselage_nose_height_end = 1.60
+        self.fuselage_nose_width_start = 0.50
+        self.fuselage_nose_width_end = 0.80
         self.fuselage_nose_width_slope = ((self.fuselage_nose_width_end / self.fuselage_nose_width_start) /
                                           self.fuselage_nose_length)
 
@@ -78,12 +78,12 @@ class Design:
         self.fuselage_main_width = self.fuselage_nose_width_end
 
         self.fuselage_tail_height_begin = self.fuselage_main_height
-        self.fuselage_tail_height_end = 0.52
+        self.fuselage_tail_height_end = 0.50
         self.fuselage_tail_width_start = self.fuselage_main_width
-        self.fuselage_tail_width_end = 0.5
+        self.fuselage_tail_width_end = 0.50
 
-        self.fuselage_max_height = self.fuselage_height
-        self.fuselage_max_width = self.fuselage_width
+        self.fuselage_max_height = self.fuselage_main_height
+        self.fuselage_max_width = self.fuselage_main_width
 
         if self.fuselage_circular:
             self.fuselage_max_area = (np.pi / 4) * self.fuselage_max_height * self.fuselage_max_width
@@ -532,9 +532,15 @@ class Design:
                      * (self.mach * np.sin(self.alpha)) ** 2 + 0.0166
                      * (self.mach * np.sin(self.alpha)) + 1.2)
 
+            top_area = ((self.fuselage_nose_width_start + self.fuselage_nose_width_end) * (self.fuselage_nose_length / 2)
+                        + self.fuselage_main_length * self.fuselage_main_width
+                        + (self.fuselage_tail_width_start + self.fuselage_tail_width_end) * (self.fuselage_tail_length / 2))
+
             C_D_f = ((2 * self.alpha ** 2 * ((self.fuselage_tail_height_end *
                                               self.fuselage_tail_width_end) / self.wing_area))
-                     + (n * C_d_c * abs(self.alpha ** 3) * (self.fuselage_top_area / self.wing_area)))
+                     + (n * C_d_c * abs(self.alpha ** 3) * (top_area / self.wing_area)))
+
+            print(C_D_f)
 
             return C_D_f
 
