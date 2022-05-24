@@ -148,8 +148,20 @@ class Control:
             print(C_D_L_fus)
             return
 
-        fuselage_drag_raymer()
 
+        def fuselage_sideforce_sidewash():
+            # Constants fuselage design
+            Zw = self.fuselage_height / 2
+            dF2 = 1                         # TBD
+            Ki = 1.6 * Zw / dF2
+            S0 = np.pi * self.fuselage_height / 2 * self.fuselage_width / 2
+            C_Y_beta_f = -2 * Ki * S0/S
+
+            print(C_Y_beta_f)
+            return
+
+        fuselage_drag_raymer()
+        fuselage_sideforce_sidewash()
 
 if __name__ == '__main__':
     fuselage = Control()
