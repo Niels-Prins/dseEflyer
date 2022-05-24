@@ -59,6 +59,37 @@ class Design:
         self.fuselage_width = 0.80
         self.fuselage_radius = max(self.fuselage_height, self.fuselage_width) / 2
 
+        # Fuselage attributes extended.
+        self.fuselage_circular = False
+
+        self.fuselage_nose_length = 2
+        self.fuselage_main_length = 3.68
+        self.fuselage_tail_length = 2
+        self.fuselage_length = self.fuselage_nose_length + self.fuselage_main_length + self.fuselage_tail_length
+
+        self.fuselage_nose_height_begin = 0.5
+        self.fuselage_nose_height_end = 1
+        self.fuselage_nose_width_start = 0.5
+        self.fuselage_nose_width_end = 1.0
+        self.fuselage_nose_width_slope = ((self.fuselage_nose_width_end / self.fuselage_nose_width_start) /
+                                          self.fuselage_nose_length)
+
+        self.fuselage_main_height = self.fuselage_nose_height_end
+        self.fuselage_main_width = self.fuselage_nose_width_end
+
+        self.fuselage_tail_height_begin = self.fuselage_main_height
+        self.fuselage_tail_height_end = 0.5
+        self.fuselage_tail_width_start = self.fuselage_main_width
+        self.fuselage_tail_width_end = 0.5
+
+        self.fuselage_max_height = self.fuselage_main_height
+        self.fuselage_max_width = self.fuselage_main_width
+
+        if self.fuselage_circular:
+            self.fuselage_max_area = (np.pi / 4) * self.fuselage_main_height * self.fuselage_main_width
+        else:
+            self.fuselage_max_area = self.fuselage_main_height * self.fuselage_main_width
+
         # Gear attributes.
         self.gear_length = 0.5
         self.gear_load_factor = 5.5
@@ -478,6 +509,24 @@ class Design:
 
         def roskam():
             pass
+
+    def fuselage(self, heights, lengths, widths, circular=True, step=0.1):
+
+        def nose():
+            height = ((heights[1] - heights[0]) / lengths[0]) * x
+            width = ((widths[1] - widths[0]) / lengths[0]) * x
+
+        def main():
+            height = heights[1]
+            width = widths[1]
+
+        def tail():
+            height = heights[1] - ((heights[1] - heights[2]) / lengths[2])
+            width = widths[1] - ((widths[1] - widths[2]) / lengths[2])
+
+        x = np.arange(0, np.round(np.sum(lengths)), step)
+
+
 
     def main(self, iterations=10):
         self.mass_takeoff_1, self.mass_takeoff_2, methods_data = self.class_II()
