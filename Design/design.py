@@ -491,7 +491,7 @@ class Design:
 
     def fuselage_corrections(self):
 
-        def bandu():
+        def lift_curve():
             k2_k1 = 1 - ((10 * self.fuselage_width) / (self.fuselage_length))
             C_L_alpha_nose = 2 * k2_k1 * ((self.fuselage_width * self.fuselage_height) / self.wing_area)
 
@@ -504,10 +504,12 @@ class Design:
             K_body = (0.7810 * (self.fuselage_width / self.wing_span) ** 2
                       + 1.1976 * (self.fuselage_width / self.wing_span) + 0.0088)
 
-        def sead():
+            C_L_wf = self.wing_C_L_alpha
+
+        def drag_curve():
             pass
 
-        def roskam():
+        def aerodynamic_center():
             pass
 
     def fuselage(self, heights, lengths, widths, circular=True, step=0.1):
@@ -525,8 +527,6 @@ class Design:
             width = widths[1] - ((widths[1] - widths[2]) / lengths[2])
 
         x = np.arange(0, np.round(np.sum(lengths)), step)
-
-
 
     def main(self, iterations=10):
         self.mass_takeoff_1, self.mass_takeoff_2, methods_data = self.class_II()
