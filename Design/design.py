@@ -494,6 +494,8 @@ class Design:
     def fuselage_corrections(self):
 
         def lift_curve():
+
+            # Bandu method.
             k2_k1 = 1 - ((10 * self.fuselage_width) / (self.fuselage_length))
             C_L_alpha_nose = 2 * k2_k1 * ((self.fuselage_max_width * self.fuselage_max_height) / self.wing_area)
 
@@ -507,6 +509,14 @@ class Design:
 
             C_L_wf = self.wing_C_L_alpha * (K_nose + K_wing + K_fuselage) * (self.wing_area_net / self.wing_area)
 
+            # SEAD method.
+
+            C_L_wf_sead = (self.wing_C_L_alpha * (1 + 2.25 * (self.fuselage_max_width / self.wing_span)) *
+                           (self.wing_area_net / self.wing_area)
+                           + (np.pi / 2) * (self.fuselage_max_width ** 2 / self.wing_area))
+
+            print(np.round(C_L_wf, 2), np.round(C_L_wf_sead, 2), np.round(self.wing_C_L_alpha, 2))
+
             return C_L_wf
 
         def drag_curve():
@@ -519,21 +529,7 @@ class Design:
 
             return X_ac_wf
 
-    def fuselage(self, heights, lengths, widths, circular=True, step=0.1):
-
-        def nose():
-            height = ((heights[1] - heights[0]) / lengths[0]) * x
-            width = ((widths[1] - widths[0]) / lengths[0]) * x
-
-        def main():
-            height = heights[1]
-            width = widths[1]
-
-        def tail():
-            height = heights[1] - ((heights[1] - heights[2]) / lengths[2])
-            width = widths[1] - ((widths[1] - widths[2]) / lengths[2])
-
-        x = np.arange(0, np.round(np.sum(lengths)), step)
+        lift_curve()
 
     def main(self, iterations=10):
         self.mass_takeoff_1, self.mass_takeoff_2, methods_data = self.class_II()
@@ -567,3 +563,4 @@ if __name__ == '__main__':
     class_II = Design()
     class_II.main()
     class_II.scissors()
+    class_II.fuselage_corrections()
