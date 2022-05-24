@@ -70,7 +70,7 @@ class Design:
         self.fuselage_nose_height_begin = 0.5
         self.fuselage_nose_height_end = 1
         self.fuselage_nose_width_start = 0.5
-        self.fuselage_nose_width_end = 1.0
+        self.fuselage_nose_width_end = 0.52
         self.fuselage_nose_width_slope = ((self.fuselage_nose_width_end / self.fuselage_nose_width_start) /
                                           self.fuselage_nose_length)
 
@@ -78,17 +78,17 @@ class Design:
         self.fuselage_main_width = self.fuselage_nose_width_end
 
         self.fuselage_tail_height_begin = self.fuselage_main_height
-        self.fuselage_tail_height_end = 0.5
+        self.fuselage_tail_height_end = 0.52
         self.fuselage_tail_width_start = self.fuselage_main_width
         self.fuselage_tail_width_end = 0.5
 
-        self.fuselage_max_height = self.fuselage_main_height
-        self.fuselage_max_width = self.fuselage_main_width
+        self.fuselage_max_height = self.fuselage_height
+        self.fuselage_max_width = self.fuselage_width
 
         if self.fuselage_circular:
-            self.fuselage_max_area = (np.pi / 4) * self.fuselage_main_height * self.fuselage_main_width
+            self.fuselage_max_area = (np.pi / 4) * self.fuselage_max_height * self.fuselage_max_width
         else:
-            self.fuselage_max_area = self.fuselage_main_height * self.fuselage_main_width
+            self.fuselage_max_area = self.fuselage_max_height * self.fuselage_max_width
 
         self.wing_area_net = self.wing_area - (self.wing_chord_root * self.fuselage_main_width)
 
@@ -143,6 +143,12 @@ class Design:
         self.wing_X_LE = None
         self.aircraft_X_CG = None
         self.aircraft_C_L_alpha = None
+
+        # Added attributes ...
+        self.mach = 0.23
+        self.fuselage_frontal = 1.42
+        self.fuselage_top_area = 12
+        self.alpha = 5 * (np.pi / 180)
 
     @staticmethod
     def class_I():
@@ -510,7 +516,6 @@ class Design:
             C_L_wf = self.wing_C_L_alpha * (K_nose + K_wing + K_fuselage) * (self.wing_area_net / self.wing_area)
 
             # SEAD method.
-
             C_L_wf_sead = (self.wing_C_L_alpha * (1 + 2.25 * (self.fuselage_max_width / self.wing_span)) *
                            (self.wing_area_net / self.wing_area)
                            + (np.pi / 2) * (self.fuselage_max_width ** 2 / self.wing_area))
@@ -520,7 +525,16 @@ class Design:
             return C_L_wf
 
         def drag_curve():
-            C_D_f = None
+            n = (np.sqrt(self.fuselage_length / self.fuselage_width) / 19) + 0.5
+
+            C_d_c = (-2.77 * (self.mach * np.sin(self.alpha)) ** 4 + 3.88
+                     * (self.mach * np.sin(self.alpha)) ** 3 - 0.527
+                     * (self.mach * np.sin(self.alpha)) ** 2 + 0.0166
+                     * (self.mach * np.sin(self.alpha)) + 1.2)
+
+            C_D_f = ((2 * self.alpha ** 2 * ((self.fuselage_tail_height_end *
+                                              self.fuselage_tail_width_end) / self.wing_area))
+                     + (n * C_d_c * abs(self.alpha ** 3) * (self.fuselage_top_area / self.wing_area)))
 
             return C_D_f
 
@@ -530,6 +544,8 @@ class Design:
             return X_ac_wf
 
         lift_curve()
+        drag_curve()
+        aerodynamic_center()
 
     def main(self, iterations=10):
         self.mass_takeoff_1, self.mass_takeoff_2, methods_data = self.class_II()
