@@ -60,16 +60,8 @@ def V_induced(e_d,V,D,Thr, alt):
 def P_torque(w,Q):
     return w*Q
 
-def Preq(h,Thr, D,V,e_d):
-    T0 = 288.15
-    p0 = 101325.0
-    g0 = 9.80665
-    R = 287.0
-    a1 = -0.0065
-    T = T0 + a1 * (h - 0)
-    p = p0 * (T / T0) ** (-g0 / (R * a1))
-    rho1 = (p / (R * T))
-    return 0.75 * Thr * V + np.sqrt(((Thr**2 * V**2)/16) + ((Thr**3) / (rho1 *np.pi*e_d*D**2)))
+def Preq(alt,Thr, D,V,e_d):
+    return 0.75 * Thr * V + np.sqrt(((Thr**2 * V**2)/16) + ((Thr**3) / (ISA(alt)[2] *np.pi*e_d*D**2)))
 
 def V3(V,w):
     return V + w
