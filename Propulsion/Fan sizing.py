@@ -174,5 +174,3 @@ df = pd.DataFrame(lst, columns=[ "Diameter", "Area","e_d", "Max RPM", 'Min RPM',
 df.to_excel("Prop_sizing_final.xlsx", index=False)
 df_new = df.loc[326]
 print(df_new)
-
-
