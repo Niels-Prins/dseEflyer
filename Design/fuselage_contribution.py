@@ -59,6 +59,35 @@ class Control:
         self.fuselage_width = 0.80
         self.fuselage_radius = max(self.fuselage_height, self.fuselage_width) / 2
 
+        # Fuselage attributes extended.
+        self.fuselage_circular = False
+
+        self.fuselage_nose_length = 2
+        self.fuselage_main_length = 3.70
+        self.fuselage_tail_length = 2
+        self.fuselage_length = self.fuselage_nose_length + self.fuselage_main_length + self.fuselage_tail_length
+
+        self.fuselage_nose_height_start = 0.50
+        self.fuselage_nose_height_end = 1.60
+        self.fuselage_nose_height_slope = ((self.fuselage_nose_height_end / self.fuselage_nose_height_start) /
+                                           self.fuselage_nose_length)
+
+        self.fuselage_nose_width_start = 0.50
+        self.fuselage_nose_width_end = 0.80
+        self.fuselage_nose_width_slope = ((self.fuselage_nose_width_end / self.fuselage_nose_width_start) /
+                                          self.fuselage_nose_length)
+
+        self.fuselage_main_height = self.fuselage_nose_height_end
+        self.fuselage_main_width = self.fuselage_nose_width_end
+
+        self.fuselage_tail_height_begin = self.fuselage_main_height
+        self.fuselage_tail_height_end = 0.50
+        self.fuselage_tail_width_start = self.fuselage_main_width
+        self.fuselage_tail_width_end = 0.50
+
+        self.fuselage_max_height = self.fuselage_main_height
+        self.fuselage_max_width = self.fuselage_main_width
+
         # Gear attributes.
         self.gear_length = 0.5
         self.gear_load_factor = 5.5
@@ -150,18 +179,28 @@ class Control:
 
 
         def fuselage_sideforce_sidewash():
-            # Constants fuselage design
-            Zw = self.fuselage_height / 2
-            dF2 = 1                         # TBD
+            Zw = y_el = self.fuselage_height / 2 - self.wing_t_max / 2
+            x_el = np.sqrt((1 - ((y_el ** 2) / (self.fuselage_height / 2) ** 2)) * (self.fuselage_width / 2) ** 2)
+            dF2 = np.sqrt(x_el ** 2 + y_el ** 2)
             Ki = 1.6 * Zw / dF2
-            S0 = np.pi * self.fuselage_height / 2 * self.fuselage_width / 2
-            C_Y_beta_f = -2 * Ki * S0/S
+
+            x1 = self.fuselage_nose_length + self.fuselage_main_length
+            x0 = self.fuselage_length * 0.378 + 0.527 * x1
+            a = 0.5 * self.fuselage_tail_height_begin - (((0.5 * self.fuselage_tail_height_begin - 0.5
+                                                           * self.fuselage_tail_height_end) / self.fuselage_tail_length)
+                                                         * (x0 - x1))
+            b = 0.5 * self.fuselage_tail_width_start - (((0.5 * self.fuselage_tail_width_start - 0.5
+                                                          * self.fuselage_tail_width_end) / self.fuselage_tail_length)
+                                                        * (x0 - x1))
+            S0 = np.pi * a * b
+            C_Y_beta_f = -2 * Ki * S0 / self.wing_area
 
             print(C_Y_beta_f)
             return
 
         fuselage_drag_raymer()
         fuselage_sideforce_sidewash()
+
 
 if __name__ == '__main__':
     fuselage = Control()
