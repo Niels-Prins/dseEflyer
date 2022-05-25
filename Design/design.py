@@ -69,12 +69,12 @@ class Design:
 
         self.fuselage_nose_height_start = 0.50
         self.fuselage_nose_height_end = 1.60
-        self.fuselage_nose_height_slope = ((self.fuselage_nose_height_end / self.fuselage_nose_height_start) /
+        self.fuselage_nose_height_slope = ((self.fuselage_nose_height_end - self.fuselage_nose_height_start) /
                                            self.fuselage_nose_length)
 
         self.fuselage_nose_width_start = 0.50
         self.fuselage_nose_width_end = 0.80
-        self.fuselage_nose_width_slope = ((self.fuselage_nose_width_end / self.fuselage_nose_width_start) /
+        self.fuselage_nose_width_slope = ((self.fuselage_nose_width_end - self.fuselage_nose_width_start) /
                                           self.fuselage_nose_length)
 
         self.fuselage_main_height = self.fuselage_nose_height_end
@@ -506,7 +506,7 @@ class Design:
         def lift_curve():
 
             # Bandu method.
-            k2_k1 = 1 - ((10 * self.fuselage_width) / (self.fuselage_length))
+            k2_k1 = 1 - ((10 * self.fuselage_max_width) / (11 * self.fuselage_length))
             C_L_alpha_nose = 2 * k2_k1 * ((self.fuselage_max_width * self.fuselage_max_height) / self.wing_area)
 
             K_nose = (C_L_alpha_nose / self.wing_C_L_alpha) * (self.wing_area / self.wing_area_net)
@@ -545,20 +545,17 @@ class Design:
             return C_D_f
 
         def aerodynamic_center():
+            # Bandu method.
             C_L_alpha_wf, C_L_alpha_nose, K_wing, K_fuselage = lift_curve()
 
-            # All measured at the root chord!
+            # All measured from the exposed root chord!
             X_ac_nose = - ((2 * self.fuselage_nose_height_slope * self.fuselage_nose_width_slope
-                           * self.fuselage_nose_length ** 2 * ((self.wing_X_LE / 2) - (self.fuselage_nose_length)))
-                           / (self.wing_chord_root * self.fuselage_max_width))
-
-            print(X_ac_nose)
+                           * self.fuselage_nose_length ** 2 * ((self.wing_X_LE / 2) - (self.fuselage_nose_length / 3)))
+                           / (self.wing_chord_root * self.fuselage_max_width * self.fuselage_max_height))
 
             # Should have sweep correction implemented!
-            X_ac_wing = self.wing_X_LE + (self.wing_MAC / 4)
+            X_ac_wing = (self.wing_MAC / 4) / self.wing_chord_root
             C_L_alpha_wing_fuselage = self.wing_C_L_alpha * K_wing * (self.wing_area_net / self.wing_area)
-
-            print(X_ac_wing)
 
             X_ac_fuselage = ((20 / 21) * np.sqrt(self.fuselage_max_width / self.wing_span) *
                              ((self.wing_span - self.fuselage_max_width) / self.wing_chord_root)
@@ -566,17 +563,23 @@ class Design:
 
             C_L_alpha_fuselage_wing = self.wing_C_L_alpha * K_fuselage * (self.wing_area_net / self.wing_area)
 
-            print(X_ac_fuselage)
-
             X_ac_wf = ((((X_ac_nose * C_L_alpha_nose)
                          + (X_ac_wing * C_L_alpha_wing_fuselage)
                          + (X_ac_fuselage * C_L_alpha_fuselage_wing)) / C_L_alpha_wf) * self.wing_chord_root)
 
-            X_ac_wf_mac = (X_ac_wf - self.wing_X_LE) / self.wing_MAC
+            # Again, sweep & taper have to be implemented!
+            X_ac_wf_mac = (X_ac_wf) / self.wing_MAC
 
-            # print(X_ac_wf)
-            #
-            # print(X_ac_wf_mac)
+            # SEAD method.
+
+            X_ac_fuselage_1 = ((-1.8 * self.fuselage_max_width * self.fuselage_max_height * self.wing_X_LE)
+                               / (C_L_alpha_wf * self.wing_area * self.wing_MAC))
+            X_ac_fuselage_2 = (((0.273 * self.fuselage_max_width * self.wing_area * (self.wing_span - self.fuselage_max_width))
+                                * abs(np.tan(self.wing_sweep_quarter)))
+                               / ((1 + self.wing_taper) * self.wing_span * self.wing_MAC ** 2
+                                  * (self.wing_span + 2.15 * self.fuselage_max_width)))
+
+            X_ac = self.wing_X_ac + X_ac_fuselage_1 + X_ac_fuselage_2
 
             return X_ac_wf
 
