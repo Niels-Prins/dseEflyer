@@ -1,0 +1,10 @@
+# mass properties #
+
+mass		     1100.270	kg
+X_cg			0.050	m
+Y_cg			0.000	m
+Z_cg			0.000	m
+I_XX  		      789.191	kg*m^2
+I_YY  		      921.215	kg*m^2
+I_ZZ 		     1705.244	kg*m^2
+I_XZ 			0.000	kg*m^2
