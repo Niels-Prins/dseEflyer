@@ -162,7 +162,7 @@ class Design:
         occupants = 180
         TOM = OEM + occupants
 
-        print(f'Class I OEM: {OEM} \nClass I TOM: {TOM}')
+        print(f'Class I OEM: {round(OEM)} \nClass I TOM: {round(TOM)}')
 
         return OEM, TOM, batteries, motor, occupants
 
