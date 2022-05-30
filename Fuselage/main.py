@@ -15,28 +15,30 @@ area_landing_gear = 0.125  # [m^2] # estimation assuming that LG is 0.5 m and fo
 prop_diameter = 1  # TODO Find out
 Seat_dimensions = [0.558, 1.01]  # m [width,height]
 print("n_batteries", n_batteries)
-print("volume batteries",volume_batteries)
+print("volume batteries", volume_batteries)
 # To pack: Crew, Batteries, propeller, engines, Landing gear
 
 
 #### Landing gear sizing
-xcg = np.arange(3.7, 4.0 + 0.1 , 0.1)  # [m]
+xcg = np.arange(3.8, 4.0 + 0.1, 0.1)  # [m]
 ycg = 0.5  # [m]
 Wto = 1220  # [kg]
-Dtmg = 127*2  # [mm] assuming Dt = dt*2
+Dtmg = 127 * 2  # [mm] assuming Dt = dt*2
 Btmg = 127  # [mm]
-volume_mw = np.pi * (Dtmg * 1E-3 * 0.5)**2 * (Btmg * 1E-3) # m^3
+volume_mw = np.pi * (Dtmg * 1E-3 * 0.5) ** 2 * (Btmg * 1E-3)  # m^3
 Dtng = 177.8  # [mm] assuming Dt = dt*2
 Btng = 101.6  # [mm]
-volume_nw = np.pi * (Dtng * 1E-3 * 0.5)**2 * (Btng * 1E-3) # m^3
+volume_nw = np.pi * (Dtng * 1E-3 * 0.5) ** 2 * (Btng * 1E-3)  # m^3
 ns = 1
 x_ng = 1.29  # [m] Start of cockpit
 bn = xcg[-1] - x_ng
-l_ng = 0.8 # [m]
-l_mg = l_ng # [m]
-strut_length_nose = l_ng - (Dtng*1E-3 * 0.5) + (69.7E-3) # m
-print("strut nose", strut_length_nose)
-thick_fuselage = 7.686 # Position of thickest part of fuselage bottom used for ground clearance
+l_ng = 0.8  # [m]
+l_mg = l_ng  # [m]
+strut_length_nose = l_ng - (Dtng * 1E-3 * 0.5)   # m
+strut_length_main = l_mg - (Dtmg * 1E-3 * 0.5)   # m
+print("strut length nose", strut_length_nose)
+print("strut length main", strut_length_main)
+thick_fuselage = 7.686  # Position of thickest part of fuselage bottom used for ground clearance
 ln = xcg - x_ng
 print("Volume main gear", volume_mw)
 print("volume nose gear", volume_nw)
@@ -52,6 +54,8 @@ for i in range(0, len(x_mg)):
 
 print("nose gear", x_ng, l_ng)
 print("main gear", x_mg, l_mg)
+
+
 # ground clearance
 fuselage_left = thick_fuselage - x_mg
 thick_part = np.ones_like(x_mg) * thick_fuselage
@@ -78,5 +82,6 @@ Pmw = (Wto * ln) / (2 * (lm + ln))
 Loading_ratio = (Pnw / Wto) * 100
 print("Pmw and Pnw are", Pmw, Pnw)
 print("Loading ratio", Loading_ratio)
+print("Ln, Lm", ln[-1],lm[-1])
 plt.legend()
 plt.show()
