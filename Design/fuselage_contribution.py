@@ -164,6 +164,14 @@ class Control:
 
     def fuselage(self):
         def fuselage_drag_raymer():
+            C_D_0_fus_base = 1              # ????? first term of C_D_0_fus
+            C_D_b_fus = (0.029 * ((np.sqrt(4/np.pi * self.fuselage_frontal)) / (self.fuselage_radius * 2)) ** 3
+                         / np.sqrt(C_D_0_fus_base * self.wing_area / self.fuselage_area)
+                         * (self.fuselage_area / self.wing_area))
+            C_D_0_fus = (1.075 * 0.0030759 * (1 + 60 / (self.fuselage_length / self.fuselage_radius * 2) ** 3 + 0.00025
+                                              * (self.fuselage_length / self.fuselage_radius * 2)) * self.fuselage_area
+                         / self.wing_area + C_D_b_fus)
+
             n = (0.00001146 * (self.fuselage_length / (self.fuselage_radius * 2)) ** 3 - 0.0008522
                  * (self.fuselage_length / (self.fuselage_radius * 2)) ** 2 + 0.02499
                  * (self.fuselage_length / (self.fuselage_radius * 2)) + 0.507)
@@ -174,7 +182,10 @@ class Control:
             C_D_L_fus = (2 * self.alpha ** 2 * self.fuselage_base / self.wing_area + n * C_d_c * abs(self.alpha ** 3)
                          * self.fuselage_top_area / self.wing_area)
 
-            print(C_D_L_fus)
+            C_D_fus = C_D_L_fus + C_D_0_fus
+            print('CD0_fus', C_D_0_fus)
+            print('CDL_fus', C_D_L_fus)
+            print('CD_fus', C_D_fus)
             return
 
 

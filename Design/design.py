@@ -154,8 +154,8 @@ class Design:
     @staticmethod
     def class_I():
         structure = 345
-        batteries = 406
-        motor = 66
+        batteries = 288     # 406
+        motor = 33          # 66
         margin = 0.20
         OEM = (1 + margin) * (structure + batteries + motor)
 
