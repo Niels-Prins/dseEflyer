@@ -5,13 +5,17 @@ class AerodynamicSurface:
     """
     For the usage, assumptions and limitations of this class consult the readme file.
     """
-    def __init__(self, path, symmetric=True, vertical=False, downwash_body=None, sidewash_body=None):
+    def __init__(self, path, cg=[0.05, 0, 0], symmetric=True, vertical=False, downwash_body=None, sidewash_body=None):
 
         # Load polars data provided by user.
         with open(f'{path}/polars.txt') as file:
             self.data_polars = np.genfromtxt(file, skip_header=True)
 
         # Load values data provided by user.
+        with open(f'{path}/values.txt') as file:
+            self.data_values = np.genfromtxt(file, dtype=str)
+
+        # Load aircraft data provided by user.
         with open(f'{path}/values.txt') as file:
             self.data_values = np.genfromtxt(file, dtype=str)
 
@@ -42,9 +46,13 @@ class AerodynamicSurface:
         self.C_D = self.data_polars[:, 5]
         self.C_M = np.mean(self.data_polars[:, 8])
 
+        self.C_L_alpha = np.mean(np.gradient(self.C_L)) * (360 / np.pi)
+        self.C_D_alpha = np.mean(np.gradient(self.C_L)) * (360 / np.pi)
+
         # Attributes from class input.
         self.symmetric = symmetric
         self.vertical = vertical
+        self.X_cg, self.Y_cg, self.Z_cg = cg
 
         self.downwash_body = downwash_body
         self.sidewash_body = sidewash_body
@@ -54,9 +62,9 @@ class AerodynamicSurface:
         self.mac = None
         self.downwash = None
 
-        self.X_ac = None
-        self.Y_ac = None
-        self.Z_ac = None
+        self.X_ac_rel = None
+        self.Y_ac_rel = None
+        self.Z_ac_rel = None
 
         self.initialize()
 
@@ -102,33 +110,40 @@ class AerodynamicSurface:
             Z_shift_due_dihedral = - abs(Y_0) * self.dihedral
 
             # Summing effects with the initial coordinates.
-            X_final = X_0 + X_shift_due_ac + X_shift_due_sweep
-            Y_final = Y_0
-            Z_final = Z_0 + Z_shift_due_dihedral
+            X_final_rel = X_0 + X_shift_due_ac + X_shift_due_sweep
+            Y_final_rel = Y_0
+            Z_final_rel = Z_0 + Z_shift_due_dihedral
 
-            # Transform position in case of a vertical surface which is not in the body reference frame.
+            # Transform position in case of a vertical aircraft which is not in the body reference frame.
             if self.vertical:
                 self.X_le, self.Y_le, self.Z_le = self.transformation(np.array([[self.X_le], [self.Y_le], [self.Z_le]]),
                                                                       transform_vertical=True)[:, 0]
+                self.X_cg, self.Y_cg, self.Z_cg = self.transformation(np.array([[self.X_cg], [self.Y_cg], [self.Z_cg]]),
+                                                                      transform_vertical=True)[:, 0]
 
-            # Sum with the leading edge to get the aerodynamic center with respect to the center of gravity.
-            self.X_ac = self.X_le + X_final
-            self.Y_ac = self.Y_le + Y_final
-            self.Z_ac = self.Z_le + Z_final
+            # Aerodynamic center with respect to the center of gravity.
+            self.X_ac_rel = self.X_cg - self.X_le + X_final_rel
+            self.Y_ac_rel = self.Y_le + Y_final_rel - self.Y_cg
+            self.Z_ac_rel = self.Z_le + Z_final_rel - self.Z_cg
+
+            # Aerodynamic center with respect to the aircraft nose.
+            self.X_ac_abs = self.X_le - X_final_rel
+            self.Y_ac_abs = self.Y_le - Y_final_rel
+            self.Z_ac_abs = self.Z_le - Z_final_rel
 
         def downwash():
             self.downwash = 0
 
             # Downwash only applies if behind downwash body.
-            if self.downwash_body is not None and self.X_ac < self.downwash_body.X_ac:
+            if self.downwash_body is not None and self.X_ac_rel < self.downwash_body.X_ac_rel:
                 C_L_alpha = ((self.downwash_body.C_L[-1] - self.downwash_body.C_L[0]) /
                              (self.downwash_body.alpha[-1] - self.downwash_body.alpha[0]))
                 ar = self.downwash_body.span / self.downwash_body.mac
 
                 # Empirical downwash estimation.
                 nominator = (7 * C_L_alpha)
-                denominator = (4 * np.pi * ar * (1 + abs(self.Z_ac - self.downwash_body.Z_ac)) *
-                               (self.downwash_body.taper * abs(self.X_ac - self.downwash_body.X_ac)) ** (1 / 4))
+                denominator = (4 * np.pi * ar * (1 + abs(self.Z_ac_rel - self.downwash_body.Z_ac_rel)) *
+                               (self.downwash_body.taper * abs(self.X_ac_rel - self.downwash_body.X_ac_rel)) ** (1 / 4))
 
                 self.downwash = nominator / denominator
 
@@ -164,7 +179,7 @@ class AerodynamicSurface:
                              [- np.sin(yaw), np.cos(yaw), 0],
                              [0, 0, 1]])
 
-        # Check if vertical transformation applies due to surface rotation.
+        # Check if vertical transformation applies due to aircraft rotation.
         if transform_vertical:
             if earth_to_body:
                 transformation_matrix = transformation_vertical()
@@ -191,7 +206,7 @@ class AerodynamicSurface:
             return coordinate * self.rates[0, 0]
 
         def pitch_dot_effect():
-            return - self.X_ac * self.rates[1, 0]
+            return - self.X_ac_rel * self.rates[1, 0]
 
         def yaw_dot_effect(coordinate):
             return - coordinate * self.rates[2, 0]
@@ -234,7 +249,7 @@ class AerodynamicSurface:
 
             # Local downwash.
             if self.downwash_body is not None:
-                local_delay = local_alpha_dot * ((self.downwash_body.X_ac - self.X_ac) / local_velocity[0, 0])
+                local_delay = local_alpha_dot * ((self.downwash_body.X_ac_rel - self.X_ac_rel) / local_velocity[0, 0])
                 local_downwash = (local_alpha - local_delay) * self.downwash
             else:
                 local_downwash = 0
@@ -301,14 +316,14 @@ class AerodynamicSurface:
 
     def calculate_moments(self, controller):
         # Moments due to forces.
-        M_Y_due_F_X = self.Z_ac * (self.outputs[0, 0] + self.outputs[0, 1])
-        M_Z_due_F_X = self.Y_ac * (self.outputs[0, 1] - self.outputs[0, 0])
+        M_Y_due_F_X = self.Z_ac_rel * (self.outputs[0, 0] + self.outputs[0, 1])
+        M_Z_due_F_X = self.Y_ac_rel * (self.outputs[0, 1] - self.outputs[0, 0])
 
-        M_X_due_F_Y = self.Z_ac * (self.outputs[1, 0] + self.outputs[1, 1]) * - 1
-        M_Z_due_F_Y = self.X_ac * (self.outputs[1, 0] + self.outputs[1, 1])
+        M_X_due_F_Y = self.Z_ac_rel * (self.outputs[1, 0] + self.outputs[1, 1]) * - 1
+        M_Z_due_F_Y = self.X_ac_rel * (self.outputs[1, 0] + self.outputs[1, 1])
 
-        M_X_due_F_Z = self.Y_ac * (self.outputs[2, 0] - self.outputs[2, 1])
-        M_Y_due_F_Z = self.X_ac * (self.outputs[2, 0] + self.outputs[2, 1]) * - 1
+        M_X_due_F_Z = self.Y_ac_rel * (self.outputs[2, 0] - self.outputs[2, 1])
+        M_Y_due_F_Z = self.X_ac_rel * (self.outputs[2, 0] + self.outputs[2, 1]) * - 1
 
         # Correct aerodynamic center moment coefficient for control input.
         if self.deflection:

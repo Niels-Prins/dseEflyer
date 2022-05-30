@@ -8,8 +8,8 @@ dihedral		0.000	deg
 
 # positioning #
 
-X_le	       -0.100	m
-Y_le		   -0.300	m
+X_le	       	        0.150	m
+Y_le		       -0.300	m
 Z_le			0.000	m
 
 # controls #
@@ -17,8 +17,8 @@ Z_le			0.000	m
 start 			0.000	m
 end 			0.000	m
 
-motion			Z	    X,Y,Z
+motion			Z	X,Y,Z
 deflection		True	boolean
 
 alpha			0.000	1/deg
-moment		    0.000	1/deg
+moment		    	0.000	1/deg

@@ -48,13 +48,13 @@ class TestAerodynamicSurface(unittest.TestCase):
             mac_calc = round(surface.mac, 3)
 
             X_ac_true = -0.044  # calculated by hand using formula [3.1].
-            X_ac_calc = round(surface.X_ac, 3)
+            X_ac_calc = round(surface.X_ac_rel, 3)
 
             Y_ac_true = -0.267  # calculated by hand using formula [3.2].
-            Y_ac_calc = round(surface.Y_ac, 3)
+            Y_ac_calc = round(surface.Y_ac_rel, 3)
 
             Z_ac_true = -0.023  # calculated by hand using formula [3.3].
-            Z_ac_calc = round(surface.Z_ac, 3)
+            Z_ac_calc = round(surface.Z_ac_rel, 3)
 
             alpha_true = 0.048  # calculated by averaging the first column in the reference file.
             alpha_calc = round(np.mean(surface.alpha), 3)
@@ -95,13 +95,13 @@ class TestAerodynamicSurface(unittest.TestCase):
             mac_calc = round(surface.mac, 3)
 
             X_ac_true = -0.044  # calculated by hand using formula [3.1].
-            X_ac_calc = round(surface.X_ac, 3)
+            X_ac_calc = round(surface.X_ac_rel, 3)
 
             Y_ac_true = -0.267  # calculated by hand using formula [3.2].
-            Y_ac_calc = round(surface.Y_ac, 3)
+            Y_ac_calc = round(surface.Y_ac_rel, 3)
 
             Z_ac_true = -0.023  # calculated by hand using formula [3.3].
-            Z_ac_calc = round(surface.Z_ac, 3)
+            Z_ac_calc = round(surface.Z_ac_rel, 3)
 
             # Tests.
             self.assertAlmostEqual(area_true, area_calc, delta=margin * area_true)
@@ -114,13 +114,13 @@ class TestAerodynamicSurface(unittest.TestCase):
             surface = self.load_surface(symmetric=False, vertical=True)
 
             X_ac_true = -0.184  # calculated by hand using formula [3.1] and [4.1].
-            X_ac_calc = round(surface.X_ac, 3)
+            X_ac_calc = round(surface.X_ac_rel, 3)
 
             Y_ac_true = -0.317  # calculated by hand using formula [3.2] and [4.1].
-            Y_ac_calc = round(surface.Y_ac, 3)
+            Y_ac_calc = round(surface.Y_ac_rel, 3)
 
             Z_ac_true = 0.277  # calculated by hand using formula [3.3] and [4.1].
-            Z_ac_calc = round(surface.Z_ac, 3)
+            Z_ac_calc = round(surface.Z_ac_rel, 3)
 
             # Tests.
             self.assertAlmostEqual(X_ac_true, X_ac_calc, delta=margin * X_ac_true)

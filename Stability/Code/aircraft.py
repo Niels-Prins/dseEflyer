@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+from scipy.optimize import fsolve
+
 import os
 
 
@@ -18,17 +20,36 @@ class Aircraft:
         with open(f'{path}/aircraft.txt') as file:
             aircraft_data = np.genfromtxt(file, dtype=str)
 
+        # Obtain flight conditions provided by user.
+        with open(f'{path}/conditions.txt') as file:
+            conditions_data = np.genfromtxt(file, dtype=str)
+
         self.g = 9.80665
         self.mass = float(aircraft_data[0, 1])
         self.weight = self.mass * self.g
 
-        self.I_XX = float(aircraft_data[1, 1])
-        self.I_YY = float(aircraft_data[2, 1])
-        self.I_ZZ = float(aircraft_data[3, 1])
-        self.I_XZ = float(aircraft_data[4, 1])
+        self.X_cg = float(aircraft_data[1, 1])
+        self.Y_cg = float(aircraft_data[2, 1])
+        self.Z_cg = float(aircraft_data[3, 1])
 
-        self.rho = float(aircraft_data[5, 1])
-        self.velocity = float(aircraft_data[6, 1])
+        self.I_XX = float(aircraft_data[4, 1])
+        self.I_YY = float(aircraft_data[5, 1])
+        self.I_ZZ = float(aircraft_data[6, 1])
+        self.I_XZ = float(aircraft_data[7, 1])
+
+        self.velocity = float(conditions_data[0, 1])
+
+        test_velocity = np.array([[8], [0], [1]])
+
+        test = Fuselage(path, self, test_velocity)
+        test.wing_corrections()
+
+        altitude = float(conditions_data[1, 1])
+        temperature = 15.04 + 273.1 - (0.00649 * altitude)
+        pressure = 101.29 * (temperature / 288.08) ** 5.256
+        sound = np.sqrt(1.4 * 286 * temperature)
+
+        self.rho = pressure / (0.2869 * temperature)
 
         # Dimensionless mass coefficients.
         self.m_c = self.mass / (self.rho * self.wing.area * self.wing.mac)
@@ -176,3 +197,217 @@ class Aircraft:
         dataframe.to_csv(f'Results/{self.name}/Coefficients/asymmetric.csv')
 
         print(f'\nAsymmetric derivatives: \n \n{dataframe}')
+
+
+class Fuselage:
+
+    def __init__(self, path, aircraft, velocity, circular=True):
+        # Obtain fuselage information provided by user.
+        with open(f'{path}/fuselage.txt') as file:
+            data_fuselage = np.genfromtxt(file, dtype=str)
+
+        # Obtain flight conditions provided by user.
+        with open(f'{path}/conditions.txt') as file:
+            data_conditions = np.genfromtxt(file, dtype=str)
+
+        self.nose_length = float(data_fuselage[0, 1])
+        self.nose_height_start = float(data_fuselage[1, 1])
+        self.nose_height_end = float(data_fuselage[2, 1])
+        self.nose_height_slope = ((self.nose_height_end - self.nose_height_start) / self.nose_length)
+
+        self.nose_width_start = float(data_fuselage[3, 1])
+        self.nose_width_end = float(data_fuselage[4, 1])
+        self.nose_width_slope = (self.nose_width_end - self.nose_width_start) / self.nose_length
+
+        self.main_length = float(data_fuselage[5, 1])
+        self.main_height = self.nose_height_end
+        self.main_width = self.nose_width_end
+
+        self.tail_length = float(data_fuselage[6, 1])
+        self.tail_height_start = self.main_height
+        self.tail_height_end = float(data_fuselage[7, 1])
+        self.tail_width_start = self.main_width
+        self.tail_width_end = float(data_fuselage[8, 1])
+
+        self.length = self.nose_length + self.main_length + self.tail_length
+        self.diameter = np.sqrt((4 * self.main_height * self.main_width) / np.pi)
+
+        self.area_nose = ((self.nose_height_start * self.nose_width_start)
+                          + self.nose_length * (self.nose_width_start + self.nose_width_end)
+                          + self.nose_length * (self.nose_height_start + self.nose_height_end))
+        self.area_main = 2 * self.main_length * (self.main_height + self.main_width)
+        self.area_tail = ((self.tail_height_end * self.tail_width_end)
+                          + self.tail_length * (self.tail_width_start + self.tail_width_end)
+                          + self.tail_length * (self.tail_height_start + self.tail_height_end))
+        self.area = self.area_nose + self.area_main + self.area_tail
+
+        self.max_height = self.main_height
+        self.max_width = self.main_width
+
+        # Fuselage attributes extended.
+        self.circular = circular
+        self.aircraft = aircraft
+        self.aircraft.wing.area_net = self.aircraft.wing.area - (self.max_width * self.aircraft.wing.chord_root)
+
+        if self.circular:
+            self.max_area = (np.pi / 4) * self.max_height * self.max_width
+        else:
+            self.max_area = self.max_height * self.max_width
+
+        self.velocity = velocity
+        self.altitude = float(data_conditions[1, 1])
+
+        temperature = 15.04 + 273.1 - (0.00649 * self.altitude)
+        pressure = 101.29 * (temperature / 288.08) ** 5.256
+        density = pressure / (0.2869 * temperature)
+        sound = np.sqrt(1.4 * 286 * temperature)
+
+        self.mach = np.linalg.norm(velocity) / sound
+
+    def wing_corrections(self):
+
+        def lift_curve():
+            k2_k1 = 1 - ((10 * self.max_width) / (11 * self.length))
+            C_L_alpha_nose = 2 * k2_k1 * ((self.max_width * self.max_height) / self.aircraft.wing.area)
+
+            K_nose = (C_L_alpha_nose / self.aircraft.wing.C_L_alpha) * (self.aircraft.wing.area / self.aircraft.wing.area_net)
+
+            K_wing = (0.1714 * (self.max_width / self.aircraft.wing.span) ** 2
+                      + 0.8326 * (self.max_width / self.aircraft.wing.span) + 0.9974)
+
+            K_fuselage = (0.7810 * (self.max_width / self.aircraft.wing.span) ** 2
+                          + 1.1976 * (self.max_width / self.aircraft.wing.span) + 0.0088)
+
+            C_L_alpha_wf = (self.aircraft.wing.C_L_alpha * (K_nose + K_wing + K_fuselage)
+                            * (self.aircraft.wing.area_net / self.aircraft.wing.area))
+
+            return C_L_alpha_wf, C_L_alpha_nose, K_wing, K_fuselage
+
+        def aerodynamic_center():
+            C_L_alpha_wf, C_L_alpha_nose, K_wing, K_fuselage = lift_curve()
+
+            # All measured from the exposed root chord!
+            X_ac_nose = - ((2 * self.nose_height_slope * self.nose_width_slope
+                           * self.nose_length ** 2 * ((self.aircraft.wing.X_le / 2) - (self.nose_length / 3)))
+                           / (self.aircraft.wing.chord_root * self.max_width * self.max_height))
+
+            # Should have sweep correction implemented!
+            X_ac_wing = (self.aircraft.wing.X_ac_abs - self.aircraft.wing.X_le) / self.aircraft.wing.chord_root
+            C_L_alpha_wing_fuselage = self.aircraft.wing.C_L_alpha * K_wing * (self.aircraft.wing.area_net / self.aircraft.wing.area)
+
+            X_ac_fuselage = ((20 / 21) * np.sqrt(self.max_width / self.aircraft.wing.span) *
+                             ((self.aircraft.wing.span - self.max_width) / self.aircraft.wing.chord_root)
+                             * np.tan(self.aircraft.wing.sweep) + 0.25)
+
+            C_L_alpha_fuselage_wing = self.aircraft.wing.C_L_alpha * K_fuselage * (self.aircraft.wing.area_net / self.aircraft.wing.area)
+
+            X_ac_wf = ((((X_ac_nose * C_L_alpha_nose)
+                         + (X_ac_wing * C_L_alpha_wing_fuselage)
+                         + (X_ac_fuselage * C_L_alpha_fuselage_wing)) / C_L_alpha_wf) * self.aircraft.wing.chord_root)
+
+            return X_ac_wf
+
+        def drag_curve():
+            alpha = np.arctan(self.velocity[2, 0] / self.velocity[0, 0])
+
+            n = (np.sqrt(self.length / self.max_width) / 19) + 0.5
+
+            C_d_c = (-2.77 * (self.mach * np.sin(alpha)) ** 4 + 3.88
+                     * (self.mach * np.sin(alpha)) ** 3 - 0.527
+                     * (self.mach * np.sin(alpha)) ** 2 + 0.0166
+                     * (self.mach * np.sin(alpha)) + 1.2)
+
+            top_area = ((self.nose_width_start + self.nose_width_end) * (self.nose_length / 2)
+                        + self.main_length * self.main_width
+                        + (self.tail_width_start + self.tail_width_end) * (self.tail_length / 2))
+
+            C_D_alpha = ((2 * alpha ** 2 * ((self.tail_height_end * self.tail_width_end) / self.aircraft.wing.area))
+                         + (n * C_d_c * abs(alpha ** 3) * (top_area / self.aircraft.wing.area)))
+
+            return C_D_alpha
+
+        def zero_drag():
+            R_wf = 1.05
+            flat_plate_coeff = 0.0030759
+            base_diameter = np.sqrt((4 * self.tail_width_end * self.tail_height_end) / np.pi)
+            frontal_area = self.max_height * self.max_width
+
+            C_D_skin = (R_wf * flat_plate_coeff * ((1 + (60 / (self.length / self.diameter) ** 3))
+                        + (0.0025 * (self.length / self.diameter)) * (self.area / self.aircraft.wing.area)))
+
+            C_D_base = (np.sqrt((0.029 * (base_diameter / self.diameter) ** 3)
+                                / (C_D_skin * (self.aircraft.wing.area / frontal_area)))
+                        * (frontal_area / self.aircraft.wing.area))
+
+            return C_D_skin + C_D_base
+
+        C_L_alpha_correction = lift_curve()[0] - self.aircraft.wing.C_L_alpha
+        ac_correction = aerodynamic_center()
+        C_D_alpha_correction = drag_curve()
+        C_D_0_correction = zero_drag()
+
+        return C_L_alpha_correction, C_D_alpha_correction, C_D_0_correction, ac_correction
+
+    def velocity_correction(self, velocity):
+
+        def kelvin():
+
+            def equation_kelvin(ratio):
+                return ((velocity[1, 0] * self.main_height) +
+                        (((self.main_height ** 2 * ratio ** 2 + self.main_width ** 2) * velocity[1, 0])
+                         / (2 * ratio * self.main_height)) * np.log((1 - ratio) / (1 + ratio)))
+
+            location = fsolve(equation_kelvin, 0.5)[0] * self.main_height
+            strength = (((location ** 2 + self.main_width ** 2) * np.pi * velocity[1, 0]) / location)
+
+            u = velocity[1, 0] + ((strength / (2 * np.pi)) * (((y - location) / (x ** 2 + (y - location) ** 2))
+                                                              - ((y + location) / (x ** 2 + (y + location) ** 2))))
+            v = (strength / (2 * np.pi)) * ((x / (x ** 2 + (y + location) ** 2)) - (x / (x ** 2 + (y - location) ** 2)))
+
+            return u, v
+
+        def rankine():
+
+            def equation_rankine(ratio):
+                return ((self.main_height ** 2 * ratio ** 2)
+                        + ((self.main_height ** 2 * ratio) / (np.arctan(ratio))) - self.main_width ** 2)
+
+            location = fsolve(equation_rankine, 1.0)[0] * self.main_height
+            strength = (velocity[1, 0] * self.main_height * np.pi) / np.arctan(location / self.main_height)
+
+            u = velocity[1, 0] + ((strength / (2 * np.pi))) * (((x + location) / ((x + location) ** 2 + y ** 2))
+                                                               - ((x - location) / ((x - location) ** 2 + y ** 2)))
+            v = ((strength / (2 * np.pi))) * ((y / ((x + location) ** 2 + y ** 2))
+                                              - (y / ((x - location) ** 2 + y ** 2)))
+
+            return u, v
+
+        def doublet():
+            strength = 2 * np.pi * velocity[1, 0] * self.main_width ** 2
+
+            u = velocity[1, 0] + ((strength * (y ** 2 - x ** 2)) / (2 * np.pi * (x ** 2 + y ** 2) ** 2))
+            v = - ((strength * x * y) / (np.pi * (x ** 2 + y ** 2) ** 2))
+
+            return u, v
+
+        wing_location = -2
+        x, y = np.meshgrid(np.linspace(- self.aircraft.wing.span / 2, self.aircraft.wing.span / 2, 40), wing_location)
+
+        if self.main_height / self.main_width > 1:
+            Y_dot, Z_dot = kelvin()
+
+        elif self.main_height / self.main_width < 1:
+            Y_dot, Z_dot = rankine()
+
+        else:
+            Y_dot, Z_dot = doublet()
+
+        velocity[1, 0] = Y_dot
+        velocity[2, 0] += Z_dot
+
+        return velocity
+
+    def vertical_corrections(self):
+        pass
+
+

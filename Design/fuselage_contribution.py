@@ -188,7 +188,6 @@ class Control:
             print('CD_fus', C_D_fus)
             return
 
-
         def fuselage_sideforce_sidewash():
             Zw = y_el = self.fuselage_height / 2 - self.wing_t_max / 2
             x_el = np.sqrt((1 - ((y_el ** 2) / (self.fuselage_height / 2) ** 2)) * (self.fuselage_width / 2) ** 2)
