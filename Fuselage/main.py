@@ -24,16 +24,18 @@ xcg = np.arange(3.7, 4.0 + 0.1 , 0.1)  # [m]
 ycg = 0.5  # [m]
 Wto = 1220  # [kg]
 Dtmg = 431.8  # [mm]
-Btmg = 152.4  # [mm]
+Btmg = 215.9  # [mm]
 volume_mw = np.pi * (Dtmg * 1E-3 * 0.5)**2 * (Btmg * 1E-3) # m^3
-Dtng = 317.5  # [mm]
-Btng = 127  # [mm]
+Dtng = 177.8  # [mm]
+Btng = 101.6  # [mm]
 volume_nw = np.pi * (Dtng * 1E-3 * 0.5)**2 * (Btng * 1E-3) # m^3
 ns = 1
 x_ng = 1.29  # [m] Start of cockpit
 bn = xcg[-1] - x_ng
 l_ng = 0.8 # [m]
 l_mg = l_ng # [m]
+strut_length_nose = l_ng - (Dtng*1E-3 * 0.5) + (69.7E-3) # m
+print("strut nose", strut_length_nose)
 thick_fuselage = 7.686 # Position of thickest part of fuselage bottom used for ground clearance
 ln = xcg - x_ng
 print("Volume main gear", volume_mw)
