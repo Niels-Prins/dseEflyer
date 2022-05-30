@@ -179,8 +179,10 @@ for D_cl in np.arange(0.4, 0.75, 0.01):
                                                                     max(n_cl * 60, n_cl_2 * 60, n_to * 60,
                                                                         n_to_2 * 60, n_la * 60, n_la_2 * 60),
                                                                     min(n_cl * 60, n_cl_2 * 60, n_to * 60,
-                                                                        n_to_2 * 60, n_la * 60, n_la_2 * 60), max( Pr_cl_0, Pr_cl_6000, Pr_to_0, Pr_to_6000, Pr_la_0,
-                                                                    Pr_la_6000),  n_cl * 60,
+                                                                        n_to_2 * 60, n_la * 60, n_la_2 * 60),
+                                                                    max(Pr_cl_0, Pr_cl_6000, Pr_to_0, Pr_to_6000,
+                                                                        Pr_la_0,
+                                                                        Pr_la_6000), n_cl * 60,
                                                                     n_cl_2 * 60, n_to * 60,
                                                                     n_to_2 * 60, n_la * 60, n_la_2 * 60,
                                                                     Pr_cl_0, Pr_cl_6000, Pr_to_0, Pr_to_6000, Pr_la_0,
@@ -257,7 +259,7 @@ for V in np.arange(60, 90, 0.01):
 
 df_curve_g = pd.DataFrame(lst_Preq_g, columns=["Power required", "Velocity"])
 plt.plot(df_curve_g["Velocity"], df_curve_g["Power required"], label="Power required")
-plt.plot(df_curve_g["Velocity"],P_a*np.ones(len(lst_Preq_g)), label = "Power available")
+plt.plot(df_curve_g["Velocity"], P_a * np.ones(len(lst_Preq_g)), label="Power available")
 plt.vlines(x=V_cl, ymin=0,
            ymax=df_curve_g[round(df_curve_g["Velocity"], 2) == round(V_cl, 2)]["Power required"].values[0],
            linestyle='dotted', color='green')
