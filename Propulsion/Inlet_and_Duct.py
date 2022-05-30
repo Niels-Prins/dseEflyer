@@ -1,3 +1,4 @@
+#%%
 import numpy as np
 import math as mt
 import scipy.interpolate
@@ -54,6 +55,9 @@ def inlet_conditions(v, temp, pres, in_eff):
     tot_pres_in = pres * (1 + in_eff*(v**2/(2*cp*tot_temp_in)))**(kappa/(kappa - 1))
     return [tot_temp_in, tot_pres_in]
 
+def smooth(Re):
+    inv_fd = 1.93/mt.log(10) * sc.special.lambertw(10**(-0.537/1.930) * mt.log(10)/1.930 *Re)
+    return inv_fd **-1
 
 
 
@@ -82,23 +86,23 @@ T_03 = T_02 + (T_02/duct_efficiency)* (((fan_pressure_ratio) ** ((kappa - 1)/kap
 #fan_face_area = (v3 * fan_area(D_fan))/v2
 
 #fan_face_diam = np.sqrt(((fan_face_area/2) * 4)/np.pi)
-mdot = massflow(thrust, v4)
-fan_diameter = fan_diam(thrust, v)[0]
-fan_area = fan_diam(thrust, v)[1]
-exhaust_area = fan_diam(thrust, v)[1]*e_d
-exhaust_diam = np.sqrt((exhaust_area * 4)/np.pi)
-v4 = velocities(v, v3)[2]
+# mdot = massflow(thrust, v4)
+# fan_diameter = fan_diam(thrust, v)[0]
+# fan_area = fan_diam(thrust, v)[1]
+# exhaust_area = fan_diam(thrust, v)[1]*e_d
+# exhaust_diam = np.sqrt((exhaust_area * 4)/np.pi)
+# v4 = velocities(v, v3)[2]
 
 
-#print("V_2:", v2)'''
-print("V_3:", v3)
-print("V_4:", v4)
-print("delta V:", v4 - v)
-print("Mass Flow:", mdot)
-print("Fan diameter:", fan_diameter)
-print("Fan Area:", fan_area)
-print("Exhaust area:", exhaust_area)
-print("Exhaust diameter:", exhaust_diam)
+# #print("V_2:", v2)'''
+# print("V_3:", v3)
+# print("V_4:", v4)
+# print("delta V:", v4 - v)
+# print("Mass Flow:", mdot)
+# print("Fan diameter:", fan_diameter)
+# print("Fan Area:", fan_area)
+# print("Exhaust area:", exhaust_area)
+# print("Exhaust diameter:", exhaust_diam)
 
 
 '''
@@ -115,3 +119,4 @@ cowl_points = [0, b, 0]
 cowl = (base_track, cowl_points, base_track_new, order=2)
 plt.plot(base_track_new, cowl)
 plt.show()'''
+# %%
