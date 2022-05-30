@@ -16,14 +16,14 @@ V_la = 33.438
 
 # Power values
 P_required = 229000  # [W]
-P_a = 364000
+P_a = 260000
 
 # aircraft characteristics
-AR = 5.82
-S = 14.5
+AR = 5.8
+S = 12.3
 e = 0.8
 g = 9.81
-MTOM = 1153  # kg
+MTOM = 979  # kg
 MTOM_3g = 3 * MTOM
 Cd0 = 0.025
 
@@ -98,12 +98,12 @@ def Preq_drag(V, MTOM, alt, D, e_d):
 """"###############################################################################################################"""
 # Constants for loop specific
 lst = []
-thr_thres_cl_0 = 2001
-thr_thres_cl_6000 = 2316
+thr_thres_cl_0 = 2386
+thr_thres_cl_6000 = 2345
 thr_thres_to_0 = 1344
-thr_thres_to_6000 = 1555
+thr_thres_to_6000 = 1321
 thr_thres_la_0 = 1593
-thr_thres_la_6000 = 1844
+thr_thres_la_6000 = 1566
 rpmlower = 4000
 rpmupper = 8000
 rpmspacing = 100
@@ -225,7 +225,7 @@ lst_header = ["Diameter", "Area", "e_d", "Max RPM", 'Min RPM', "Max P",
 df = pd.DataFrame(lst, columns=lst_header)
 df.to_excel("Prop_sizing_final.xlsx", index=False)
 
-new_df = df[round(df["Diameter"], 2) == round(D, 2)]
+new_df = df[round(df["Diameter"], 2) == round(D, 2)].sort_values(by=["Max P"], ascending=False)
 
 id = 0
 df_choice = pd.DataFrame(np.array([new_df.iloc[id]]).transpose(), columns=["Propeller"], index=lst_header)
@@ -234,38 +234,77 @@ df_choice.to_excel("Propeller_choice.xlsx", index=True)
 """"###############################################################################################################"""
 """"Power curves"""
 """"###############################################################################################################"""
-alt_power = 0
-lst_Preq = []
-for V in np.arange(20, 120, 0.01):
-    lst_Preq.append([Preq_drag(V, MTOM, alt_power, new_df.iloc[id]["Diameter"], new_df.iloc[id]["e_d"]), V])
+# alt_power = 0
+# lst_Preq = []
+# for V in np.arange(20, 120, 0.01):
+#     lst_Preq.append([Preq_drag(V, MTOM, alt_power, new_df.iloc[id]["Diameter"], new_df.iloc[id]["e_d"]), V])
+#
+# # plot the curve for normal flight
+# df_curve = pd.DataFrame(lst_Preq, columns=["Power required", "Velocity"])
+# plt.plot(df_curve["Velocity"], df_curve["Power required"], label="Power required")
+# plt.plot(df_curve["Velocity"], P_a * np.ones(len(lst_Preq)), label="Power available")
+# plt.vlines(x=V_cl, ymin=0, ymax=df_curve[round(df_curve["Velocity"], 2) == round(V_cl, 2)]["Power required"].values[0],
+#            linestyle='dotted', color='green')
+# plt.xlabel("Velocity")
+# plt.ylabel("Power required")
+# plt.legend()
+# plt.title("Power curve")
+# plt.show()
+#
+# alt_power = 0
+# lst_Preq_g = []
+# g_load = 3
+# for V in np.arange(60, 90, 0.01):
+#     lst_Preq_g.append([Preq_drag(V, g_load * MTOM, alt_power, new_df.iloc[id]["Diameter"], new_df.iloc[id]["e_d"]), V])
+#
+# df_curve_g = pd.DataFrame(lst_Preq_g, columns=["Power required", "Velocity"])
+# plt.plot(df_curve_g["Velocity"], df_curve_g["Power required"], label="Power required")
+# plt.plot(df_curve_g["Velocity"], P_a * np.ones(len(lst_Preq_g)), label="Power available")
+# plt.vlines(x=V_cl, ymin=0,
+#            ymax=df_curve_g[round(df_curve_g["Velocity"], 2) == round(V_cl, 2)]["Power required"].values[0],
+#            linestyle='dotted', color='green')
+# plt.xlabel("Velocity")
+# plt.ylabel("Power required")
+# plt.ylim(0.9 * min(df_curve_g["Power required"]), 1.1 * max(df_curve_g["Power required"]))
+# plt.legend()
+# plt.title("Power curve with g_load")
+# plt.show()
 
-# plot the curve for normal flight
-df_curve = pd.DataFrame(lst_Preq, columns=["Power required", "Velocity"])
-plt.plot(df_curve["Velocity"], df_curve["Power required"], label="Power required")
-plt.plot(df_curve["Velocity"], P_a * np.ones(len(lst_Preq)), label="Power available")
-plt.vlines(x=V_cl, ymin=0, ymax=df_curve[round(df_curve["Velocity"], 2) == round(V_cl, 2)]["Power required"].values[0],
-           linestyle='dotted', color='green')
-plt.xlabel("Velocity")
-plt.ylabel("Power required")
-plt.legend()
-plt.title("Power curve")
-plt.show()
+""""###############################################################################################################"""
+""""Thrust curves take-off """
+""""###############################################################################################################"""
+# s_runway = 356
+# a_constant = V_to ** 2 / (2 * s_runway)
+# t_runway = np.sqrt(2 * s_runway / a_constant)
+# a_linear = 2 * a_constant
+# a_slope = a_linear / t_runway
+# lst_force = []
+# velocity = 0
+# for time in np.arange(0.001, t_runway + 2, 1):
+#     velocity = velocity + 0.5 * a_slope * time**2
+#     Force = MTOM * 0.5 * a_slope * time ** 2
+#     lst_force.append([time, Force + D_t])
+#     print(D_t)
+#
+# df_thrust = pd.DataFrame(lst_force, columns=["Time", "Thrust required"])
+#
+# ed = 0.8
+# diam = 0.63
+# Pavailable = 260000
+#
+# plt.plot(df_thrust["Time"], df_thrust["Thrust required"], label="Thrust required")
+# plt.xlabel("Time")
+# plt.ylabel("Thrust")
+# plt.legend()
+# plt.title("Thrust vs time")
+# plt.show()
 
-alt_power = 0
-lst_Preq_g = []
-g_load = 3
-for V in np.arange(60, 90, 0.01):
-    lst_Preq_g.append([Preq_drag(V, g_load * MTOM, alt_power, new_df.iloc[id]["Diameter"], new_df.iloc[id]["e_d"]), V])
-
-df_curve_g = pd.DataFrame(lst_Preq_g, columns=["Power required", "Velocity"])
-plt.plot(df_curve_g["Velocity"], df_curve_g["Power required"], label="Power required")
-plt.plot(df_curve_g["Velocity"], P_a * np.ones(len(lst_Preq_g)), label="Power available")
-plt.vlines(x=V_cl, ymin=0,
-           ymax=df_curve_g[round(df_curve_g["Velocity"], 2) == round(V_cl, 2)]["Power required"].values[0],
-           linestyle='dotted', color='green')
-plt.xlabel("Velocity")
-plt.ylabel("Power required")
-plt.ylim(0.9 * min(df_curve_g["Power required"]), 1.1 * max(df_curve_g["Power required"]))
-plt.legend()
-plt.title("Power curve with g_load")
-plt.show()
+#
+# print("t_runway",t_runway)
+# print("a_constant", a_constant)
+# print("a_linear", a_linear)
+# # print("a_slope", a_slope)
+# # print("force", F)
+#
+#
+# print(Drag(10, MTOM, 0))
