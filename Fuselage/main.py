@@ -23,10 +23,10 @@ print("volume batteries",volume_batteries)
 xcg = np.arange(3.7, 4.0 + 0.1 , 0.1)  # [m]
 ycg = 0.5  # [m]
 Wto = 1220  # [kg]
-Dtmg = 431.8  # [mm]
-Btmg = 215.9  # [mm]
+Dtmg = 127*2  # [mm] assuming Dt = dt*2
+Btmg = 127  # [mm]
 volume_mw = np.pi * (Dtmg * 1E-3 * 0.5)**2 * (Btmg * 1E-3) # m^3
-Dtng = 177.8  # [mm]
+Dtng = 177.8  # [mm] assuming Dt = dt*2
 Btng = 101.6  # [mm]
 volume_nw = np.pi * (Dtng * 1E-3 * 0.5)**2 * (Btng * 1E-3) # m^3
 ns = 1
@@ -72,11 +72,10 @@ c = bn * np.sin(np.radians(alpha))
 phi = np.degrees(np.arctan(7 * (ycg+l_mg) / c))
 print("phi", phi)
 '''
-Pmw = 0.92 * Wto / 2
-Pnw = 0.08 * Wto
+
 Pnw = (Wto * lm) / (lm + ln)
-Pmw = (Wto * ln) / (lm + ln)
-Loading_ratio = Pnw / (Pnw + Pmw) * 100
+Pmw = (Wto * ln) / (2 * (lm + ln))
+Loading_ratio = (Pnw / Wto) * 100
 print("Pmw and Pnw are", Pmw, Pnw)
 print("Loading ratio", Loading_ratio)
 plt.legend()
