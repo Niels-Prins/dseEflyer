@@ -14,7 +14,7 @@ V_to = 28.29
 V_la = 33.438
 
 #Power values
-P_required = 322800  # [W]
+P_required = 229000  # [W]
 P_a = 364000
 
 #aircraft characteristics
@@ -84,19 +84,21 @@ def Preq_drag(V, MTOM, alt, D, e_d):
 # Constants for loop specific
 lst = []
 thr_thres_cl_0 = 2810
-thr_thres_cl_6000 = 2762
+thr_thres_cl_6000 = 2316
 thr_thres_to_0 = 1582
 thr_thres_to_6000 = 1555
 thr_thres_la_0 = 1876
 thr_thres_la_6000 = 1844
-rpmlower = 5000
+rpmlower = 4000
 rpmupper = 8000
 rpmspacing = 100
 marginlower = 1
-marginupper = 1.08
+marginupper = 1.05
+
+# and  P_required <= Pr_cl_0 <= 1.01 * P_required
 
 #for loop
-for D_cl in np.arange(0.55, 0.75, 0.01):
+for D_cl in np.arange(0.4, 0.75, 0.01):
     for e_d in np.arange(0.8, 1.01, 0.01):
         for n_cl in np.arange(rpmlower/60, rpmupper/60, rpmspacing/60):
             Thr_cl_0 = Thrust(kt,n_cl,D_cl,alt_0)
@@ -107,7 +109,7 @@ for D_cl in np.arange(0.55, 0.75, 0.01):
             V_3_cl_0 = V3(V_cl,w_cl_0)
             V_4_cl_0 = V4(V_3_cl_0, e_d)
             mflow_cl_0 = Massflow(Thr_cl_0, V_4_cl_0, V_cl)
-            if marginlower * thr_thres_cl_0 <= Thr_cl_0 <= marginupper * thr_thres_cl_0 and  P_required <= Pr_cl_0 <= 1.002 * P_required:
+            if marginlower * thr_thres_cl_0 <= Thr_cl_0 <= marginupper * thr_thres_cl_0 :
                 for n_cl_2 in np.arange(rpmlower / 60, rpmupper / 60, rpmspacing / 60):
                     Thr_cl_6000 = Thrust(kt,n_cl_2,D_cl,alt_6000)
                     Torque_cl_6000 = Torque(kq,n_cl_2,D_cl,alt_6000)
@@ -197,32 +199,26 @@ lst_header = [ "Diameter", "Area","e_d", "Max RPM", 'Min RPM',
 df = pd.DataFrame(lst, columns=lst_header)
 df.to_excel("Prop_sizing_final.xlsx", index=False)
 
-# index = df.index
-# for id in range(0,len(df)):
-#     if 0.95 * D < df.iloc[id]["Diameter"] < 1.05 * D:
-#         break
-#         # number = index[df[id]["Diameter"]].to_list()
-# print(id)
+new_df = df[round(df["Diameter"], 2) == round(D, 2)]
 
-
-id = 50
-df_choice = pd.DataFrame(np.array([df.iloc[id]]), columns= lst_header)
-df_choice.to_excel("Propeller_choice.xlsx", index=False)
-
-# print(df.iloc[id])
+id = 0
+df_choice = pd.DataFrame(np.array([new_df.iloc[id]]).transpose(), columns= ["Propeller"], index = lst_header)
+df_choice.to_excel("Propeller_choice.xlsx", index=True)
 
 """"###############################################################################################################"""
 """"Power curves"""
 """"###############################################################################################################"""
 alt_power = 0
 lst_Preq = []
-for V in np.arange(20, 120, 0.1):
+for V in np.arange(20, 120, 0.01):
     lst_Preq.append([Preq_drag(V, MTOM, alt_power, df.iloc[id]["Diameter"], df.iloc[id]["e_d"]), V])
 
 #plot the curve
 df_curve = pd.DataFrame(lst_Preq, columns = ["Power required", "Velocity"])
 plt.plot(df_curve["Velocity"], df_curve["Power required"], label = "Power required")
 plt.plot( df_curve["Velocity"],P_a*np.ones(len(lst_Preq)), label = "Power available")
+# axes = plt.gca()
+plt.vlines(x=V_cl, ymin = 0, ymax = df_curve[round(df_curve["Velocity"], 2) == round(V_cl, 2)]["Power required"].values[0],  linestyle='dotted', color='green')
 plt.xlabel("Velocity")
 plt.ylabel("Power required")
 plt.legend()
@@ -231,3 +227,4 @@ plt.show()
 
 #write data in excel
 df_curve.to_excel("Power_curve.xlsx", index = False)
+
