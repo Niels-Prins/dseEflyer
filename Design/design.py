@@ -20,14 +20,14 @@ class Design:
 
         # Wing attributes.
         self.wing_aspect_ratio = 5.80
-        self.wing_area = 14.50
-        self.wing_span = 9.2
+        self.wing_area = 12.3
+        self.wing_span = 8.48
         self.wing_sweep_half = -7.45 * (np.pi / 180)
         self.wing_sweep_quarter = -3.74 * (np.pi / 180)
         self.wing_taper = 0.45
         self.wing_t_to_c = 0.15
-        self.wing_t_max = 0.31
-        self.wing_chord_root = 2.18
+        self.wing_t_max = 0.3015
+        self.wing_chord_root = 2.01
         self.wing_MAC = ((2 / 3) * self.wing_chord_root *
                          ((1 + self.wing_taper + self.wing_taper ** 2) / (1 + self.wing_taper)))
         self.wing_C_L_alpha = 6.56
@@ -35,21 +35,21 @@ class Design:
 
         # Horizontal tail attributes.
         self.h_tail_aspect_ratio = 5.15  # 5.00
-        self.h_tail_area = 2.79  # 2.00
-        self.h_tail_span = 3.79  # 3.80
+        self.h_tail_area = 2.62  # 2.00
+        self.h_tail_span = 3.6737  # 3.80
         self.h_tail_sweep_half = 0
         self.h_tail_sweep_quarter = 1.78 * (np.pi / 180)
-        self.h_tail_taper = 0.73  # 0.70
-        self.h_tail_t_max = 0.12
+        self.h_tail_taper = 0.735  # 0.70
+        self.h_tail_t_max = 0.1
         self.h_tail_C_L_alpha = None
 
         # Vertical tail attributes.
         self.v_tail_aspect_ratio = 1.65
-        self.v_tail_area = 1.31
-        self.v_tail_span = 1.47
+        self.v_tail_area = 1.227
+        self.v_tail_span = 1.423
         self.v_tail_sweep_quarter = 27 * (np.pi / 180)
         self.v_tail_taper = 0.45
-        self.v_tail_t_max = 0.12
+        self.v_tail_t_max = 0.1427
         self.v_tail_C_L_alpha = None
 
         # Fuselage attributes.
