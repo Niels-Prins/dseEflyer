@@ -1,25 +1,24 @@
 import numpy as np
 import math as mt
-from scipy.optimize import fsolve
+from scipy import interpolate
 import scipy as sc
 import matplotlib.pyplot as plt
 
-
+#PROPULSION UNIT PARAMETERS
 D_fan = 0.63
-pi_fan = 1.0648
-shaft_rad = 0.5
-a = 0.6 #fuselage heigh behind the cockpit
-kt = 1.032914
-e_d = 0.84
-duct_taper = 0.95
+pi_fan = 1.0648 #taken from UL-39
+shaft_rad = 0.5 #assumed
+a = 0.9         #assumed fuselage height behind the cockpit (consider clearance for FOD and wing placement)
+kt = 1.032914   #Wessel computed this
+e_d = 1         #Wessel decided this
+thrust = 3200   #Wessel computed this
+v3 = 121.55     #Wessel computed this
+
+#FLIGHT CONDITIONS
+v = 77.17 #operating velocity (freestream)
 
 h = 0 * 0.3048
-thrust = 2810
-v = 77.17
 kin_vis = 1.460 * (10**-5)
-w = 47.222
-v3 = 124.39
-
 kappa = 1.4
 cp = 1000
 T0 = 288.15
@@ -32,7 +31,7 @@ p = p0 * (T / T0) ** (-g0 / (R * a1))
 rho = (p / (R * T))
 
 
-def diam(area): #a3
+def diam(area):
     diameter = np.sqrt((area * 4) / np.pi)
     return diameter
 
@@ -47,7 +46,7 @@ def massflow(thrust, V_4, freestram):
     return massflow
 
 def W(Re, velocity, length, diam):
-    inv_fd = 1.93/mt.log(10) * sc.special.lambertw(10**(-0.537/1.930) * mt.log(10)/1.930 *Re)
+    inv_fd = 1.93/mt.log(10) * sc.special.lambertw(10**(-0.537/1.930) * mt.log(10)/1.930 * Re)
     f_d = np.real((inv_fd **-1) ** 2)
     head_loss = f_d * ((rho * velocity**2)/2) * (length / diam)
     return [f_d, head_loss]
@@ -70,9 +69,7 @@ def DynP(velocity):
     q = 0.5 * rho * (velocity**2)
     return q
 
-def SoS(T):
-    SoS = np.sqrt(287 * kappa * T)
-    return SoS
+
 
 fan_area = ((D_fan**2)*np.pi)/4
 exhaust_area = fan_area*e_d
@@ -81,14 +78,16 @@ v1 = velocities(v, v3)[0]
 v4 = velocities(v, v3)[2]
 mdot = massflow(thrust, v4, v)
 
-#pressure loss stuff
+
 Re3 = Reynolds(v3, D_fan)
 Re4 = Reynolds(v4, D_fan*e_d)
 
-mean_velocity34 = (v4-v3)/2
-mean_HyDiam34 = (D_fan - exhaust_diam)/2
-
-p_loss34 = W(Re3, mean_velocity34, 1.4, mean_HyDiam34)[1]
+if e_d < 1:
+    mean_velocity34 = (v4-v3)/2
+    mean_HyDiam34 = (D_fan - exhaust_diam)/2
+    p_loss34 = W(Re3, mean_velocity34, 1.4, mean_HyDiam34)[1]
+if e_d == 1:
+    p_loss34 = W(Re3, v3, 1.4, D_fan)[1]
 
 #stagnation point
 T_0 = total_conditions(v, T, p)[0]
@@ -100,30 +99,17 @@ ptot_4 = p4 + DynP(v4)
 ptot_3 = ptot_4 + p_loss34
 p3 = ptot_3 - DynP(v3)
 
-#UL39 numbers
-
 ptot_2 = ptot_3 / pi_fan
-ram_eff = (ptot_2 - p)/(p_0 - p)
-p2 = ptot_2 / (1 + (ram_eff * (v**2/(2*cp*T_0))))
-#v2 = np.sqrt(2*cp*(ptot_2-p2))
-
-#inlet conditions
-T_tot1 = inlet_conditions(v, T_0, p, ram_eff)[0]
-ptot_1 = inlet_conditions(v, T_0, p, ram_eff)[1]
-
-isen_eff = 0.85
+noz_eff = 0.85
 fan_eff = 0.885
+ram_eff = (ptot_2 - p)/(p_0 - p)
 
 T_tot4 = (((ptot_4/p4) ** (kappa-1/kappa)) * T)
-T_tot3 = T_tot4 / (1 + ((1/isen_eff) * ((ptot_4/ptot_3)**(kappa-1/kappa) - 1)))
+T_tot3 = T_tot4 / (1 + ((1/noz_eff) * ((ptot_4/ptot_3)**(kappa-1/kappa) - 1)))
 T_tot2 = T_tot3 / (1 + ((1/fan_eff) * ((ptot_3/ptot_2)**(kappa-1/kappa) - 1)))
 
-v2 = SoS(T_tot2) * np.sqrt(((ptot_2/p2)**((kappa-1)/kappa) - 1) / ((kappa-1)/2))
 
-
-
-'''
-duct_acc_v = 23.5 #velocity increase due to the duct for the UL-39
+duct_acc_v = 80 - 62.5 #velocity increase due to the duct for the UL-39 (inlet velocity - freestream)
 A2 = np.arange(fan_area, 2*fan_area, 0.01)
 fanfaceV = []
 fanfaceA = []
@@ -136,31 +122,51 @@ for i in range(len(A2)):
 v2 = np.max(fanfaceV)
 fanface_area = np.min(fanfaceA)
 
+Re2 = Reynolds(v2, diam(fanface_area))
+ptot_2 = ptot_3 / pi_fan
+p_loss12 = W(Re2, v2, 1.4, diam(fanface_area))[1]
+p2 = ptot_2 - DynP(v2)
+ptot_1 = ptot_2 - p_loss12
+p1 = ptot_1 - DynP(v)
+
 mdot_per_duct = mdot/2
 ductend_area = mdot_per_duct/(v2 * rho)
-inlet_area = (v2*ductend_area)/v'''
+inlet_area = (v2*ductend_area)/v
+
+b = (2 * inlet_area) / (np.pi * a)
+base_track = np.linspace(-1*(a/2), 1*(a/2), 3)
+cowl_points = [0, b, 0]
+cowl = interpolate.interp1d(base_track, cowl_points, kind='quadratic')
+x = np.arange(-1*(a/2), 1*(a/2), 0.0001)
+plt.xlim(-0.5, 0.5)
+plt.ylim(-0.05, 0.5)
+plt.plot(x, (cowl(x)), color='blue')
+plt.plot([-1*(a/2), 1*(a/2)], [np.min(cowl(base_track)), np.min(cowl(base_track))], color='blue')
+plt.grid(True)
+plt.show()
 
 print("Local Air Density:", rho)
 print("Local Air Pressure:", p)
 print("Local Air Temperature:", T)
 
-#print("Reynold's Number at Inlet:", Re1)
-print("Reynold's Number at Fan:", Re3)
+print("Reynold's Number at Inlet:", Reynolds(v, diam(inlet_area)))
+print("Reynold's Number Before Fan:", Re2)
+print("Reynold's Number After Fan:", Re3)
 print("Reynold's Number at Exhaust:", Re4)
 
-#print("Pressure loss between INLET & FAN:", p_loss12)
+print("Pressure loss between INLET & FAN:", p_loss12)
 print("Pressure loss between FAN & EXHAUST:", p_loss34)
 
-print("Total Temperature at SP:", T_0)
-print("Total Pressure at SP:", p_0)
+#print("Total Temperature at SP:", T_0)
+#print("Total Pressure at SP:", p_0)
 
 #print("Total Temperature at Inlet:", T_tot1)
-#print("Total pressure at Inlet:", ptot_1)
+print("Total pressure at Inlet:", ptot_1)
 #print("Static Pressure Before Fan:", p2)
 
-print("Total Temperature Before Fan:", T_tot2)
+#print("Total Temperature Before Fan:", T_tot2)
 print("Total pressure Before Fan:", ptot_2)
-print("Static Pressure Before Fan:", p2)
+#print("Static Pressure Before Fan:", p2)
 
 #print("Total Temperature After Fan:", T_tot3)
 print("Total Pressure After Fan:", ptot_3)
@@ -172,40 +178,25 @@ print("Total Pressure at Exhaust:", ptot_4)
 
 #print("Inlet duct pressure ratio:", ptot_2/ptot_1)
 print("Fan pressure ratio:", pi_fan)
+print("Intake duct pressure ratio:", ptot_2/ptot_1)
 print("Exhaust duct pressure ratio:", ptot_4/ptot_3)
 
-
-
-
-#print("Total Temperature at Duct:", T_02)
-#print("Total Pressure at Duct:", p_02)
-print("V_0:", v)
+print("V_1 (assumed freestream):", v)
 print("V_2:", v2)
-#print("Induced velocity, w:", v3-v2)
+print("Velocity increase due to duct convergence (taken from UL-39):", duct_acc_v)
 print("V_3:", v3)
+print("Fan induced velocity, w:", v3-v2)
 print("V_4:", v4)
-print("delta V:", v4 - v)
+#print("delta V:", v4 - v)
 print("Mass Flow:", mdot)
-#print("Inlet Area per side:", inlet_area)
-#print("Duct End Area per side:", ductend_area)
-#print("Fan Face Area:", fanface_area)
+
+print("Inlet Area per side:", inlet_area)
+print("Duct End Area per side:", ductend_area)
+print("Fan Face Area:", fanface_area)
 print("Fan Area:", fan_area)
-#print("Fan diameter:", fan_diameter)
 print("Exhaust area:", exhaust_area)
-#print("Exhaust diameter:", exhaust_diam)
 
-
-'''
-inlet_diam = np.sqrt((areas(D_fan)[0] * 4)/np.pi)
-fan_diam = np.sqrt((areas(D_fan)[1] * 4)/np.pi)
-exit_diam = np.sqrt((areas(D_fan)[2] * 4)/np.pi)'''
-
-
-'''
-plt.plot([(-1*(b/2)), (1*(b/2))], [0, 0])
-base_track = [-1*(b/2), 0, 1*(b/2)]
-base_track_new = np.linspace(-1*(b/2), 1*(b/2), 1000)
-cowl_points = [0, b, 0]
-cowl = (base_track, cowl_points, base_track_new, order=2)
-plt.plot(base_track_new, cowl)
-plt.show()'''
+print("Exhaust diameter:", diam(exhaust_area))
+print("Fan face diameter:", diam(fanface_area))
+print("Cowl max width:", b)
+print("Cowl max height:", a)
