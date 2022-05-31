@@ -34,6 +34,8 @@ class Design:
         self.wing_X_ac = 0.25
 
         # Horizontal tail attributes.
+        self.h_tail_root_chord = 0.827063757
+        self.h_tail_tip_chord = 0.599621224
         self.h_tail_aspect_ratio = 5.15  # 5.00
         self.h_tail_area = 2.62  # 2.00
         self.h_tail_span = 3.6737  # 3.80
@@ -614,9 +616,39 @@ class Design:
 
         self.positioning()
 
+    def empenage(self, show=False):
+
+        def horizontal_tail():
+            x_points = [0,
+                        (0.5 * self.h_tail_span),
+                        (0.5 * self.h_tail_span),
+                        0,
+                        0]
+
+            y_points = [0,
+                        ((self.h_tail_root_chord - self.h_tail_tip_chord) / 2),
+                        ((self.h_tail_root_chord - self.h_tail_tip_chord) / 2 + self.h_tail_tip_chord),
+                        self.h_tail_root_chord,
+                        0]
+
+            plt.close()
+            plt.plot(x_points, y_points)
+
+            if show is True:
+                plt.show()
+
+            return
+
+        def vertical_tail():
+            return
+
+        horizontal_tail()
+        vertical_tail()
+
 
 if __name__ == '__main__':
     class_II = Design()
     class_II.main()
     class_II.scissors()
     class_II.fuselage_corrections(alpha=5 * (np.pi / 180))
+    class_II.empenage()
