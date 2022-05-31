@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -56,7 +57,7 @@ class Aircraft:
             self.wing.X_ac_abs += ac_correction
             self.wing.X_ac_rel -= ac_correction
 
-            self.wing.interference = self.fuselage
+            self.wing.interference_body = self.fuselage
 
         for surface in surfaces:
             if surface != 'Wing':
@@ -306,8 +307,6 @@ class Fuselage:
         self.altitude = float(data_conditions[1, 1])
 
         temperature = 15.04 + 273.1 - (0.00649 * self.altitude)
-        pressure = 101.29 * (temperature / 288.08) ** 5.256
-        density = pressure / (0.2869 * temperature)
         sound = np.sqrt(1.4 * 286 * temperature)
 
         self.mach = np.linalg.norm(velocity) / sound
@@ -380,72 +379,60 @@ class Fuselage:
 
         return C_L_alpha_correction, C_D_0_correction, ac_correction
 
-    def velocity_corrections(self, velocity):
+    def velocity_correction(self, velocity, position):
 
-        def drag_curve():
-            alpha = np.arctan(self.velocity[2, 0] / self.velocity[0, 0])
+        def kelvin():
 
-            n = (np.sqrt(self.length / self.max_width) / 19) + 0.5
+            def equation_kelvin(ratio):
+                return ((velocity[1, 0] * height) +
+                        (((height ** 2 * ratio ** 2 + width ** 2) * velocity[1, 0])
+                         / (2 * ratio * height)) * np.log((1 - ratio) / (1 + ratio)))
 
-            C_d_c = (-2.77 * (self.mach * np.sin(alpha)) ** 4 + 3.88
-                     * (self.mach * np.sin(alpha)) ** 3 - 0.527
-                     * (self.mach * np.sin(alpha)) ** 2 + 0.0166
-                     * (self.mach * np.sin(alpha)) + 1.2)
+            location = fsolve(equation_kelvin, 0.5)[0] * height
+            strength = (((location ** 2 + width ** 2) * np.pi * velocity[1, 0]) / location)
 
-            top_area = ((self.nose_width_start + self.nose_width_end) * (self.nose_length / 2)
-                        + self.main_length * self.main_width
-                        + (self.tail_width_start + self.tail_width_end) * (self.tail_length / 2))
+            u = velocity[1, 0] + ((strength / (2 * np.pi)) * (((y - location) / (x ** 2 + (y - location) ** 2))
+                                                              - ((y + location) / (x ** 2 + (y + location) ** 2))))
+            v = (strength / (2 * np.pi)) * ((x / (x ** 2 + (y + location) ** 2)) - (x / (x ** 2 + (y - location) ** 2)))
 
-            C_D_alpha = ((2 * alpha ** 2 * ((self.tail_height_end * self.tail_width_end) / self.wing.area))
-                         + (n * C_d_c * abs(alpha ** 3) * (top_area / self.wing.area)))
+            return u, v
 
-            return C_D_alpha
+        def rankine():
 
-        def interference(position=None):
+            def equation_rankine(ratio):
+                return ((height ** 2 * ratio ** 2)
+                        + ((height ** 2 * ratio) / (np.arctan(ratio))) - width ** 2)
 
-            def kelvin():
+            location = fsolve(equation_rankine, 1.0)[0] * height
+            strength = (velocity[1, 0] * height * np.pi) / np.arctan(location / height)
 
-                def equation_kelvin(ratio):
-                    return ((velocity[1, 0] * self.main_height) +
-                            (((self.main_height ** 2 * ratio ** 2 + self.main_width ** 2) * velocity[1, 0])
-                             / (2 * ratio * self.main_height)) * np.log((1 - ratio) / (1 + ratio)))
+            u = velocity[1, 0] + ((strength / (2 * np.pi))) * (((x + location) / ((x + location) ** 2 + y ** 2))
+                                                               - ((x - location) / ((x - location) ** 2 + y ** 2)))
+            v = ((strength / (2 * np.pi))) * ((y / ((x + location) ** 2 + y ** 2))
+                                              - (y / ((x - location) ** 2 + y ** 2)))
 
-                location = fsolve(equation_kelvin, 0.5)[0] * self.main_height
-                strength = (((location ** 2 + self.main_width ** 2) * np.pi * velocity[1, 0]) / location)
+            return u, v
 
-                u = velocity[1, 0] + ((strength / (2 * np.pi)) * (((y - location) / (x ** 2 + (y - location) ** 2))
-                                                                  - ((y + location) / (x ** 2 + (y + location) ** 2))))
-                v = (strength / (2 * np.pi)) * ((x / (x ** 2 + (y + location) ** 2)) - (x / (x ** 2 + (y - location) ** 2)))
+        def doublet():
+            strength = 2 * np.pi * velocity[1, 0] * width ** 2
 
-                return u, v
+            u = velocity[1, 0] + ((strength * (y ** 2 - x ** 2)) / (2 * np.pi * (x ** 2 + y ** 2) ** 2))
+            v = - ((strength * x * y) / (np.pi * (x ** 2 + y ** 2) ** 2))
 
-            def rankine():
+            return u, v
 
-                def equation_rankine(ratio):
-                    return ((self.main_height ** 2 * ratio ** 2)
-                            + ((self.main_height ** 2 * ratio) / (np.arctan(ratio))) - self.main_width ** 2)
+        height = self.main_height / 2
+        width = self.main_width / 2
 
-                location = fsolve(equation_rankine, 1.0)[0] * self.main_height
-                strength = (velocity[1, 0] * self.main_height * np.pi) / np.arctan(location / self.main_height)
+        wing_locations = [- height, 0, height]
+        y = wing_locations[self.wing.position]
+        x = position
 
-                u = velocity[1, 0] + ((strength / (2 * np.pi))) * (((x + location) / ((x + location) ** 2 + y ** 2))
-                                                                   - ((x - location) / ((x - location) ** 2 + y ** 2)))
-                v = ((strength / (2 * np.pi))) * ((y / ((x + location) ** 2 + y ** 2))
-                                                  - (y / ((x - location) ** 2 + y ** 2)))
+        # velocity = np.array([[8], [1], [1]])
+        #
+        # x, y = np.meshgrid(np.linspace(-10, 10, 40), np.linspace(-10, 10, 40))
 
-                return u, v
-
-            def doublet():
-                strength = 2 * np.pi * velocity[1, 0] * self.main_width ** 2
-
-                u = velocity[1, 0] + ((strength * (y ** 2 - x ** 2)) / (2 * np.pi * (x ** 2 + y ** 2) ** 2))
-                v = - ((strength * x * y) / (np.pi * (x ** 2 + y ** 2) ** 2))
-
-                return u, v
-
-            wing_location = -2
-            x, y = np.meshgrid(np.linspace(- self.wing.span / 2, self.wing.span / 2, 40), wing_location)
-
+        if abs(y) > 0:
             if self.main_height / self.main_width > 1:
                 Y_dot, Z_dot = kelvin()
 
@@ -454,13 +441,36 @@ class Fuselage:
 
             else:
                 Y_dot, Z_dot = doublet()
+        else:
+            Y_dot, Z_dot = 0, 0
 
-            velocity[1, 0] = Y_dot
-            velocity[2, 0] += Z_dot
+        # figure = plt.figure()
+        # ax = figure.add_subplot(1, 1, 1)
+        #
+        # ax.quiver(x, y, Y_dot, Z_dot)
+        # ax.set_aspect(1)
+        # plt.show()
 
-            return velocity
+        velocity[1, 0] = Y_dot
+        velocity[2, 0] -= Z_dot
 
-        drag_correction = drag_curve()
-        velocity_correction = interference()
+        return velocity
 
-        return drag_correction, velocity_correction
+    def drag_correction(self, velocity):
+        alpha = np.arctan(velocity[2, 0] / velocity[0, 0])
+
+        n = (np.sqrt(self.length / self.max_width) / 19) + 0.5
+
+        C_d_c = (-2.77 * (self.mach * np.sin(alpha)) ** 4 + 3.88
+                 * (self.mach * np.sin(alpha)) ** 3 - 0.527
+                 * (self.mach * np.sin(alpha)) ** 2 + 0.0166
+                 * (self.mach * np.sin(alpha)) + 1.2)
+
+        top_area = ((self.nose_width_start + self.nose_width_end) * (self.nose_length / 2)
+                    + self.main_length * self.main_width
+                    + (self.tail_width_start + self.tail_width_end) * (self.tail_length / 2))
+
+        C_D_alpha = ((2 * alpha ** 2 * ((self.tail_height_end * self.tail_width_end) / self.wing.area))
+                     + (n * C_d_c * abs(alpha ** 3) * (top_area / self.wing.area)))
+
+        return C_D_alpha

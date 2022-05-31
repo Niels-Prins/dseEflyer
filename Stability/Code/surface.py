@@ -16,13 +16,16 @@ class AerodynamicSurface:
             self.data_values = np.genfromtxt(file, dtype=str)
 
         # Attributes loaded from the values file.
-        self.position = float(self.data_values[4, 1])
+        self.position = int(self.data_values[4, 1])
         self.chord_root = float(self.data_values[5, 1])
         self.span = float(self.data_values[6, 1])
         self.sweep = float(self.data_values[7, 1]) * (np.pi / 180)
         self.taper = float(self.data_values[8, 1])
         self.dihedral = float(self.data_values[9, 1]) * (np.pi / 180)
         self.incidence = float(self.data_values[10, 1]) * (np.pi / 180)
+
+        self.area = (self.span / 2) * self.chord_root * (1 + self.taper)
+        self.ar = (self.span ** 2) / self.area
 
         self.X_le = float(self.data_values[11, 1])
         self.Y_le = float(self.data_values[12, 1])
@@ -44,10 +47,8 @@ class AerodynamicSurface:
         self.C_D = self.data_polars[:, 5]
         self.C_M = np.mean(self.data_polars[:, 8])
 
-        self.C_M = 0
-
         self.C_L_alpha = np.mean(np.gradient(self.C_L)) * (360 / np.pi)
-        self.C_D_alpha = np.mean(np.gradient(self.C_L)) * (360 / np.pi)
+        self.C_D_alpha = np.mean(np.gradient(self.C_D)) * (360 / np.pi)
 
         # Attributes from class input.
         self.symmetric = symmetric
@@ -63,7 +64,6 @@ class AerodynamicSurface:
             self.sidewash_wing, self.sidewash_fuselage = None, None
 
         # Attributes calculated by the initialization function.
-        self.area = None
         self.mac = None
         self.downwash = None
         self.sidewash = None
@@ -71,6 +71,10 @@ class AerodynamicSurface:
         self.X_ac_rel = None
         self.Y_ac_rel = None
         self.Z_ac_rel = None
+
+        self.X_ac_abs = None
+        self.Y_ac_abs = None
+        self.Z_ac_abs = None
 
         self.initialize()
 
@@ -92,9 +96,6 @@ class AerodynamicSurface:
         self.calculate_local_forces = None
 
     def initialize(self):
-
-        def area():
-            self.area = (self.span / 2) * self.chord_root * (1 + self.taper)
 
         def positioning():
             # Local Y-coordinate of aerodynamic center.
@@ -142,20 +143,28 @@ class AerodynamicSurface:
 
             # Downwash only applies if behind downwash body.
             if self.downwash_body is not None and self.X_ac_rel < self.downwash_body.X_ac_rel:
-                pass
+                d_x = abs(self.X_ac_rel - self.downwash_body.X_ac_rel)
+                d_z = abs(self.Z_ac_rel - self.downwash_body.Z_ac_rel)
 
-            # TODO: implement downwash
+                K_a = (1 / self.downwash_body.ar) - (1 / (1 + self.downwash_body.ar ** 1.7))
+                K_lambda = (10 - (3 * self.downwash_body.taper)) / 7
+                K_h = (1 - (d_z / self.downwash_body.span)) / (((2 * d_x) / self.downwash_body.span) ** (1 / 3))
+
+                self.downwash = 4.44 * (K_a * K_lambda * K_h * np.sqrt(np.cos(self.downwash_body.sweep))) ** 1.19
 
         def sidewash():
             self.sidewash = 0
 
             # Sidewash only applies if behind sidewash wing.
-            if self.downwash_body is not None and self.X_ac_rel < self.downwash_body.X_ac_rel:
-                pass
+            if self.sidewash_wing is not None and self.X_ac_rel < self.sidewash_wing.X_ac_rel:
+                d_z_options = [self.sidewash_fuselage.main_height / 2, 0, -self.sidewash_fuselage.main_height / 2]
+                d_z = d_z_options[self.sidewash_wing.position]
 
-            # TODO: implement sidewash
+                self.sidewash = (0.724 + ((3.06 / (1 + np.cos(self.sidewash_wing.sweep)))
+                                 * (self.area / self.sidewash_wing.area))
+                                 + ((0.4 * d_z) / self.sidewash_fuselage.max_height)
+                                 + 0.009 * self.sidewash_wing.ar)
 
-        area()
         positioning()
         downwash()
         sidewash()
@@ -238,6 +247,10 @@ class AerodynamicSurface:
             local_velocity = np.array([[X_dot], [Y_dot], [Z_dot]])
             local_magnitude = np.linalg.norm(local_velocity)
 
+            # Local interference from fuselage (wing only).
+            if self.interference_body is not None:
+                local_velocity = self.interference_body.velocity_correction(local_velocity, coordinate)
+
             local_alpha = np.arctan(local_velocity[2, 0] / local_velocity[0, 0])
             local_alpha_dot = (np.arctan((local_velocity[2, 0] + self.acceleration[2, 0]) /
                                          (local_velocity[0, 0] + self.acceleration[0, 0])) - local_alpha)
@@ -270,9 +283,6 @@ class AerodynamicSurface:
             else:
                 local_sidewash = 0
 
-            # Local interference from fuselage (wing only).
-            # TODO: implement velocity corrections fuselage.
-
             local_alpha += self.incidence
 
             # Correct lift and drag coefficients for control input.
@@ -285,6 +295,10 @@ class AerodynamicSurface:
             # Local lift and drag coefficients.
             local_C_L = np.interp(local_alpha - local_downwash - local_sidewash, self.alpha, self.C_L)
             local_C_D = np.interp(local_alpha - local_downwash - local_sidewash, self.alpha, self.C_D)
+
+            # Lift induced drag from fuselage (wing only).
+            if self.interference_body is not None:
+                local_C_D += self.interference_body.drag_correction(local_velocity)
 
             # Local lift and drag forces.
             local_L = (self.rho / 2) * local_magnitude ** 2 * local_C_L * local_chord * \
@@ -304,7 +318,7 @@ class AerodynamicSurface:
             return np.array([F_X, F_Y, F_Z])
 
         # Riemann sum of local forces.
-        step_size = 0.001
+        step_size = 0.1
 
         if self.symmetric:
             steps = int((self.span - self.span % step_size) / (2 * step_size)) + 1

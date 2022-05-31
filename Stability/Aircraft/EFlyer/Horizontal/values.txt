@@ -6,7 +6,7 @@ vertical		False	boolean
 downwash		True	boolean
 sidewash		False	boolean
 
-position		low	low,mid,high
+position		1	    0=low,1=mid,2=high
 
 # geometry #
 
@@ -14,12 +14,12 @@ chord			0.830	m
 span			3.670	m
 sweep			0.000	deg
 taper			0.725	-
-dihedral        	0.000	deg
-incidence	       -2.000	deg
+dihedral        0.000	deg
+incidence	    0.000	deg
 
 # positioning #
 
-X_le	        	6.400	m
+X_le	        6.400	m
 Y_le			0.000	m
 Z_le			0.800	m
 
@@ -28,8 +28,8 @@ Z_le			0.800	m
 start 			0.200	m
 end 			1.800	m
 
-motion			Y	X,Y,Z
+motion			Y	    X=roll,Y=pitch,Z=yaw
 deflection		True	boolean
 
 alpha			0.520	1/deg
-moment		    	0.000	1/deg
+moment		    0.000	1/deg

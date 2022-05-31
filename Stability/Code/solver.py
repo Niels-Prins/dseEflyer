@@ -271,4 +271,4 @@ def main(path, interval=200):
     solver.plot_responses(deflections=[0.1, 0], deflections_time=2, stop=interval, show=True)
 
     solver.plot_eigenvalues(symmetric=False, show=False)
-    solver.plot_responses(deflections=[0.1, 0], deflections_time=2, stop=interval, symmetric=False, show=True)
+    solver.plot_responses(deflections=[0.1, 0], deflections_time=2, stop=20, symmetric=False, show=True)
