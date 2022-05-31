@@ -5,17 +5,14 @@ from scipy.optimize import fsolve
 
 import os
 
+from Code.surface import AerodynamicSurface
+
 
 class Aircraft:
     """
     For the usage, assumptions and limitations of this class consult the readme file.
     """
-    def __init__(self, path, aircraft):
-        # Creating the initial aircraft provided by user.
-        self.aircraft = aircraft
-        self.wing = aircraft[0]
-        self.name = path.split('/')[-1]
-
+    def __init__(self, path):
         # Obtain general aircraft information provided by user.
         with open(f'{path}/aircraft.txt') as file:
             aircraft_data = np.genfromtxt(file, dtype=str)
@@ -36,6 +33,31 @@ class Aircraft:
         self.I_YY = float(aircraft_data[5, 1])
         self.I_ZZ = float(aircraft_data[6, 1])
         self.I_XZ = float(aircraft_data[7, 1])
+
+        surfaces = np.array([name for name in os.listdir(path) if os.path.isdir(f'{path}/{name}')])
+        cg = [self.X_cg, self.Y_cg, self.Z_cg]
+
+        self.wing = AerodynamicSurface(f'{path}/Wing', cg, symmetric=True, vertical=False)
+        self.aircraft = [self.wing]
+        self.name = path.split('/')[-1]
+
+        for surface in surfaces:
+            if surface != 'Wing':
+                with open(f'{path}/{surface}/values.txt') as file:
+                    surface_data = np.genfromtxt(file, dtype=str)
+                    symmetric = True if surface_data[0, 0] == 'True' else False
+                    vertical = True if surface_data[1, 1] == 'True' else False
+                    downwash = True if surface_data[2, 1] == 'True' else False
+                    sidewash = True if surface_data[3, 1] == 'True' else False
+
+                    if downwash:
+                        new_surface = AerodynamicSurface(f'{path}/{surface}', cg,
+                                                         symmetric=symmetric, vertical=vertical)
+                    else:
+                        new_surface = AerodynamicSurface(f'{path}/{surface}', cg,
+                                                         symmetric=symmetric, vertical=vertical,
+                                                         downwash_body=self.wing)
+                    self.aircraft.append(new_surface)
 
         self.velocity = float(conditions_data[0, 1])
 
@@ -270,7 +292,8 @@ class Fuselage:
             k2_k1 = 1 - ((10 * self.max_width) / (11 * self.length))
             C_L_alpha_nose = 2 * k2_k1 * ((self.max_width * self.max_height) / self.aircraft.wing.area)
 
-            K_nose = (C_L_alpha_nose / self.aircraft.wing.C_L_alpha) * (self.aircraft.wing.area / self.aircraft.wing.area_net)
+            K_nose = (C_L_alpha_nose / self.aircraft.wing.C_L_alpha) * (
+                        self.aircraft.wing.area / self.aircraft.wing.area_net)
 
             K_wing = (0.1714 * (self.max_width / self.aircraft.wing.span) ** 2
                       + 0.8326 * (self.max_width / self.aircraft.wing.span) + 0.9974)
@@ -288,18 +311,20 @@ class Fuselage:
 
             # All measured from the exposed root chord!
             X_ac_nose = - ((2 * self.nose_height_slope * self.nose_width_slope
-                           * self.nose_length ** 2 * ((self.aircraft.wing.X_le / 2) - (self.nose_length / 3)))
+                            * self.nose_length ** 2 * ((self.aircraft.wing.X_le / 2) - (self.nose_length / 3)))
                            / (self.aircraft.wing.chord_root * self.max_width * self.max_height))
 
             # Should have sweep correction implemented!
             X_ac_wing = (self.aircraft.wing.X_ac_abs - self.aircraft.wing.X_le) / self.aircraft.wing.chord_root
-            C_L_alpha_wing_fuselage = self.aircraft.wing.C_L_alpha * K_wing * (self.aircraft.wing.area_net / self.aircraft.wing.area)
+            C_L_alpha_wing_fuselage = self.aircraft.wing.C_L_alpha * K_wing * (
+                        self.aircraft.wing.area_net / self.aircraft.wing.area)
 
             X_ac_fuselage = ((20 / 21) * np.sqrt(self.max_width / self.aircraft.wing.span) *
                              ((self.aircraft.wing.span - self.max_width) / self.aircraft.wing.chord_root)
                              * np.tan(self.aircraft.wing.sweep) + 0.25)
 
-            C_L_alpha_fuselage_wing = self.aircraft.wing.C_L_alpha * K_fuselage * (self.aircraft.wing.area_net / self.aircraft.wing.area)
+            C_L_alpha_fuselage_wing = self.aircraft.wing.C_L_alpha * K_fuselage * (
+                        self.aircraft.wing.area_net / self.aircraft.wing.area)
 
             X_ac_wf = ((((X_ac_nose * C_L_alpha_nose)
                          + (X_ac_wing * C_L_alpha_wing_fuselage)
@@ -333,7 +358,8 @@ class Fuselage:
             frontal_area = self.max_height * self.max_width
 
             C_D_skin = (R_wf * flat_plate_coeff * ((1 + (60 / (self.length / self.diameter) ** 3))
-                        + (0.0025 * (self.length / self.diameter)) * (self.area / self.aircraft.wing.area)))
+                                                   + (0.0025 * (self.length / self.diameter)) * (
+                                                               self.area / self.aircraft.wing.area)))
 
             C_D_base = (np.sqrt((0.029 * (base_diameter / self.diameter) ** 3)
                                 / (C_D_skin * (self.aircraft.wing.area / frontal_area)))
@@ -409,5 +435,3 @@ class Fuselage:
 
     def vertical_corrections(self):
         pass
-
-

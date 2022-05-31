@@ -5,7 +5,7 @@ class AerodynamicSurface:
     """
     For the usage, assumptions and limitations of this class consult the readme file.
     """
-    def __init__(self, path, cg=[0.05, 0, 0], symmetric=True, vertical=False, downwash_body=None, sidewash_body=None):
+    def __init__(self, path, cg, symmetric=True, vertical=False, downwash_body=None, sidewash=False):
 
         # Load polars data provided by user.
         with open(f'{path}/polars.txt') as file:
@@ -15,36 +15,35 @@ class AerodynamicSurface:
         with open(f'{path}/values.txt') as file:
             self.data_values = np.genfromtxt(file, dtype=str)
 
-        # Load aircraft data provided by user.
-        with open(f'{path}/values.txt') as file:
-            self.data_values = np.genfromtxt(file, dtype=str)
-
         # Attributes loaded from the values file.
-        self.chord_root = float(self.data_values[0, 1])
-        self.span = float(self.data_values[1, 1])
-        self.sweep = float(self.data_values[2, 1]) * (np.pi / 180)
-        self.taper = float(self.data_values[3, 1])
-        self.dihedral = float(self.data_values[4, 1]) * (np.pi / 180)
+        self.chord_root = float(self.data_values[4, 1])
+        self.span = float(self.data_values[5, 1])
+        self.sweep = float(self.data_values[6, 1]) * (np.pi / 180)
+        self.taper = float(self.data_values[7, 1])
+        self.dihedral = float(self.data_values[8, 1]) * (np.pi / 180)
+        self.incidence = float(self.data_values[9, 1]) * (np.pi / 180)
 
-        self.X_le = float(self.data_values[5, 1])
-        self.Y_le = float(self.data_values[6, 1])
-        self.Z_le = float(self.data_values[7, 1])
+        self.X_le = float(self.data_values[10, 1])
+        self.Y_le = float(self.data_values[11, 1])
+        self.Z_le = float(self.data_values[12, 1])
 
-        self.start_control = float(self.data_values[8, 1])
-        self.end_control = float(self.data_values[9, 1])
+        self.start_control = float(self.data_values[13, 1])
+        self.end_control = float(self.data_values[14, 1])
         self.length_control = self.end_control - self.start_control
 
-        self.motion = self.data_values[10, 1]
-        self.deflection = True if self.data_values[11, 1] == 'True' else False
+        self.motion = self.data_values[15, 1]
+        self.deflection = True if self.data_values[16, 1] == 'True' else False
 
-        self.alpha_controls = float(self.data_values[12, 1])
-        self.moment_controls = float(self.data_values[13, 1]) * (180 / np.pi)
+        self.alpha_controls = float(self.data_values[17, 1])
+        self.moment_controls = float(self.data_values[18, 1]) * (180 / np.pi)
 
         # Attributes loaded from the polars file.
         self.alpha = self.data_polars[:, 0] * (np.pi / 180)
         self.C_L = self.data_polars[:, 2]
         self.C_D = self.data_polars[:, 5]
         self.C_M = np.mean(self.data_polars[:, 8])
+
+        self.C_M = 0
 
         self.C_L_alpha = np.mean(np.gradient(self.C_L)) * (360 / np.pi)
         self.C_D_alpha = np.mean(np.gradient(self.C_L)) * (360 / np.pi)
@@ -55,7 +54,7 @@ class AerodynamicSurface:
         self.X_cg, self.Y_cg, self.Z_cg = cg
 
         self.downwash_body = downwash_body
-        self.sidewash_body = sidewash_body
+        self.sidewash_body = sidewash
 
         # Attributes calculated by the initialization function.
         self.area = None
@@ -253,6 +252,8 @@ class AerodynamicSurface:
                 local_downwash = (local_alpha - local_delay) * self.downwash
             else:
                 local_downwash = 0
+
+            local_alpha += self.incidence
 
             # Local sidewash.
             # TODO: implement sidewash.

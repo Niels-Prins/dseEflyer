@@ -39,7 +39,7 @@ class Design:
         self.h_tail_span = 3.6737  # 3.80
         self.h_tail_sweep_half = 0
         self.h_tail_sweep_quarter = 1.78 * (np.pi / 180)
-        self.h_tail_taper = 0.735  # 0.70
+        self.h_tail_taper = 0.725  # 0.70
         self.h_tail_t_max = 0.1
         self.h_tail_C_L_alpha = None
 

@@ -1,14 +1,23 @@
+# surface type #
+
+symmetric 		False	boolean
+vertical		True	boolean
+
+downwash		False	boolean
+sidewash		True	boolean
+
 # geometry #
 
-chord			1.19	m
+chord			1.190	m
 span			1.423	m
-sweep			25	deg
-taper			0.45	-
-dihedral        0.000	deg
+sweep		       25.000	deg
+taper			0.450	-
+dihedral        	0.000	deg
+incidence	       -2.000	deg
 
 # positioning #
 
-X_le	        6.4	    m
+X_le	        	6.400	m
 Y_le			0.000	m
 Z_le			0.800	m
 
@@ -21,4 +30,4 @@ motion			Z	X,Y,Z
 deflection		True	boolean
 
 alpha			0.520	1/deg
-moment		    -0.000	1/deg
+moment		       -0.000	1/deg

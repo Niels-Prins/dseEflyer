@@ -11,9 +11,9 @@ class AircraftStability():
     """
     For the usage, assumptions and limitations of this class consult the readme file.
     """
-    def __init__(self, path, aircraft):
+    def __init__(self, path):
         # Obtaining aircraft.
-        self.aircraft = Aircraft(path, aircraft)
+        self.aircraft = Aircraft(path)
 
         # Equations of motion in state-space format, calculated by state-space functions.
         self.A_symmetric = None
@@ -264,18 +264,11 @@ class AircraftStability():
             plt.show()
 
 
-def main(path, aircraft, skip=None):
-    solver = AircraftStability(path=path, aircraft=aircraft)
+def main(path, interval=200):
+    solver = AircraftStability(path=path)
 
-    if skip == 'asymmetric':
-        solver.plot_eigenvalues(show=False)
-        solver.plot_responses(deflections=[0.1, 0], deflections_time=2, stop=100, show=True)
-    elif skip == 'symmetric':
-        solver.plot_eigenvalues(symmetric=False, show=False)
-        solver.plot_responses(deflections=[0.1, 0], deflections_time=2, stop=100, symmetric=False, show=True)
-    else:
-        solver.plot_eigenvalues(show=False)
-        solver.plot_eigenvalues(symmetric=False, show=False)
+    solver.plot_eigenvalues(show=False)
+    solver.plot_responses(deflections=[0.1, 0], deflections_time=2, stop=interval, show=True)
 
-        solver.plot_responses(deflections=[0.1, 0], deflections_time=2, stop=100, show=True)
-        solver.plot_responses(deflections=[0.1, 0], deflections_time=2, stop=100, symmetric=False, show=True)
+    solver.plot_eigenvalues(symmetric=False, show=False)
+    solver.plot_responses(deflections=[0.1, 0], deflections_time=2, stop=interval, symmetric=False, show=True)
