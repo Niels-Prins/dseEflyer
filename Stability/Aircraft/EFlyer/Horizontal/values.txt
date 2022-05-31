@@ -6,6 +6,7 @@ vertical		False	boolean
 downwash		True	boolean
 sidewash		False	boolean
 
+position		low	low,mid,high
 
 # geometry #
 

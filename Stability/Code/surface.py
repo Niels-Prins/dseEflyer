@@ -5,7 +5,7 @@ class AerodynamicSurface:
     """
     For the usage, assumptions and limitations of this class consult the readme file.
     """
-    def __init__(self, path, cg, symmetric=True, vertical=False, downwash_body=None, sidewash=False):
+    def __init__(self, path, cg, symmetric=True, vertical=False, downwash=None, sidewash=None, interference=None):
 
         # Load polars data provided by user.
         with open(f'{path}/polars.txt') as file:
@@ -16,26 +16,27 @@ class AerodynamicSurface:
             self.data_values = np.genfromtxt(file, dtype=str)
 
         # Attributes loaded from the values file.
-        self.chord_root = float(self.data_values[4, 1])
-        self.span = float(self.data_values[5, 1])
-        self.sweep = float(self.data_values[6, 1]) * (np.pi / 180)
-        self.taper = float(self.data_values[7, 1])
-        self.dihedral = float(self.data_values[8, 1]) * (np.pi / 180)
-        self.incidence = float(self.data_values[9, 1]) * (np.pi / 180)
+        self.position = float(self.data_values[4, 1])
+        self.chord_root = float(self.data_values[5, 1])
+        self.span = float(self.data_values[6, 1])
+        self.sweep = float(self.data_values[7, 1]) * (np.pi / 180)
+        self.taper = float(self.data_values[8, 1])
+        self.dihedral = float(self.data_values[9, 1]) * (np.pi / 180)
+        self.incidence = float(self.data_values[10, 1]) * (np.pi / 180)
 
-        self.X_le = float(self.data_values[10, 1])
-        self.Y_le = float(self.data_values[11, 1])
-        self.Z_le = float(self.data_values[12, 1])
+        self.X_le = float(self.data_values[11, 1])
+        self.Y_le = float(self.data_values[12, 1])
+        self.Z_le = float(self.data_values[13, 1])
 
-        self.start_control = float(self.data_values[13, 1])
-        self.end_control = float(self.data_values[14, 1])
+        self.start_control = float(self.data_values[14, 1])
+        self.end_control = float(self.data_values[15, 1])
         self.length_control = self.end_control - self.start_control
 
-        self.motion = self.data_values[15, 1]
-        self.deflection = True if self.data_values[16, 1] == 'True' else False
+        self.motion = self.data_values[16, 1]
+        self.deflection = True if self.data_values[17, 1] == 'True' else False
 
-        self.alpha_controls = float(self.data_values[17, 1])
-        self.moment_controls = float(self.data_values[18, 1]) * (180 / np.pi)
+        self.alpha_controls = float(self.data_values[18, 1])
+        self.moment_controls = float(self.data_values[19, 1]) * (180 / np.pi)
 
         # Attributes loaded from the polars file.
         self.alpha = self.data_polars[:, 0] * (np.pi / 180)
@@ -53,13 +54,19 @@ class AerodynamicSurface:
         self.vertical = vertical
         self.X_cg, self.Y_cg, self.Z_cg = cg
 
-        self.downwash_body = downwash_body
-        self.sidewash_body = sidewash
+        self.downwash_body = downwash
+        self.interference_body = interference
+
+        if sidewash is not None:
+            self.sidewash_wing, self.sidewash_fuselage = sidewash
+        else:
+            self.sidewash_wing, self.sidewash_fuselage = None, None
 
         # Attributes calculated by the initialization function.
         self.area = None
         self.mac = None
         self.downwash = None
+        self.sidewash = None
 
         self.X_ac_rel = None
         self.Y_ac_rel = None
@@ -135,20 +142,23 @@ class AerodynamicSurface:
 
             # Downwash only applies if behind downwash body.
             if self.downwash_body is not None and self.X_ac_rel < self.downwash_body.X_ac_rel:
-                C_L_alpha = ((self.downwash_body.C_L[-1] - self.downwash_body.C_L[0]) /
-                             (self.downwash_body.alpha[-1] - self.downwash_body.alpha[0]))
-                ar = self.downwash_body.span / self.downwash_body.mac
+                pass
 
-                # Empirical downwash estimation.
-                nominator = (7 * C_L_alpha)
-                denominator = (4 * np.pi * ar * (1 + abs(self.Z_ac_rel - self.downwash_body.Z_ac_rel)) *
-                               (self.downwash_body.taper * abs(self.X_ac_rel - self.downwash_body.X_ac_rel)) ** (1 / 4))
+            # TODO: implement downwash
 
-                self.downwash = nominator / denominator
+        def sidewash():
+            self.sidewash = 0
+
+            # Sidewash only applies if behind sidewash wing.
+            if self.downwash_body is not None and self.X_ac_rel < self.downwash_body.X_ac_rel:
+                pass
+
+            # TODO: implement sidewash
 
         area()
         positioning()
         downwash()
+        sidewash()
 
     def chord(self, coordinate):
         if self.symmetric:
@@ -246,20 +256,24 @@ class AerodynamicSurface:
             # Local geometry.
             local_chord = self.chord(coordinate)
 
-            # Local downwash.
-            if self.downwash_body is not None:
+            # Local downwash (horizontal tail only).
+            if self.downwash_body is not None and not self.vertical:
                 local_delay = local_alpha_dot * ((self.downwash_body.X_ac_rel - self.X_ac_rel) / local_velocity[0, 0])
                 local_downwash = (local_alpha - local_delay) * self.downwash
             else:
                 local_downwash = 0
 
+            # Local sidewash (vertical tail only).
+            if self.sidewash_wing is not None and self.vertical:
+                local_delay = local_alpha_dot * ((self.sidewash_wing.X_ac_rel - self.X_ac_rel) / local_velocity[0, 0])
+                local_sidewash = - (local_alpha - local_delay) * self.sidewash
+            else:
+                local_sidewash = 0
+
+            # Local interference from fuselage (wing only).
+            # TODO: implement velocity corrections fuselage.
+
             local_alpha += self.incidence
-
-            # Local sidewash.
-            # TODO: implement sidewash.
-
-            # Sidewash correction to Y-component velocity.
-            # TODO: implement velocity tilt near fuselage.
 
             # Correct lift and drag coefficients for control input.
             if self.start_control <= abs(coordinate) <= self.end_control:
@@ -269,8 +283,8 @@ class AerodynamicSurface:
                     local_alpha += controller * self.alpha_controls
 
             # Local lift and drag coefficients.
-            local_C_L = np.interp(local_alpha - local_downwash, self.alpha, self.C_L)
-            local_C_D = np.interp(local_alpha - local_downwash, self.alpha, self.C_D)
+            local_C_L = np.interp(local_alpha - local_downwash - local_sidewash, self.alpha, self.C_L)
+            local_C_D = np.interp(local_alpha - local_downwash - local_sidewash, self.alpha, self.C_D)
 
             # Local lift and drag forces.
             local_L = (self.rho / 2) * local_magnitude ** 2 * local_C_L * local_chord * \

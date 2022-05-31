@@ -6,6 +6,8 @@ vertical		False	boolean
 downwash		False	boolean
 sidewash		False	boolean
 
+position		low	low,mid,high
+
 # geometry #
 
 chord			2.010	m
@@ -13,7 +15,7 @@ span			8.480	m
 sweep		       -7.450	deg
 taper			0.450	-
 dihedral        	0.000	deg
-incidence		0.000	deg
+incidence		0.750	deg
 
 # positioning #
 

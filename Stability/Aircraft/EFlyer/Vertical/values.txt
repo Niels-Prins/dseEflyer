@@ -6,6 +6,8 @@ vertical		True	boolean
 downwash		False	boolean
 sidewash		True	boolean
 
+position		1	1=low,2=mid,3=high
+
 # geometry #
 
 chord			1.190	m
@@ -26,7 +28,7 @@ Z_le			0.800	m
 start 			0.000	m
 end 			1.400	m
 
-motion			Z	X,Y,Z
+motion			Z	X=roll,Y=pitch,Z=yaw
 deflection		True	boolean
 
 alpha			0.520	1/deg
