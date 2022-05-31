@@ -318,7 +318,7 @@ class AerodynamicSurface:
             return np.array([F_X, F_Y, F_Z])
 
         # Riemann sum of local forces.
-        step_size = 0.1
+        step_size = 0.01
 
         if self.symmetric:
             steps = int((self.span - self.span % step_size) / (2 * step_size)) + 1
