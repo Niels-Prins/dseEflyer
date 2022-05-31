@@ -97,6 +97,7 @@ class Aircraft:
 
         self.calculate_symmetric_derivatives()
         self.calculate_asymmetric_derivatives()
+        self.calculate_rates()
 
     def calculate_outputs(self, inputs, magnitude, motion=None, controls=None):
         outputs_aircraft = np.zeros((3, 2))
@@ -219,6 +220,19 @@ class Aircraft:
         dataframe.to_csv(f'Results/{self.name}/Coefficients/asymmetric.csv')
 
         print(f'\nAsymmetric derivatives: \n \n{dataframe}')
+
+    def calculate_rates(self, deflection=30):
+        roll = (- 2 * (self.derivatives_asymmetric[4, 1] / self.derivatives_asymmetric[2, 1])
+                * (self.velocity / self.wing.span) * deflection)
+        pitch = ((self.derivatives_symmetric[5, 2] / self.derivatives_symmetric[4, 2])
+                 * (self.velocity / self.wing.mac) * deflection)
+        yaw = (2 * (self.derivatives_asymmetric[5, 2] / self.derivatives_asymmetric[3, 2])
+               * (self.velocity / self.wing.span) * deflection)
+
+        data = np.round(np.array([[roll], [pitch], [yaw]]))
+        dataframe = pd.DataFrame(data, columns=['Rates [deg/s]'], index=['Roll', 'Pitch', 'Yaw'])
+
+        print(f'\n{dataframe}')
 
 
 class Fuselage:
