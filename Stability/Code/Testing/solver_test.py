@@ -2,13 +2,59 @@ import unittest
 import numpy as np
 import sympy as sym
 
-from Code.solver import AircraftStability
+from Stability.Code.solver import AircraftStability
+
+
+def example_coefficients():
+    # Forces and moments coefficients for symmetric EOM.
+    C_X_0, C_Z_0, C_M_0 = 0.0000, -1.1360, 0.0000
+    C_X_u, C_Z_u, C_M_u = -0.2199, -2.2720, 0.0000
+    C_X_alpha, C_Z_alpha, C_M_alpha = 0.4653, -5.1600, -0.4300
+    C_X_alpha_dot, C_Z_alpha_dot, C_M_alpha_dot = 0.0000, -1.4300, -3.7000
+    C_X_q, C_Z_q, C_M_q = 0.0000, -3.8600, -7.0400
+    C_X_elevator, C_Z_elevator, C_M_elevator = 0.0000, -0.6238, -1.5530
+    C_X_trim, C_Z_trim, C_M_trim = 0.0000, 0.0000, 0.0000
+
+    symmetric_example = np.array([[C_X_0, C_Z_0, C_M_0],
+                                  [C_X_u, C_Z_u, C_M_u],
+                                  [C_X_alpha, C_Z_alpha, C_M_alpha],
+                                  [C_X_alpha_dot, C_Z_alpha_dot, C_M_alpha_dot],
+                                  [C_X_q, C_Z_q, C_M_q],
+                                  [C_X_elevator, C_Z_elevator, C_M_elevator],
+                                  [C_X_trim, C_Z_trim, C_M_trim]])
+
+    # Aerodynamic & geometric coefficients for symmetric EOM.
+    velocity = 59.9
+    m_c, mac, K_YY = 102.7000, 2.0220, 0.9800
+
+    symmetric_misc_example = np.array([velocity, m_c, mac, K_YY])
+
+    # Forces and moments coefficients for asymmetric EOM.
+    C_Y_beta, C_l_beta, C_n_beta = -0.9896, -0.0772, 0.1638
+    C_Y_beta_dot, C_l_beta_dot, C_n_beta_dot = 0.0000, 0.0000, 0.0000
+    C_Y_p, C_l_p, C_n_p = -0.0870, -0.3444, -0.0108
+    C_Y_r, C_l_r, C_n_r = 0.4300, 0.2800, -0.1930
+    C_Y_ailerons, C_l_ailerons, C_n_ailerons = 0.0000, -0.2349, 0.0286
+    C_Y_rudder, C_l_rudder, C_n_rudder = 0.3037, 0.0286, -0.1261
+
+    asymmetric_example = np.array([[C_Y_beta, C_l_beta, C_n_beta],
+                                   [C_Y_beta_dot, C_l_beta_dot, C_n_beta_dot],
+                                   [C_Y_p, C_l_p, C_n_p],
+                                   [C_Y_r, C_l_r, C_n_r],
+                                   [C_Y_ailerons, C_l_ailerons, C_n_ailerons],
+                                   [C_Y_rudder, C_l_rudder, C_n_rudder]])
+
+    # Aerodynamic & geometric coefficients for asymmetric EOM.
+    C_L = 1.1360
+    m_b, span, K_XX, K_ZZ, K_XZ = 15.5000, 13.3600, 0.0120, 0.0370, 0.0020
+
+    asymmetric_misc_example = np.array([velocity, C_L, m_b, span, K_XX, K_ZZ, K_XZ])
+
+    return symmetric_example, symmetric_misc_example, asymmetric_example, asymmetric_misc_example
 
 
 class TestAircraftStability(unittest.TestCase):
-    """
-    All formulas used during testing have an identifier and can be found in the formulas file.
-    """
+
     def test_state_space(self, margin=0.01):
 
         def test_symmetric():
@@ -67,7 +113,7 @@ class TestAircraftStability(unittest.TestCase):
             self.assertTrue(np.allclose(A_calc, A_true, rtol=margin))
             self.assertTrue(np.allclose(B_calc, B_true, rtol=margin))
 
-        test_case = AircraftStability(example=True)
+        test_case = AircraftStability(path=None, example=True, coefficients=example_coefficients())
         test_symmetric()
         test_asymmetric()
 
@@ -139,14 +185,11 @@ class TestAircraftStability(unittest.TestCase):
             self.assertTrue(np.allclose(eigenvalues_calc, eigenvalues_true, rtol=margin))
             print('Asymmetric test completed!')
 
-        test_case = AircraftStability(example=True)
+        test_case = AircraftStability(path=None, example=True, coefficients=example_coefficients())
         eigenvalue = sym.Symbol('eigenvalue')
 
-        symmetric_coefficients = test_case.symmetric_coefficients
-        symmetric_misc_coefficients = test_case.symmetric_misc_coefficients
-
-        asymmetric_coefficients = test_case.asymmetric_coefficients
-        asymmetric_misc_coefficients = test_case.asymmetric_misc_coefficients
+        (symmetric_coefficients, symmetric_misc_coefficients,
+         asymmetric_coefficients, asymmetric_misc_coefficients) = example_coefficients()
 
         test_symmetric()
         test_asymmetric()

@@ -4,16 +4,20 @@ import control as ctrl
 
 import os
 
-from Code.aircraft import Aircraft
+from Stability.Code.aircraft import Aircraft
 
 
 class AircraftStability():
-    """
-    For the usage, assumptions and limitations of this class consult the readme file.
-    """
-    def __init__(self, path, fuselage=True):
+
+    def __init__(self, path, fuselage=True, example=False, coefficients=None):
+        self.example = example
+
         # Obtaining aircraft.
-        self.aircraft = Aircraft(path, fuselage=fuselage)
+        if not self.example:
+            self.aircraft = Aircraft(path, fuselage=fuselage)
+        else:
+            (self.symmetric_coefficients, self.symmetric_misc_coefficients,
+             self.asymmetric_coefficients, self.asymmetric_misc_coefficients) = coefficients
 
         # Equations of motion in state-space format, calculated by state-space functions.
         self.A_symmetric = None
@@ -41,26 +45,40 @@ class AircraftStability():
 
         self.eigenvalues()
 
-        if not os.path.isdir(f'Results/{self.aircraft.name}/Eigenvalues'):
-            os.makedirs(f'Results/{self.aircraft.name}/Eigenvalues')
+        if not self.example:
+            if not os.path.isdir(f'Results/{self.aircraft.name}/Eigenvalues'):
+                os.makedirs(f'Results/{self.aircraft.name}/Eigenvalues')
 
-        if not os.path.isdir(f'Results/{self.aircraft.name}/Responses'):
-            os.makedirs(f'Results/{self.aircraft.name}/Responses')
+            if not os.path.isdir(f'Results/{self.aircraft.name}/Responses'):
+                os.makedirs(f'Results/{self.aircraft.name}/Responses')
 
     def state_space_symmetric_eom(self):
-        # Forces and moments coefficients.
-        C_X_0, C_Z_0, C_M_0 = self.aircraft.derivatives_symmetric[0, :]
-        C_X_u, C_Z_u, C_M_u = self.aircraft.derivatives_symmetric[1, :]
-        C_X_alpha, C_Z_alpha, C_M_alpha = self.aircraft.derivatives_symmetric[2, :]
-        C_X_alpha_dot, C_Z_alpha_dot, C_M_alpha_dot = self.aircraft.derivatives_symmetric[3, :]
-        C_X_q, C_Z_q, C_M_q = self.aircraft.derivatives_symmetric[4, :]
-        C_X_elevator, C_Z_elevator, C_M_elevator = self.aircraft.derivatives_symmetric[5, :]
+        if not self.example:
+            # Forces and moments coefficients.
+            C_X_0, C_Z_0, C_M_0 = self.aircraft.derivatives_symmetric[0, :]
+            C_X_u, C_Z_u, C_M_u = self.aircraft.derivatives_symmetric[1, :]
+            C_X_alpha, C_Z_alpha, C_M_alpha = self.aircraft.derivatives_symmetric[2, :]
+            C_X_alpha_dot, C_Z_alpha_dot, C_M_alpha_dot = self.aircraft.derivatives_symmetric[3, :]
+            C_X_q, C_Z_q, C_M_q = self.aircraft.derivatives_symmetric[4, :]
+            C_X_elevator, C_Z_elevator, C_M_elevator = self.aircraft.derivatives_symmetric[5, :]
 
-        # Aerodynamic coefficients.
-        velocity = self.aircraft.velocity
+            # Aerodynamic coefficients.
+            velocity = self.aircraft.velocity
 
-        # Geometry coefficients.
-        m_c, mac, K_YY = self.aircraft.m_c, self.aircraft.wing.mac, self.aircraft.K_YY
+            # Geometry coefficients.
+            m_c, mac, K_YY = self.aircraft.m_c, self.aircraft.wing.mac, self.aircraft.K_YY
+
+        else:
+            # Symmetric coefficients.
+            C_X_0, C_Z_0, C_M_0 = self.symmetric_coefficients[0, :]
+            C_X_u, C_Z_u, C_M_u = self.symmetric_coefficients[1, :]
+            C_X_alpha, C_Z_alpha, C_M_alpha = self.symmetric_coefficients[2, :]
+            C_X_alpha_dot, C_Z_alpha_dot, C_M_alpha_dot = self.symmetric_coefficients[3, :]
+            C_X_q, C_Z_q, C_M_q = self.symmetric_coefficients[4, :]
+            C_X_elevator, C_Z_elevator, C_M_elevator = self.symmetric_coefficients[5, :]
+
+            # Miscellaneous coefficients.
+            velocity, m_c, mac, K_YY = self.symmetric_misc_coefficients
 
         # Setting up the matrices to transform to the state-space format.
         P = - (mac / velocity) * np.array([[2 * m_c, 0, 0, 0],
@@ -93,20 +111,33 @@ class AircraftStability():
                                      [0, 0]])
 
     def state_space_asymmetric_eom(self):
-        # Forces and moments coefficients.
-        C_Y_beta, C_l_beta, C_n_beta = self.aircraft.derivatives_asymmetric[0, :]
-        C_Y_beta_dot, C_l_beta_dot, C_n_beta_dot = self.aircraft.derivatives_asymmetric[1, :]
-        C_Y_p, C_l_p, C_n_p = self.aircraft.derivatives_asymmetric[2, :]
-        C_Y_r, C_l_r, C_n_r = self.aircraft.derivatives_asymmetric[3, :]
-        C_Y_ailerons, C_l_ailerons, C_n_ailerons = self.aircraft.derivatives_asymmetric[4, :]
-        C_Y_rudder, C_l_rudder, C_n_rudder = self.aircraft.derivatives_asymmetric[5, :]
+        if not self.example:
+            # Forces and moments coefficients.
+            C_Y_beta, C_l_beta, C_n_beta = self.aircraft.derivatives_asymmetric[0, :]
+            C_Y_beta_dot, C_l_beta_dot, C_n_beta_dot = self.aircraft.derivatives_asymmetric[1, :]
+            C_Y_p, C_l_p, C_n_p = self.aircraft.derivatives_asymmetric[2, :]
+            C_Y_r, C_l_r, C_n_r = self.aircraft.derivatives_asymmetric[3, :]
+            C_Y_ailerons, C_l_ailerons, C_n_ailerons = self.aircraft.derivatives_asymmetric[4, :]
+            C_Y_rudder, C_l_rudder, C_n_rudder = self.aircraft.derivatives_asymmetric[5, :]
 
-        # Aerodynamic coefficients.
-        velocity, C_L, = self.aircraft.velocity, - self.aircraft.derivatives_symmetric[0, 1]
+            # Aerodynamic coefficients.
+            velocity, C_L, = self.aircraft.velocity, - self.aircraft.derivatives_symmetric[0, 1]
 
-        # Geometry coefficients.
-        m_b, span, K_XX, K_ZZ, K_XZ = (self.aircraft.m_b, self.aircraft.wing.span,
-                                       self.aircraft.K_XX, self.aircraft.K_ZZ, self.aircraft.K_XZ)
+            # Geometry coefficients.
+            m_b, span, K_XX, K_ZZ, K_XZ = (self.aircraft.m_b, self.aircraft.wing.span,
+                                           self.aircraft.K_XX, self.aircraft.K_ZZ, self.aircraft.K_XZ)
+
+        else:
+            # Asymmetric coefficients.
+            C_Y_beta, C_l_beta, C_n_beta = self.asymmetric_coefficients[0, :]
+            C_Y_beta_dot, C_l_beta_dot, C_n_beta_dot = self.asymmetric_coefficients[1, :]
+            C_Y_p, C_l_p, C_n_p = self.asymmetric_coefficients[2, :]
+            C_Y_r, C_l_r, C_n_r = self.asymmetric_coefficients[3, :]
+            C_Y_ailerons, C_l_ailerons, C_n_ailerons = self.asymmetric_coefficients[4, :]
+            C_Y_rudder, C_l_rudder, C_n_rudder = self.asymmetric_coefficients[5, :]
+
+            # Miscellaneous coefficients.
+            velocity, C_L, m_b, span, K_XX, K_ZZ, K_XZ = self.asymmetric_misc_coefficients
 
         # Setting up the matrices to transform to the state-space format.
         P = - (span / velocity) * np.array([[(2 * m_b) - C_Y_beta_dot, 0, 0, 0],

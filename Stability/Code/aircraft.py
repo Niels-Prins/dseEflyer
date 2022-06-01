@@ -5,7 +5,7 @@ from scipy.optimize import fsolve
 
 import os
 
-from Code.surface import AerodynamicSurface
+from Stability.Code.surface import AerodynamicSurface
 
 
 class Aircraft:
@@ -150,18 +150,18 @@ class Aircraft:
         outputs_change = (outputs - self.outputs_reference) / inputs_change
 
         if symmetric:
-            c_outputs_1 = (1 / 2) * self.rho * magnitude ** 2 * self.wing.area
-            c_outputs_2 = (1 / 2) * self.rho * magnitude ** 2 * self.wing.area
-            c_outputs_3 = (1 / 2) * self.rho * magnitude ** 2 * self.wing.area * self.wing.mac
+            c_outputs_1 = (self.rho / 2) * magnitude ** 2 * self.wing.area
+            c_outputs_2 = (self.rho / 2) * magnitude ** 2 * self.wing.area
+            c_outputs_3 = (self.rho / 2) * magnitude ** 2 * self.wing.area * self.wing.mac
 
             self.derivatives_symmetric[derivative, 0] = outputs_change[0, 0] / (c_inputs * c_outputs_1)
             self.derivatives_symmetric[derivative, 1] = outputs_change[2, 0] / (c_inputs * c_outputs_2)
             self.derivatives_symmetric[derivative, 2] = outputs_change[1, 1] / (c_inputs * c_outputs_3)
 
         else:
-            c_outputs_1 = (1 / 2) * self.rho * magnitude ** 2 * self.wing.area
-            c_outputs_2 = (1 / 2) * self.rho * magnitude ** 2 * self.wing.area * self.wing.span
-            c_outputs_3 = (1 / 2) * self.rho * magnitude ** 2 * self.wing.area * self.wing.span
+            c_outputs_1 = (self.rho / 2) * magnitude ** 2 * self.wing.area
+            c_outputs_2 = (self.rho / 2) * magnitude ** 2 * self.wing.area * self.wing.span
+            c_outputs_3 = (self.rho / 2) * magnitude ** 2 * self.wing.area * self.wing.span
 
             self.derivatives_asymmetric[derivative, 0] = outputs_change[1, 0] / (c_inputs * c_outputs_1)
             self.derivatives_asymmetric[derivative, 1] = outputs_change[0, 1] / (c_inputs * c_outputs_2)
