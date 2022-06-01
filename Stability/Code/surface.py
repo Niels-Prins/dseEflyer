@@ -3,7 +3,8 @@ import numpy as np
 
 class AerodynamicSurface:
 
-    def __init__(self, path, cg, symmetric=True, vertical=False, downwash=None, sidewash=None, interference=None):
+    def __init__(self, path, cg, symmetric=True, vertical=False,
+                 downwash=None, sidewash=None, interference=None, step=0.01):
         # Load polars data provided by user.
         with open(f'{path}/polars.txt') as file:
             self.data_polars = np.genfromtxt(file, skip_header=True)
@@ -59,6 +60,8 @@ class AerodynamicSurface:
             self.sidewash_wing, self.sidewash_fuselage = sidewash
         else:
             self.sidewash_wing, self.sidewash_fuselage = None, None
+
+        self.step = step
 
         # Attributes calculated by the initialization function.
         self.mac = None
@@ -318,7 +321,7 @@ class AerodynamicSurface:
             return np.array([F_X, F_Y, F_Z])
 
         # Riemann sum of local forces.
-        step_size = 0.001
+        step_size = self.step
 
         if self.symmetric:
             steps = int((self.span - self.span % step_size) / (2 * step_size)) + 1

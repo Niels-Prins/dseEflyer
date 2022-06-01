@@ -15,7 +15,7 @@ span			1.423	m
 sweep		   25.000	deg
 taper			0.450	-
 dihedral        0.000	deg
-incidence	   -2.000	deg
+incidence	    0.000	deg
 
 # positioning #
 

@@ -20,12 +20,15 @@ class TestAerodynamicSurface(unittest.TestCase):
         input_magnitude = np.linalg.norm(inputs[:, 2])
 
         if symmetric:
-            surface = AerodynamicSurface('Aircraft/Symmetric', [0, 0, 0], symmetric=symmetric, vertical=vertical)
+            surface = AerodynamicSurface('Aircraft/Symmetric', [0, 0, 0],
+                                         symmetric=symmetric, vertical=vertical, step=0.001)
         else:
             if vertical:
-                surface = AerodynamicSurface('Aircraft/Vertical', [0, 0, 0], symmetric=symmetric, vertical=vertical)
+                surface = AerodynamicSurface('Aircraft/Vertical', [0, 0, 0],
+                                             symmetric=symmetric, vertical=vertical, step=0.001)
             else:
-                surface = AerodynamicSurface('Aircraft/Asymmetric', [0, 0, 0], symmetric=symmetric, vertical=vertical)
+                surface = AerodynamicSurface('Aircraft/Asymmetric', [0, 0, 0],
+                                             symmetric=symmetric, vertical=vertical, step=0.001)
 
         surface.calculate_outputs(inputs, input_magnitude, input_rho, controls=controls)
 

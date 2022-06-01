@@ -295,11 +295,11 @@ class AircraftStability():
             plt.show()
 
 
-def main(path, interval=200, fuselage=True):
+def main(path, interval=100, fuselage=True):
     solver = AircraftStability(path=path, fuselage=fuselage)
 
     solver.plot_eigenvalues(show=False)
     solver.plot_responses(deflections=[0.1, 0], deflections_time=2, stop=interval, show=True)
 
     solver.plot_eigenvalues(symmetric=False, show=False)
-    solver.plot_responses(deflections=[0.1, 0], deflections_time=2, stop=interval, symmetric=False, show=True)
+    solver.plot_responses(deflections=[0.1, 0], deflections_time=0.5, stop=interval / 10, symmetric=False, show=True)
