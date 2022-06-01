@@ -1,14 +1,12 @@
 import unittest
 import numpy as np
 
-from Code.surface import AerodynamicSurface
+from Stability.Code.surface import AerodynamicSurface
 
 
 class TestAerodynamicSurface(unittest.TestCase):
-    """
-    All formulas used during testing have an identifier and can be found in the formulas file.
-    """
-    def load_surface(self, symmetric=True, vertical=False, main_body=None, simplify=False, controls=0):
+
+    def load_surface(self, symmetric=True, vertical=False, simplify=False, controls=0):
         if not simplify:
             inputs = np.array([[0.349, 0.070, 15.215, 0.100],
                                [0.175, 0.035, 13.108, 0.200],
@@ -22,15 +20,12 @@ class TestAerodynamicSurface(unittest.TestCase):
         input_magnitude = np.linalg.norm(inputs[:, 2])
 
         if symmetric:
-            surface = AerodynamicSurface('Aircraft/Symmetric',
-                                         symmetric=symmetric, vertical=vertical, downwash_body=main_body)
+            surface = AerodynamicSurface('Aircraft/Symmetric', [0, 0, 0], symmetric=symmetric, vertical=vertical)
         else:
             if vertical:
-                surface = AerodynamicSurface('Aircraft/Vertical',
-                                             symmetric=symmetric, vertical=vertical, downwash_body=main_body)
+                surface = AerodynamicSurface('Aircraft/Vertical', [0, 0, 0], symmetric=symmetric, vertical=vertical)
             else:
-                surface = AerodynamicSurface('Aircraft/Asymmetric',
-                                             symmetric=symmetric, vertical=vertical, downwash_body=main_body)
+                surface = AerodynamicSurface('Aircraft/Asymmetric', [0, 0, 0], symmetric=symmetric, vertical=vertical)
 
         surface.calculate_outputs(inputs, input_magnitude, input_rho, controls=controls)
 
@@ -48,28 +43,19 @@ class TestAerodynamicSurface(unittest.TestCase):
             mac_calc = round(surface.mac, 3)
 
             X_ac_true = -0.044  # calculated by hand using formula [3.1].
-            X_ac_calc = round(surface.X_ac_rel, 3)
+            X_ac_calc = round(surface.X_ac_cg, 3)
 
             Y_ac_true = -0.267  # calculated by hand using formula [3.2].
-            Y_ac_calc = round(surface.Y_ac_rel, 3)
+            Y_ac_calc = round(surface.Y_ac_cg, 3)
 
             Z_ac_true = -0.023  # calculated by hand using formula [3.3].
-            Z_ac_calc = round(surface.Z_ac_rel, 3)
-
-            alpha_true = 0.048  # calculated by averaging the first column in the reference file.
-            alpha_calc = round(np.mean(surface.alpha), 3)
-
-            C_L_alpha_true = 0.082  # calculated by averaging the third column gradient in the reference file.
-            C_L_alpha_calc = round(2 * np.mean(np.gradient(surface.C_L)), 3)
-
-            C_D_alpha_true = 0.001  # calculated by averaging the sixth column gradient in the reference file.
-            C_D_alpha_calc = round(2 * np.mean(np.gradient(surface.C_D)), 3)
-
-            C_M_true = 0.052  # calculated by averaging the ninth column in the reference file.
-            C_M_calc = round(surface.C_M, 3)
+            Z_ac_calc = round(surface.Z_ac_cg, 3)
 
             downwash_true = 0.000  # must be zero as no main body is selected.
             downwash_calc = round(surface.downwash, 3)
+
+            sidewash_true = 0.000  # must be zero as no main body is selected.
+            sidewash_calc = round(surface.sidewash, 3)
 
             # Geometry tests.
             self.assertAlmostEqual(area_true, area_calc, delta=margin * area_true)
@@ -79,11 +65,8 @@ class TestAerodynamicSurface(unittest.TestCase):
             self.assertAlmostEqual(Z_ac_true, Z_ac_calc, delta=margin * Z_ac_true)
 
             # Aerodynamic tests.
-            self.assertAlmostEqual(alpha_true, alpha_calc, delta=margin * alpha_true)
-            self.assertAlmostEqual(C_L_alpha_true, C_L_alpha_calc, delta=margin * C_L_alpha_true)
-            self.assertAlmostEqual(C_D_alpha_true, C_D_alpha_calc, delta=margin * C_D_alpha_true)
-            self.assertAlmostEqual(C_M_true, C_M_calc, delta=margin * C_M_true)
             self.assertAlmostEqual(downwash_true, downwash_calc, delta=margin * downwash_true)
+            self.assertAlmostEqual(sidewash_true, sidewash_calc, delta=margin * sidewash_true)
 
         def test_asymmetric():
             surface = self.load_surface(symmetric=False)
@@ -95,13 +78,13 @@ class TestAerodynamicSurface(unittest.TestCase):
             mac_calc = round(surface.mac, 3)
 
             X_ac_true = -0.044  # calculated by hand using formula [3.1].
-            X_ac_calc = round(surface.X_ac_rel, 3)
+            X_ac_calc = round(surface.X_ac_cg, 3)
 
             Y_ac_true = -0.267  # calculated by hand using formula [3.2].
-            Y_ac_calc = round(surface.Y_ac_rel, 3)
+            Y_ac_calc = round(surface.Y_ac_cg, 3)
 
             Z_ac_true = -0.023  # calculated by hand using formula [3.3].
-            Z_ac_calc = round(surface.Z_ac_rel, 3)
+            Z_ac_calc = round(surface.Z_ac_cg, 3)
 
             # Tests.
             self.assertAlmostEqual(area_true, area_calc, delta=margin * area_true)
@@ -114,13 +97,13 @@ class TestAerodynamicSurface(unittest.TestCase):
             surface = self.load_surface(symmetric=False, vertical=True)
 
             X_ac_true = -0.184  # calculated by hand using formula [3.1] and [4.1].
-            X_ac_calc = round(surface.X_ac_rel, 3)
+            X_ac_calc = round(surface.X_ac_cg, 3)
 
             Y_ac_true = -0.317  # calculated by hand using formula [3.2] and [4.1].
-            Y_ac_calc = round(surface.Y_ac_rel, 3)
+            Y_ac_calc = round(surface.Y_ac_cg, 3)
 
             Z_ac_true = 0.277  # calculated by hand using formula [3.3] and [4.1].
-            Z_ac_calc = round(surface.Z_ac_rel, 3)
+            Z_ac_calc = round(surface.Z_ac_cg, 3)
 
             # Tests.
             self.assertAlmostEqual(X_ac_true, X_ac_calc, delta=margin * X_ac_true)
@@ -136,12 +119,6 @@ class TestAerodynamicSurface(unittest.TestCase):
         def test_untransformed():
             surface = self.load_surface()
 
-            rho_true = 1.225
-            rho_calc = round(surface.rho, 3)
-
-            magnitude_true = 20.125
-            magnitude_calc = round(surface.magnitude, 3)
-
             angles_true = np.array([[0.349], [0.175], [0.698]])  # unmodified input angles.
             angles_calc = np.round(surface.angles, 3)
 
@@ -155,9 +132,6 @@ class TestAerodynamicSurface(unittest.TestCase):
             acceleration_calc = np.round(surface.acceleration, 3)
 
             # Tests.
-            self.assertAlmostEqual(rho_true, rho_calc, delta=margin * rho_true)
-            self.assertAlmostEqual(magnitude_true, magnitude_calc, delta=margin * magnitude_true)
-
             self.assertTrue(np.allclose(angles_true, angles_calc, rtol=margin))
             self.assertTrue(np.allclose(rates_true, rates_calc, rtol=margin))
             self.assertTrue(np.allclose(velocity_true, velocity_calc, rtol=margin))

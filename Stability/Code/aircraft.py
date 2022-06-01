@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -49,13 +48,14 @@ class Aircraft:
         if fuselage:
             self.fuselage = Fuselage(path, self.wing, velocity)
 
-            C_L_alpha_correction, C_D_0_correction, ac_correction = self.fuselage.wing_corrections()
+            C_L_alpha_correction, C_D_0_correction, C_M_correction, ac_correction = self.fuselage.wing_corrections()
 
             self.wing.C_L += C_L_alpha_correction * self.wing.alpha
             self.wing.C_D += C_D_0_correction
+            self.wing.C_M += C_M_correction
 
-            self.wing.X_ac_abs += ac_correction
-            self.wing.X_ac_rel -= ac_correction
+            self.wing.X_ac_nose += ac_correction
+            self.wing.X_ac_cg -= ac_correction
 
             self.wing.interference_body = self.fuselage
 
@@ -72,7 +72,7 @@ class Aircraft:
                 if downwash:
                     new_surface = AerodynamicSurface(f'{path}/{surface}', cg,
                                                      symmetric=symmetric, vertical=vertical, downwash=self.wing)
-                elif sidewash:
+                elif sidewash and fuselage:
                     new_surface = AerodynamicSurface(f'{path}/{surface}', cg,
                                                      symmetric=symmetric, vertical=vertical,
                                                      sidewash=[self.wing, self.fuselage])
@@ -267,16 +267,18 @@ class Fuselage:
         self.nose_width_start = float(data_fuselage[3, 1])
         self.nose_width_end = float(data_fuselage[4, 1])
         self.nose_width_slope = (self.nose_width_end - self.nose_width_start) / self.nose_length
+        self.nose_sweep = float(data_fuselage[5, 1])
 
-        self.main_length = float(data_fuselage[5, 1])
+        self.main_length = float(data_fuselage[6, 1])
         self.main_height = self.nose_height_end
         self.main_width = self.nose_width_end
 
-        self.tail_length = float(data_fuselage[6, 1])
+        self.tail_length = float(data_fuselage[7, 1])
         self.tail_height_start = self.main_height
-        self.tail_height_end = float(data_fuselage[7, 1])
+        self.tail_height_end = float(data_fuselage[8, 1])
         self.tail_width_start = self.main_width
-        self.tail_width_end = float(data_fuselage[8, 1])
+        self.tail_width_end = float(data_fuselage[9, 1])
+        self.tail_sweep = float(data_fuselage[10, 1])
 
         self.length = self.nose_length + self.main_length + self.tail_length
         self.diameter = np.sqrt((4 * self.main_height * self.main_width) / np.pi)
@@ -340,7 +342,7 @@ class Fuselage:
                            / (self.wing.chord_root * self.max_width * self.max_height))
 
             # Should have sweep correction implemented!
-            X_ac_wing = (self.wing.X_ac_abs - self.wing.X_le) / self.wing.chord_root
+            X_ac_wing = (self.wing.X_ac_nose - self.wing.X_le) / self.wing.chord_root
             C_L_alpha_wing_fuselage = self.wing.C_L_alpha * K_wing * (
                         self.wing.area_net / self.wing.area)
 
@@ -355,7 +357,7 @@ class Fuselage:
                          + (X_ac_wing * C_L_alpha_wing_fuselage)
                          + (X_ac_fuselage * C_L_alpha_fuselage_wing)) / C_L_alpha_wf) * self.wing.chord_root)
 
-            return (X_ac_wf + self.wing.X_le) - self.wing.X_ac_abs
+            return (X_ac_wf + self.wing.X_le) - self.wing.X_ac_nose
 
         def zero_drag():
             R_wf = 1.05
@@ -373,11 +375,27 @@ class Fuselage:
 
             return C_D_skin + C_D_base
 
-        C_L_alpha_correction = lift_curve()[0] - self.wing.C_L_alpha
-        ac_correction = aerodynamic_center()
-        C_D_0_correction = zero_drag()
+        def aerodynamic_moment():
+            nose_width = (self.nose_width_end + self.nose_width_start) / 2
+            tail_width = (self.tail_width_end + self.tail_width_start) / 2
 
-        return C_L_alpha_correction, C_D_0_correction, ac_correction
+            C_L_signs = np.sign(self.wing.C_L)
+            alpha = self.wing.alpha[np.where(C_L_signs > 0)[0][0]] * (180 / np.pi)
+            k2_k1 = 1 - ((10 * self.max_width) / (11 * self.length))
+
+            c_m_nose = self.nose_length * (alpha + self.nose_sweep) * nose_width ** 2
+            c_m_tail = self.tail_length * (alpha + self.tail_sweep) * tail_width ** 2
+
+            c_m_ac_f = (k2_k1 / (36.5 * self.wing.area * self.wing.mac)) * (c_m_nose + c_m_tail)
+
+            return c_m_ac_f
+
+        C_L_alpha_correction = lift_curve()[0] - self.wing.C_L_alpha
+        C_D_0_correction = zero_drag()
+        C_M_correction = aerodynamic_moment()
+        ac_correction = aerodynamic_center()
+
+        return C_L_alpha_correction, C_D_0_correction, C_M_correction, ac_correction
 
     def velocity_correction(self, velocity, position):
 

@@ -11,9 +11,9 @@ class AircraftStability():
     """
     For the usage, assumptions and limitations of this class consult the readme file.
     """
-    def __init__(self, path):
+    def __init__(self, path, fuselage=True):
         # Obtaining aircraft.
-        self.aircraft = Aircraft(path)
+        self.aircraft = Aircraft(path, fuselage=fuselage)
 
         # Equations of motion in state-space format, calculated by state-space functions.
         self.A_symmetric = None
@@ -264,11 +264,11 @@ class AircraftStability():
             plt.show()
 
 
-def main(path, interval=200):
-    solver = AircraftStability(path=path)
+def main(path, interval=200, fuselage=True):
+    solver = AircraftStability(path=path, fuselage=fuselage)
 
     solver.plot_eigenvalues(show=False)
     solver.plot_responses(deflections=[0.1, 0], deflections_time=2, stop=interval, show=True)
 
     solver.plot_eigenvalues(symmetric=False, show=False)
-    solver.plot_responses(deflections=[0.1, 0], deflections_time=2, stop=20, symmetric=False, show=True)
+    solver.plot_responses(deflections=[0.1, 0], deflections_time=2, stop=interval, symmetric=False, show=True)
