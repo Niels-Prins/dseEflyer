@@ -25,8 +25,8 @@ Z_le			1.500	m
 
 # controls #
 
-start 			0.42	m
-end 			4.03	m
+start 			2.60	m
+end 			5.25	m
 
 motion			X	    X=roll,Y=pitch,Z=yaw
 deflection		False	boolean
