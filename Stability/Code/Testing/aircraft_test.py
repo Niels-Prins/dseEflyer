@@ -31,8 +31,8 @@ class TestAircraft(unittest.TestCase):
         density_true = 1.058
         density_calc = round(test_case.rho, 3)
 
-        magnitude_true = 60.075, 3
-        magnitude_calc = round(test_case.magnitude)
+        magnitude_true = 60.075
+        magnitude_calc = round(test_case.magnitude, 3)
 
         self.assertAlmostEqual(m_c_true, m_c_calc, delta=margin * m_c_true)
         self.assertAlmostEqual(m_b_true, m_b_calc, delta=margin * m_c_true)
