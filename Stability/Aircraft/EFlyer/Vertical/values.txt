@@ -31,5 +31,5 @@ end 			1.400	m
 motion			Z	    X=roll,Y=pitch,Z=yaw
 deflection		True	boolean
 
-alpha			0.520	1/deg
-moment		   -0.000	1/deg
+alpha			0.759	1/deg
+moment		   -0.010	1/deg
