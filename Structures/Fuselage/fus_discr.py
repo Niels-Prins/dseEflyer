@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
 from math import *
+import pandas as pd
 
 
 class Fuselage_structure:
@@ -119,7 +120,7 @@ class Fuselage_structure:
         # Create full fuselage from 1 half
         self.y = np.concatenate([yHalf, -yHalf])
         self.z = np.concatenate([zHalf, zHalf])
-        self.stringer_num = len(self.z)
+        self.stringerNum = len(self.z)
 
     def plot_cross_sec(self):  # Plot 2d cross section
         plt.scatter(self.x, self.y, s=0.5)
@@ -153,7 +154,7 @@ class Fuselage_structure:
     def calc_b(self):  # Calculate areas for idealization
         self.calc_stringer_area()
         areaslst = []
-        for idx in range(0, int(self.stringer_num / 2)):
+        for idx in range(0, int(self.stringerNum / 2)):
             b_further = Fuselage_structure.calc_distance(
                 self.y[idx], self.y[idx + 1], self.z[idx], self.z[idx + 1]
             )
@@ -172,16 +173,16 @@ class Fuselage_structure:
         reversed = areaslst[::-1]
         self.areas = np.concatenate([areaslst, reversed])
 
-    def calc_neutralZ(
+    def calc_neutraly(
         self,
     ):  # Calculate the location of the neutral axis in z direction
-        self.neutralZ = sum(self.z * self.areas) / sum(self.areas)
+        self.neutralY = sum(self.z * self.areas) / sum(self.areas)
 
     def calc_inertiaZZ(
         self,
     ):  # Calculate the moment of inertia per boom and total of structure
-        self.calc_neutralZ()
-        self.inertias = self.areas * (self.neutralZ - self.z) ** 2
+        self.calc_neutraly()
+        self.inertias = self.areas * (self.z - self.neutralY) ** 2
         self.totalInertia = sum(self.inertias)
 
 
@@ -191,3 +192,5 @@ if __name__ == "__main__":
     test = Fuselage_structure(10)
     test.create_fuselage()
     test.plot_fuselage()
+
+# %%
