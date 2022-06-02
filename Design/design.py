@@ -443,7 +443,7 @@ class Design:
         print()
         print(f'Wing leading edge position: {round(self.wing_X_LE, 2)} [m]')
 
-    def scissors(self, ratio=0.20, show=False):
+    def scissors(self, ratio=0.20, show=True):
         wing_area_net = self.wing_area - (self.fuselage_width * self.wing_chord_root)
 
         beta = np.sqrt(1 - 0.232 ** 2)
