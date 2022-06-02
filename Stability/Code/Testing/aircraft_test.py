@@ -10,28 +10,28 @@ test_case = Aircraft(path='Aircraft/Cessna', example=True)
 class TestAircraft(unittest.TestCase):
 
     def test_initialization(self, margin=0.01):
-        m_c_true = 46.957
+        m_c_true = 46.957   # calculated by hand using table 4-5 Flight dynamics.
         m_c_calc = test_case.m_c
 
-        m_b_true = 6.423
+        m_b_true = 6.423    # calculated by hand using table 4-8 Flight dynamics.
         m_b_calc = round(test_case.m_b, 3)
 
-        K_XX_true = 0.009
+        K_XX_true = 0.009   # calculated by hand using table 4-8 Flight dynamics.
         K_XX_calc = round(test_case.K_XX, 3)
 
-        K_YY_true = 0.681
+        K_YY_true = 0.681   # calculated by hand using table 4-5 Flight dynamics.
         K_YY_calc = round(test_case.K_YY, 3)
 
-        K_ZZ_true = 0.019
+        K_ZZ_true = 0.019   # calculated by hand using table 4-8 Flight dynamics.
         K_ZZ_calc = round(test_case.K_ZZ, 3)
 
-        K_XZ_true = 0.000
+        K_XZ_true = 0.000   # calculated by hand using table 4-8 Flight dynamics.
         K_XZ_calc = round(test_case.K_XZ, 3)
 
-        density_true = 1.058
+        density_true = 1.058    # ...
         density_calc = round(test_case.rho, 3)
 
-        magnitude_true = 60.075
+        magnitude_true = 60.075  # calculated by hand using Pythagoras Theorem
         magnitude_calc = round(test_case.magnitude, 3)
 
         self.assertAlmostEqual(m_c_true, m_c_calc, delta=margin * m_c_true)
