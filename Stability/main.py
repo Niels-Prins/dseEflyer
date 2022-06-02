@@ -1,7 +1,8 @@
 from Stability.Code.solver import main
 
 # Folder in which the aircraft is located.
-path = 'Aircraft/EFlyer'
+# path = 'Aircraft/EFlyer'
+path = 'Code/Testing/Aircraft/Cessna'
 
 # Analysis with fuselage effects in case True.
 fuselage = True

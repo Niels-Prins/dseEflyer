@@ -9,10 +9,10 @@ from Stability.Code.surface import AerodynamicSurface
 
 
 class Aircraft:
-    """
-    For the usage, assumptions and limitations of this class consult the readme file.
-    """
-    def __init__(self, path, fuselage=True):
+
+    def __init__(self, path, fuselage=True, example=False):
+        self.example = example
+
         # Obtain general aircraft information provided by user.
         with open(f'{path}/aircraft.txt') as file:
             aircraft_data = np.genfromtxt(file, dtype=str)
@@ -85,6 +85,7 @@ class Aircraft:
         pressure = 101.29 * (temperature / 288.08) ** 5.256
 
         self.rho = pressure / (0.2869 * temperature)
+        self.magnitude = np.array([[self.velocity], [0], [self.velocity / 20]])
 
         # Dimensionless mass coefficients.
         self.m_c = self.mass / (self.rho * self.wing.area * self.wing.mac)
@@ -100,6 +101,10 @@ class Aircraft:
                                           [0, 0, 0, 0],
                                           [0, 0, self.velocity / 20, 0]])
         self.outputs_reference = self.calculate_outputs(self.inputs_reference, self.velocity)
+
+        # print(np.round(self.outputs_reference, 3))
+        print()
+        print()
 
         if not os.path.isdir(f'Results/{self.name}/Coefficients'):
             os.makedirs(f'Results/{self.name}/Coefficients')
@@ -131,6 +136,9 @@ class Aircraft:
             outputs_aircraft[0, 1] += outputs_surface[0, 2]
             outputs_aircraft[1, 1] += outputs_surface[1, 2]
             outputs_aircraft[2, 1] += outputs_surface[2, 2]
+
+        # print(np.round(outputs_aircraft, 3))
+        # print()
 
         return outputs_aircraft
 
@@ -193,13 +201,14 @@ class Aircraft:
         elevator, c_elevator = 0.1, 1
         self.calculate_derivatives(5, None, elevator, c_elevator, controls=True, symmetric=True, motion='Y')
 
-        row_labels = np.array(['0', 'X dot', 'alpha', 'alpha dot', 'pitch dot', 'elevator'])
-        column_labels = np.array(['X', 'Z', 'M_Y'])
+        if not self.example:
+            row_labels = np.array(['0', 'X dot', 'alpha', 'alpha dot', 'pitch dot', 'elevator'])
+            column_labels = np.array(['X', 'Z', 'M_Y'])
 
-        dataframe = pd.DataFrame(np.round(self.derivatives_symmetric, 3), columns=column_labels, index=row_labels)
-        dataframe.to_csv(f'Results/{self.name}/Coefficients/symmetric.csv')
+            dataframe = pd.DataFrame(np.round(self.derivatives_symmetric, 3), columns=column_labels, index=row_labels)
+            dataframe.to_csv(f'Results/{self.name}/Coefficients/symmetric.csv')
 
-        print(f'\nSymmetric derivatives: \n \n{dataframe}')
+            print(f'\nSymmetric derivatives: \n \n{dataframe}')
 
     def calculate_asymmetric_derivatives(self):
         # Beta derivatives (C_Y_beta, C_M_X_beta, C_M_Z_beta).
@@ -226,13 +235,14 @@ class Aircraft:
         rudder, c_rudder = 0.1, 1
         self.calculate_derivatives(5, None, rudder, c_rudder, controls=True, motion='Z')
 
-        row_labels = np.array(['beta', 'beta dot', 'roll dot', 'yaw dot', 'ailerons', 'rudder'])
-        column_labels = np.array(['Y', 'M_X', 'M_Z'])
+        if not self.example:
+            row_labels = np.array(['beta', 'beta dot', 'roll dot', 'yaw dot', 'ailerons', 'rudder'])
+            column_labels = np.array(['Y', 'M_X', 'M_Z'])
 
-        dataframe = pd.DataFrame(np.round(self.derivatives_asymmetric, 3), columns=column_labels, index=row_labels)
-        dataframe.to_csv(f'Results/{self.name}/Coefficients/asymmetric.csv')
+            dataframe = pd.DataFrame(np.round(self.derivatives_asymmetric, 3), columns=column_labels, index=row_labels)
+            dataframe.to_csv(f'Results/{self.name}/Coefficients/asymmetric.csv')
 
-        print(f'\nAsymmetric derivatives: \n \n{dataframe}')
+            print(f'\nAsymmetric derivatives: \n \n{dataframe}')
 
     def calculate_rates(self, deflection=30):
         roll = (- 2 * (self.derivatives_asymmetric[4, 1] / self.derivatives_asymmetric[2, 1])
@@ -242,10 +252,11 @@ class Aircraft:
         yaw = (2 * (self.derivatives_asymmetric[5, 2] / self.derivatives_asymmetric[3, 2])
                * (self.velocity / self.wing.span) * deflection)
 
-        data = np.round(np.array([[roll], [pitch], [yaw]]))
-        dataframe = pd.DataFrame(data, columns=['Rates [deg/s]'], index=['Roll', 'Pitch', 'Yaw'])
+        if not self.example:
+            data = np.round(np.array([[roll], [pitch], [yaw]]))
+            dataframe = pd.DataFrame(data, columns=['Rates [deg/s]'], index=['Roll', 'Pitch', 'Yaw'])
 
-        print(f'\n{dataframe}')
+            print(f'\n{dataframe}')
 
 
 class Fuselage:
