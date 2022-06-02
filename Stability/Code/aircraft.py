@@ -50,7 +50,7 @@ class Aircraft:
         self.aircraft = [self.wing]
         self.name = path.split('/')[-1]
 
-        self.C_L = (- 2 * self.weight) / (self.rho * self.velocity ** 2 * self.wing.area)
+        self.C_L = (2 * self.weight) / (self.rho * self.velocity ** 2 * self.wing.area)
         self.alpha = np.interp(self.C_L, self.wing.C_L, self.wing.alpha)
 
         velocity = np.array([[self.velocity * np.cos(self.alpha)], [0], [self.velocity * np.sin(self.alpha)]])
@@ -106,10 +106,6 @@ class Aircraft:
                                           [0, 0, self.velocity * np.sin(self.alpha), 0]])
         self.outputs_reference = self.calculate_outputs(self.inputs_reference, self.velocity)
 
-        print(np.round(self.outputs_reference, 3))
-        print()
-        print()
-
         if not os.path.isdir(f'Results/{self.name}/Coefficients'):
             os.makedirs(f'Results/{self.name}/Coefficients')
 
@@ -121,15 +117,15 @@ class Aircraft:
         self.calculate_asymmetric_derivatives()
         self.calculate_rates()
 
-    def calculate_outputs(self, inputs, magnitude, motion=None, controls=None):
+    def calculate_outputs(self, inputs, motion=None, controls=None):
         outputs_aircraft = np.zeros((3, 2))
 
         # Ensures controls remain uncoupled during different motions.
         for surface in self.aircraft:
             if surface.motion == motion:
-                outputs_surface = surface.calculate_outputs(inputs, magnitude, self.rho, controls)
+                outputs_surface = surface.calculate_outputs(inputs, self.magnitude, self.rho, controls)
             else:
-                outputs_surface = surface.calculate_outputs(inputs, magnitude, self.rho, controls=0)
+                outputs_surface = surface.calculate_outputs(inputs, self.magnitude, self.rho, controls=0)
 
             # Sum force outputs and add to combined body forces.
             outputs_aircraft[0, 0] += outputs_surface[0, 0] + outputs_surface[0, 1]
@@ -140,9 +136,6 @@ class Aircraft:
             outputs_aircraft[0, 1] += outputs_surface[0, 2]
             outputs_aircraft[1, 1] += outputs_surface[1, 2]
             outputs_aircraft[2, 1] += outputs_surface[2, 2]
-        #
-        # print(np.round(outputs_aircraft, 3))
-        # print()
 
         return outputs_aircraft
 
@@ -156,28 +149,22 @@ class Aircraft:
         else:
             controls = inputs_change
 
-        magnitude = np.linalg.norm(inputs[:, 2])
-
-        outputs = self.calculate_outputs(inputs, magnitude, motion, controls)
+        outputs = self.calculate_outputs(inputs, motion, controls)
         outputs_change = (outputs - self.outputs_reference) / inputs_change
 
         if symmetric:
-            # print(np.round(outputs_change, 2))
-            # print(self.wing.area)
-            # print()
-
-            c_outputs_1 = (self.rho / 2) * magnitude ** 2 * self.wing.area
-            c_outputs_2 = (self.rho / 2) * magnitude ** 2 * self.wing.area
-            c_outputs_3 = (self.rho / 2) * magnitude ** 2 * self.wing.area * self.wing.mac
+            c_outputs_1 = (self.rho / 2) * self.magnitude ** 2 * self.wing.area
+            c_outputs_2 = (self.rho / 2) * self.magnitude ** 2 * self.wing.area
+            c_outputs_3 = (self.rho / 2) * self.magnitude ** 2 * self.wing.area * self.wing.mac
 
             self.derivatives_symmetric[derivative, 0] = outputs_change[0, 0] / (c_inputs * c_outputs_1)
             self.derivatives_symmetric[derivative, 1] = outputs_change[2, 0] / (c_inputs * c_outputs_2)
             self.derivatives_symmetric[derivative, 2] = outputs_change[1, 1] / (c_inputs * c_outputs_3)
 
         else:
-            c_outputs_1 = (self.rho / 2) * magnitude ** 2 * self.wing.area
-            c_outputs_2 = (self.rho / 2) * magnitude ** 2 * self.wing.area * self.wing.span
-            c_outputs_3 = (self.rho / 2) * magnitude ** 2 * self.wing.area * self.wing.span
+            c_outputs_1 = (self.rho / 2) * self.magnitude ** 2 * self.wing.area
+            c_outputs_2 = (self.rho / 2) * self.magnitude ** 2 * self.wing.area * self.wing.span
+            c_outputs_3 = (self.rho / 2) * self.magnitude ** 2 * self.wing.area * self.wing.span
 
             self.derivatives_asymmetric[derivative, 0] = outputs_change[1, 0] / (c_inputs * c_outputs_1)
             self.derivatives_asymmetric[derivative, 1] = outputs_change[0, 1] / (c_inputs * c_outputs_2)
@@ -190,15 +177,15 @@ class Aircraft:
         self.derivatives_symmetric[0, 2] = 0
 
         # Velocity derivatives (C_X_u, C_Z_u, C_M_Y_u).
-        X_dot, c_X_dot = 1, 1 / self.velocity
+        X_dot, c_X_dot = 0.1, 1 / self.velocity
         self.calculate_derivatives(1, (0, 2), X_dot, c_X_dot, symmetric=True)
 
         # Alpha derivatives (C_X_alpha, C_Z_alpha, C_M_Y_alpha).
-        Z_dot, c_Z_dot = 1, 1 / self.velocity
+        Z_dot, c_Z_dot = 0.1, 1 / self.velocity
         self.calculate_derivatives(2, (2, 2), Z_dot, c_Z_dot, symmetric=True)
 
         # Alpha dot derivatives (C_X_alpha_dot, C_Z_alpha_dot, C_M_Y_alpha_dot).
-        Z_dot_dot, c_Z_dot_dot = 1, self.wing.mac / (self.velocity ** 2)
+        Z_dot_dot, c_Z_dot_dot = 0.1, self.wing.mac / (self.velocity ** 2)
         self.calculate_derivatives(3, (2, 3), Z_dot_dot, c_Z_dot_dot, symmetric=True)
 
         # Pitch dot derivatives (C_X_pitch_dot, C_Z_pitch_dot, C_M_Y_pitch_dot).
@@ -220,11 +207,11 @@ class Aircraft:
 
     def calculate_asymmetric_derivatives(self):
         # Beta derivatives (C_Y_beta, C_M_X_beta, C_M_Z_beta).
-        Y_dot, c_Y_dot = 1, 1 / self.velocity
+        Y_dot, c_Y_dot = 0.1, 1 / self.velocity
         self.calculate_derivatives(0, (1, 2), Y_dot, c_Y_dot)
 
         # Beta dot derivatives (C_Y_beta_dot, C_M_X_beta_dot, C_M_Z_beta_dot).
-        Y_dot_dot, c_Y_dot_dot = 1, self.wing.span / (self.velocity ** 2)
+        Y_dot_dot, c_Y_dot_dot = 0.1, self.wing.span / (self.velocity ** 2)
         self.calculate_derivatives(1, (1, 3), Y_dot_dot, c_Y_dot_dot)
 
         # Roll dot derivatives (C_Y_roll_dot, C_M_X_roll_dot, C_M_Z_roll_dot).
