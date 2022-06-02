@@ -3,10 +3,10 @@
 symmetric 		True	boolean
 vertical		False	boolean
 
-downwash		False	boolean
+downwash		True	boolean
 sidewash		False	boolean
 
-position	    0	    0=low,1=mid,2=high
+position	    1	    0=low,1=mid,2=high
 
 # geometry #
 
