@@ -123,17 +123,17 @@ class Design:
         self.mass_occupant_2 = self.mass_occupants / 2
 
         # Fuselage group moment arms as fractions of fuselage length.
-        self.arm_h_tail = 0.95 * self.fuselage_length
-        self.arm_v_tail = 0.95 * self.fuselage_length
-        self.arm_fuselage = 0.35 * self.fuselage_length
-        self.arm_bat_1 = 0.10 * self.fuselage_length
-        self.arm_bat_2 = 0.60 * self.fuselage_length
-        self.arm_motor = 0.70 * self.fuselage_length
+        self.arm_h_tail = 0.989 * self.fuselage_length
+        self.arm_v_tail = 0.935 * self.fuselage_length
+        self.arm_fuselage = 0.426 * self.fuselage_length
+        self.arm_bat_1 = 0.177 * self.fuselage_length
+        self.arm_bat_2 = 0.496 * self.fuselage_length
+        self.arm_motor = 0.75 * self.fuselage_length
         self.arm_control = 0.60 * self.fuselage_length
         self.arm_electric = 0.30 * self.fuselage_length
-        self.arm_misc = 0.70 * self.fuselage_length
-        self.arm_occupant_1 = 0.30 * self.fuselage_length
-        self.arm_occupant_2 = 0.50 * self.fuselage_length
+        self.arm_misc = 0.48 * self.fuselage_length
+        self.arm_occupant_1 = 0.379 * self.fuselage_length
+        self.arm_occupant_2 = 0.56 * self.fuselage_length
 
         # Wing group moment arms as fraction of MAC.
         self.arm_wing = 0.40 * self.wing_MAC
