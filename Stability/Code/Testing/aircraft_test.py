@@ -70,65 +70,84 @@ class TestAircraft(unittest.TestCase):
     def test_symmetric(self, margin=0.01):
         symmetric_derivatives_calc = test_case.derivatives_symmetric
 
+        output_reference = test_case.outputs_reference
+
         gravity = 9.80665
         mass = 1200.000
         weight = mass * gravity
-        density = 1.058
+        density = 1.060
         area = 16.165
         velocity = 60.000
+        mac = 1.494
 
-        initial_conditions_true = np.array([0.000, -0.382, 0.000])  # C_Z_0 is equal to - C_L.
+        C_X_0, C_Z_0, C_M_0 = 0, (- 2 * weight) / (density * velocity ** 2 * area), 0
+
+        initial_conditions_true = np.array([C_X_0, C_Z_0, C_M_0])  # C_Z_0 is equal to - C_L.
         initial_conditions_calc = symmetric_derivatives_calc[0]
 
-        x_dot_derivatives_true = np.array([None, None, None])
-        x_dot_derivatives_calc = None
+        output_X_dot = np.array([[-447.842, -736.389],
+                                 [0.000, -1455.15],
+                                 [-12756.617, -52.41]]) - output_reference
 
-        z_dot_derivatives_true = np.array([None, None, None])
-        z_dot_derivatives_calc = None
+        # print(np.round(output_X_dot))
 
-        z_dot_dot_derivatives_true = np.array([None, None, None])
-        z_dot_dot_derivatives_calc = None
+        X, Z, M_Y = output_X_dot[0, 0], output_X_dot[2, 0], output_X_dot[1, 1]
 
-        pitch_dot_derivatives_true = np.array([None, None, None])
-        pitch_dot_derivatives_calc = None
+        print(X, Z, M_Y)
 
-        elevator_effectiveness_true = np.array([None, None, None])
-        elevator_effectiveness_calc = None
+        C_X_u = (2 * X) / (density * velocity * area)
+        C_Z_u = (2 * Z) / (density * velocity * area)
+        C_M_u = (2 * M_Y) / (density * velocity * area * mac)
 
-        self.assertTrue(np.allclose(initial_conditions_true, initial_conditions_calc, rtol=margin))
-        self.assertTrue(np.allclose(x_dot_derivatives_true, x_dot_derivatives_calc, rtol=margin))
-        self.assertTrue(np.allclose(z_dot_derivatives_true, z_dot_derivatives_calc, rtol=margin))
-        self.assertTrue(np.allclose(z_dot_dot_derivatives_true, z_dot_dot_derivatives_calc, rtol=margin))
-        self.assertTrue(np.allclose(pitch_dot_derivatives_true, pitch_dot_derivatives_calc, rtol=margin))
-        self.assertTrue(np.allclose(elevator_effectiveness_true, elevator_effectiveness_calc, rtol=margin))
+        x_dot_derivatives_true = np.round(np.array([C_X_u, C_Z_u, C_M_u]), 3)
+        x_dot_derivatives_calc = np.round(symmetric_derivatives_calc[1, :], 3)
 
-    def test_asymmetric(self, margin=0.01):
-        # Per derivative, get outputs per derivative, make them dimensionless and crosscheck.
+        # z_dot_derivatives_true = np.array([None, None, None])
+        # z_dot_derivatives_calc = None
+        #
+        # z_dot_dot_derivatives_true = np.array([None, None, None])
+        # z_dot_dot_derivatives_calc = None
+        #
+        # pitch_dot_derivatives_true = np.array([None, None, None])
+        # pitch_dot_derivatives_calc = None
+        #
+        # elevator_effectiveness_true = np.array([None, None, None])
+        # elevator_effectiveness_calc = None
+        #
+        # self.assertTrue(np.allclose(initial_conditions_true, initial_conditions_calc, rtol=margin))
+        # self.assertTrue(np.allclose(x_dot_derivatives_true, x_dot_derivatives_calc, rtol=margin))
+        # self.assertTrue(np.allclose(z_dot_derivatives_true, z_dot_derivatives_calc, rtol=margin))
+        # self.assertTrue(np.allclose(z_dot_dot_derivatives_true, z_dot_dot_derivatives_calc, rtol=margin))
+        # self.assertTrue(np.allclose(pitch_dot_derivatives_true, pitch_dot_derivatives_calc, rtol=margin))
+        # self.assertTrue(np.allclose(elevator_effectiveness_true, elevator_effectiveness_calc, rtol=margin))
 
-        beta_derivatives_true = np.array([None, None, None])
-        beta_derivatives_calc = None
-
-        beta_dot_derivatives_true = np.array([None, None, None])
-        beta_dot_derivatives_calc = None
-
-        roll_dot_derivatives_true = np.array([None, None, None])
-        roll_dot_derivatives_calc = None
-
-        yaw_dot_derivatives_true = np.array([None, None, None])
-        yaw_dot_derivatives_calc = None
-
-        ailerons_effectiveness_true = np.array([None, None, None])
-        ailerons_effectiveness_calc = None
-
-        rudder_effectiveness_true = np.array([None, None, None])
-        rudder_effectiveness_calc = None
-
-        self.assertTrue(np.allclose(beta_derivatives_true, beta_derivatives_calc, rtol=margin))
-        self.assertTrue(np.allclose(beta_dot_derivatives_true, beta_dot_derivatives_calc, rtol=margin))
-        self.assertTrue(np.allclose(roll_dot_derivatives_true, roll_dot_derivatives_calc, rtol=margin))
-        self.assertTrue(np.allclose(yaw_dot_derivatives_true, yaw_dot_derivatives_calc, rtol=margin))
-        self.assertTrue(np.allclose(ailerons_effectiveness_true, ailerons_effectiveness_calc, rtol=margin))
-        self.assertTrue(np.allclose(rudder_effectiveness_true, rudder_effectiveness_calc, rtol=margin))
+    # def test_asymmetric(self, margin=0.01):
+    #     # Per derivative, get outputs per derivative, make them dimensionless and crosscheck.
+    #
+    #     beta_derivatives_true = np.array([None, None, None])
+    #     beta_derivatives_calc = None
+    #
+    #     beta_dot_derivatives_true = np.array([None, None, None])
+    #     beta_dot_derivatives_calc = None
+    #
+    #     roll_dot_derivatives_true = np.array([None, None, None])
+    #     roll_dot_derivatives_calc = None
+    #
+    #     yaw_dot_derivatives_true = np.array([None, None, None])
+    #     yaw_dot_derivatives_calc = None
+    #
+    #     ailerons_effectiveness_true = np.array([None, None, None])
+    #     ailerons_effectiveness_calc = None
+    #
+    #     rudder_effectiveness_true = np.array([None, None, None])
+    #     rudder_effectiveness_calc = None
+    #
+    #     self.assertTrue(np.allclose(beta_derivatives_true, beta_derivatives_calc, rtol=margin))
+    #     self.assertTrue(np.allclose(beta_dot_derivatives_true, beta_dot_derivatives_calc, rtol=margin))
+    #     self.assertTrue(np.allclose(roll_dot_derivatives_true, roll_dot_derivatives_calc, rtol=margin))
+    #     self.assertTrue(np.allclose(yaw_dot_derivatives_true, yaw_dot_derivatives_calc, rtol=margin))
+    #     self.assertTrue(np.allclose(ailerons_effectiveness_true, ailerons_effectiveness_calc, rtol=margin))
+    #     self.assertTrue(np.allclose(rudder_effectiveness_true, rudder_effectiveness_calc, rtol=margin))
 
 
 if __name__ == '__main__':

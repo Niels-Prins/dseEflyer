@@ -37,13 +37,23 @@ class Aircraft:
         self.velocity = float(conditions_data[0, 1])
         self.altitude = float(conditions_data[1, 1])
 
+        temperature = 15.04 + 273.1 - (0.00649 * self.altitude)
+        pressure = 101.29 * (temperature / 288.08) ** 5.256
+
+        self.rho = pressure / (0.2869 * temperature)
+        self.magnitude = self.velocity
+
         surfaces = np.array([name for name in os.listdir(path) if os.path.isdir(f'{path}/{name}')])
         cg = [self.X_cg, self.Y_cg, self.Z_cg]
-        velocity = np.array([[self.velocity], [0], [self.velocity / 20]])
 
         self.wing = AerodynamicSurface(f'{path}/Wing', cg, symmetric=True, vertical=False)
         self.aircraft = [self.wing]
         self.name = path.split('/')[-1]
+
+        self.C_L = (- 2 * self.weight) / (self.rho * self.velocity ** 2 * self.wing.area)
+        self.alpha = np.interp(self.C_L, self.wing.C_L, self.wing.alpha)
+
+        velocity = np.array([[self.velocity * np.cos(self.alpha)], [0], [self.velocity * np.sin(self.alpha)]])
 
         if fuselage:
             self.fuselage = Fuselage(path, self.wing, velocity)
@@ -81,12 +91,6 @@ class Aircraft:
                                                      symmetric=symmetric, vertical=vertical)
                 self.aircraft.append(new_surface)
 
-        temperature = 15.04 + 273.1 - (0.00649 * self.altitude)
-        pressure = 101.29 * (temperature / 288.08) ** 5.256
-
-        self.rho = pressure / (0.2869 * temperature)
-        self.magnitude = np.array([[self.velocity], [0], [self.velocity / 20]])
-
         # Dimensionless mass coefficients.
         self.m_c = self.mass / (self.rho * self.wing.area * self.wing.mac)
         self.m_b = self.mass / (self.rho * self.wing.area * self.wing.span)
@@ -97,12 +101,12 @@ class Aircraft:
         self.K_XZ = self.I_XZ / (self.mass * (self.wing.span ** 2))
 
         # Inputs and outputs at equilibrium condition used for reference.
-        self.inputs_reference = np.array([[0, 0, self.velocity, 0],
+        self.inputs_reference = np.array([[0, 0, self.velocity * np.cos(self.alpha), 0],
                                           [0, 0, 0, 0],
-                                          [0, 0, self.velocity / 20, 0]])
+                                          [0, 0, self.velocity * np.sin(self.alpha), 0]])
         self.outputs_reference = self.calculate_outputs(self.inputs_reference, self.velocity)
 
-        # print(np.round(self.outputs_reference, 3))
+        print(np.round(self.outputs_reference, 3))
         print()
         print()
 
@@ -136,7 +140,7 @@ class Aircraft:
             outputs_aircraft[0, 1] += outputs_surface[0, 2]
             outputs_aircraft[1, 1] += outputs_surface[1, 2]
             outputs_aircraft[2, 1] += outputs_surface[2, 2]
-
+        #
         # print(np.round(outputs_aircraft, 3))
         # print()
 
@@ -158,6 +162,10 @@ class Aircraft:
         outputs_change = (outputs - self.outputs_reference) / inputs_change
 
         if symmetric:
+            # print(np.round(outputs_change, 2))
+            # print(self.wing.area)
+            # print()
+
             c_outputs_1 = (self.rho / 2) * magnitude ** 2 * self.wing.area
             c_outputs_2 = (self.rho / 2) * magnitude ** 2 * self.wing.area
             c_outputs_3 = (self.rho / 2) * magnitude ** 2 * self.wing.area * self.wing.mac
