@@ -10,28 +10,28 @@ test_case = Aircraft(path='Aircraft/Cessna', example=True)
 class TestAircraft(unittest.TestCase):
 
     def test_initialization(self, margin=0.01):
-        m_c_true = None
+        m_c_true = 46.957
         m_c_calc = test_case.m_c
 
-        m_b_true = None
+        m_b_true = 6.423
         m_b_calc = test_case.m_b
 
-        K_XX_true = None
+        K_XX_true = 0.009
         K_XX_calc = test_case.K_XX
 
-        K_YY_true = None
+        K_YY_true = 0.681
         K_YY_calc = test_case.K_YY
 
-        K_ZZ_true = None
+        K_ZZ_true = 0.019
         K_ZZ_calc = test_case.K_ZZ
 
         K_XZ_true = 0.000
         K_XZ_calc = test_case.K_XZ
 
-        density_true = None
+        density_true = 1.058
         density_calc = test_case.rho
 
-        magnitude_true = None
+        magnitude_true = 60.075
         magnitude_calc = test_case.magnitude
 
         self.assertAlmostEqual(m_c_true, m_c_calc, delta=margin * m_c_true)
