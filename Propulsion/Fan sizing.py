@@ -33,6 +33,7 @@ Cd_to = 0.202
 Cl_to = 1.59
 mu = 0.015
 T = 3200
+RPM = 7200
 W = g * MTOM
 
 # altitudes
@@ -49,7 +50,8 @@ eff_fan = 0.885
 """"Definitions"""
 """"###############################################################################################################"""
 
-#Calculator for the ISA conditions up to 11000 meters
+
+# Calculator for the ISA conditions up to 11000 meters
 def ISA(h):
     T0 = 288.15
     p0 = 101325.0
@@ -61,48 +63,59 @@ def ISA(h):
     rho1 = (p / (R * T))
     return [T, p, rho1]
 
-#Mssflow formula
+
+# Mssflow formula
 def Massflow(thr, V4, V):
     return thr / (V4 - V)
 
-#Thrust formula (kt is based on the data available of the UL-39 ducted fan aircraft)
+
+# Thrust formula (kt is based on the data available of the UL-39 ducted fan aircraft)
 def Thrust(kt, n, D, alt):
     return kt * n ** 2 * D ** 4 * ISA(alt)[2]
 
-#Torque formula (kq is based on the data available of the UL-39 ducted fan aircraft)
+
+# Torque formula (kq is based on the data available of the UL-39 ducted fan aircraft)
 def Torque(kq, n, D, alt):
     return kq * n ** 2 * D ** 5 * ISA(alt)[2]
 
-#formula for change in speed due to the spinning propeller
+
+# formula for change in speed due to the spinning propeller
 def V_induced(e_d, V, D, Thr, alt):
     return (0.5 * e_d - 1) * V + np.sqrt((e_d * V / 2) ** 2 + (e_d * Thr) / (ISA(alt)[2] * np.pi * D ** 2 / 4))
 
-#formula for the torque power based on the induced airspeed
-def P_torque(w, Q):
-    return w * Q
 
-#formula for calculating the power required for certain rpm, thrust and diameter, velocity
+# formula for the torque power based on the induced airspeed
+def P_torque(n, Q):
+    return n * Q * 2 * np.pi
+
+
+# formula for calculating the power required for certain rpm, thrust and diameter, velocity
 def Preq(alt, Thr, D, V, e_d):
     return 0.75 * Thr * V + np.sqrt(((Thr ** 2 * V ** 2) / 16) + ((Thr ** 3) / (ISA(alt)[2] * np.pi * e_d * D ** 2)))
 
-#Velocity just after the propeller including the induced speed
+
+# Velocity just after the propeller including the induced speed
 def V3(V, w):
     return V + w
 
-#Exit speed at the end of the duct
+
+# Exit speed at the end of the duct
 def V4(V, e_d):
     return V / e_d
 
-#Definition for drag as a function of time
+
+# Definition for drag as a function of time
 def Drag(V, MTOM, alt):
     Cl = (MTOM * g) / (0.5 * ISA(alt)[2] * V ** 2 * S)
     Cd = Cd0 + Cl ** 2 / (np.pi * AR * e)
     return 0.5 * ISA(alt)[2] * V ** 2 * S * Cd
 
-#formula for Preq as a function of drag
+
+# formula for Preq as a function of drag
 def Preq_drag(V, MTOM, alt, D, e_d):
     return 0.75 * Drag(V, MTOM, alt) * V + np.sqrt(
         ((Drag(V, MTOM, alt) ** 2 * V ** 2) / 16) + ((Drag(V, MTOM, alt) ** 3) / (ISA(alt)[2] * np.pi * e_d * D ** 2)))
+
 
 # function we want to integrate
 def f(X):
@@ -126,7 +139,6 @@ rpmspacing = 100
 marginlower = 1
 marginupper = 1.05
 
-
 # for loop
 for D_cl in np.arange(0.4, 0.75, 0.01):
     for e_d in np.arange(0.8, 1.21, 0.01):
@@ -135,7 +147,7 @@ for D_cl in np.arange(0.4, 0.75, 0.01):
             Torque_cl_0 = Torque(kq, n_cl, D_cl, alt_0)
             Pr_cl_0 = Preq(alt_0, Thr_cl_0, D_cl, V_cl, e_d)
             w_cl_0 = V_induced(e_d, V_cl, D_cl, Thr_cl_0, alt_0)
-            Torque_power_cl_0 = P_torque(w_cl_0, Torque_cl_0)
+            Torque_power_cl_0 = P_torque(n_cl, Torque_cl_0)
             V_3_cl_0 = V3(V_cl, w_cl_0)
             V_4_cl_0 = V4(V_3_cl_0, e_d)
             mflow_cl_0 = Massflow(Thr_cl_0, V_4_cl_0, V_cl)
@@ -145,7 +157,7 @@ for D_cl in np.arange(0.4, 0.75, 0.01):
                     Torque_cl_6000 = Torque(kq, n_cl_2, D_cl, alt_6000)
                     Pr_cl_6000 = Preq(alt_6000, Thr_cl_6000, D_cl, V_cl, e_d)
                     w_cl_6000 = V_induced(e_d, V_cl, D_cl, Thr_cl_6000, alt_6000)
-                    Torque_power_cl_6000 = P_torque(w_cl_6000, Torque_cl_6000)
+                    Torque_power_cl_6000 = P_torque(n_cl_2, Torque_cl_6000)
                     V_3_cl_6000 = V3(V_cl, w_cl_6000)
                     V_4_cl_6000 = V4(V_3_cl_6000, e_d)
                     mflow_cl_6000 = Massflow(Thr_cl_6000, V_4_cl_6000, V_cl)
@@ -155,7 +167,7 @@ for D_cl in np.arange(0.4, 0.75, 0.01):
                             Torque_to_0 = Torque(kq, n_to, D_cl, alt_0)
                             Pr_to_0 = Preq(alt_0, Thr_to_0, D_cl, V_to, e_d)
                             w_to_0 = V_induced(e_d, V_to, D_cl, Thr_to_0, alt_0)
-                            Torque_power_to_0 = P_torque(w_to_0, Torque_to_0)
+                            Torque_power_to_0 = P_torque(n_to, Torque_to_0)
                             V_3_to_0 = V3(V_to, w_to_0)
                             V_4_to_0 = V4(V_3_to_0, e_d)
                             mflow_to_0 = Massflow(Thr_to_0, V_4_to_0, V_to)
@@ -165,7 +177,7 @@ for D_cl in np.arange(0.4, 0.75, 0.01):
                                     Torque_to_6000 = Torque(kq, n_to_2, D_cl, alt_6000)
                                     Pr_to_6000 = Preq(alt_6000, Thr_to_6000, D_cl, V_cl, e_d)
                                     w_to_6000 = V_induced(e_d, V_to, D_cl, Thr_to_6000, alt_6000)
-                                    Torque_power_to_6000 = P_torque(w_to_6000, Torque_to_6000)
+                                    Torque_power_to_6000 = P_torque(n_to_2, Torque_to_6000)
                                     V_3_to_6000 = V3(V_to, w_to_6000)
                                     V_4_to_6000 = V4(V_3_to_6000, e_d)
                                     mflow_to_6000 = Massflow(Thr_to_6000, V_4_to_6000, V_to)
@@ -175,7 +187,7 @@ for D_cl in np.arange(0.4, 0.75, 0.01):
                                             Torque_la_0 = Torque(kq, n_la, D_cl, alt_0)
                                             Pr_la_0 = Preq(alt_0, Thr_la_0, D_cl, V_cl, e_d)
                                             w_la_0 = V_induced(e_d, V_la, D_cl, Thr_to_0, alt_0)
-                                            Torque_power_la_0 = P_torque(w_la_0, Torque_la_0)
+                                            Torque_power_la_0 = P_torque(n_la, Torque_la_0)
                                             V_3_la_0 = V3(V_la, w_la_0)
                                             V_4_la_0 = V4(V_3_la_0, e_d)
                                             mflow_la_0 = Massflow(Thr_la_0, V_4_la_0, V_la)
@@ -185,7 +197,7 @@ for D_cl in np.arange(0.4, 0.75, 0.01):
                                                     Torque_la_6000 = Torque(kq, n_la_2, D_cl, alt_6000)
                                                     Pr_la_6000 = Preq(alt_6000, Thr_la_6000, D_cl, V_la, e_d)
                                                     w_la_6000 = V_induced(e_d, V_la, D_cl, Thr_to_6000, alt_6000)
-                                                    Torque_power_la_6000 = P_torque(w_la_6000, Torque_la_6000)
+                                                    Torque_power_la_6000 = P_torque(n_la_2, Torque_la_6000)
                                                     V_3_la_6000 = V3(V_la, w_la_6000)
                                                     V_4_la_6000 = V4(V_3_la_6000, e_d)
                                                     mflow_la_6000 = Massflow(Thr_la_6000, V_4_la_6000, V_la)
@@ -244,8 +256,52 @@ df = pd.DataFrame(lst, columns=lst_header)
 df.to_excel("Prop_sizing_final.xlsx", index=False)
 
 new_df = df[(round(df["Diameter"], 2) == round(D, 2)) & (round(df["e_d"], 2) == round(1, 2))]
+
+V_cr = V_to
+T_cr = 3200
+RPM_cr = 60 * np.sqrt(T_cr / (ISA(alt_0)[2] * new_df.iloc[0]["Diameter"] ** 4 * kt))
+Q_cr = Torque(kq, RPM_cr / 60, new_df.iloc[0]["Diameter"], alt_0)
+P_req_cr = Preq(alt_0, T_cr, new_df.iloc[0]["Diameter"], V_cr, new_df.iloc[0]["e_d"])
+w_cr = V_induced(new_df.iloc[0]["e_d"], V_to, new_df.iloc[0]["Diameter"], T_cr, alt_0)
+Torque_power_cr = P_torque(w_cr, Q_cr)
+V3_cr = V3(V_cr, w_cr)
+V4_cr = V4(V3_cr, new_df.iloc[0]["e_d"])
+Mass_flow_cr = Massflow(T_cr, V4_cr, V_cr)
+
+df_cr = pd.DataFrame(np.array([[T_cr, RPM_cr, Q_cr, P_req_cr, w_cr, Torque_power_cr, V3_cr, V4_cr, Mass_flow_cr]]),
+                     columns=["Thrust TO", "RPM TO", "Torque TO",
+                              "Pr_TO", "w_TO", "Torque Power TO",
+                              "V3 TO", "V4 TO", "Mass flow TO"])
+
+df_cr.to_excel("df_cr.xlsx", index=False)
+
+# new_df = pd.concat([new_df, df_cr], axis = 1, ignore_index=False)
+# print(new_df)
+
+
+# new_df["Thrust TO", "RPM TO", "Torque TO",
+#         "Pr_TO", "w_TO", "Torque Power TO",
+#         "V3 TO", "V4 TO", "Mass flow TO"] [T_cr, RPM_cr, Q_cr, P_req_cr, w_cr, Torque_power_cr, V3_cr, V4_cr, Mass_flow_cr]
 print(new_df.iloc[0])
 
+lst_header_2 = ["Diameter", "Area", "e_d", "Max RPM", 'Min RPM', "Max P prop", "Max P engine",
+                "RPM_cl_0", "RPM_cl_6000", "RPM_to_0", "RPM_to_6000", "RPM_la_0", "RPM_la_6000",
+                "P_cl_0", "P_cl_6000", "P_to_0", "P_to_6000", "P_la_0", "P_la_6000",
+                "Thrust_cl_0", "Thrust_cl_6000", "Thrust_to_0", "Thrust_to_6000",
+                "Thrust_la_0", "Thrust_la_6000", "Torque_cl_0", "Torque_cl_6000",
+                "Torque_to_0", "Torque_to_6000", "Torque_la_0", "Torque_la_6000",
+                "Mass_flow_cl_0", "Mass_flow_cl_6000", "Mass_flow_to_0",
+                "Mass_flow_to_6000", "Mass_flow_la_0", "Mass_flow_la_6000",
+                "Induced_airspeed_cl_0", "Induced_airspeed_cl_6000", "Induced_airspeed_to_0",
+                "Induced_airspeed_to_6000", "Induced_airspeed_la_0", "Induced_airspeed_la_0",
+                "Rotor_speed_V3_cl_0", "Rotor_speed_V3_cl_6000", "Rotor_speed_V3_to_0",
+                "Rotor_speed_V3_to_6000", "Rotor_speed_V3_la_0", "Rotor_speed_V3_la_6000",
+                "Exit_speed_V4_cl_0", "Exit_speed_V4_cl_6000", "Exit_speed_V4_to_0",
+                "Exit_speed_V4_to_6000", "Exit_speed_V4_la_0", "Exit_speed_V4_la_6000",
+                "Torque_power_cl_0", "Torque_power_cl_6000", "Torque_power_to_0", "Torque_power_to_6000",
+                "Torque_power_la_0", "Torque_power_la_0", "Thrust TO", "RPM TO", "Torque TO",
+                "Pr_TO", "w_TO", "Torque Power TO",
+                "V3 TO", "V4 TO", "Mass flow TO"]
 id = 0
 df_choice = pd.DataFrame(np.array([new_df.iloc[id]]).transpose(), columns=["Propeller"], index=lst_header)
 df_choice.to_excel("Propeller_choice.xlsx", index=True)
@@ -268,7 +324,7 @@ plt.xlabel("Velocity")
 plt.ylabel("Power required")
 plt.legend()
 plt.title("Power curve")
-#plt.show()
+# plt.show()
 
 alt_power = 0
 lst_Preq_g = []
@@ -287,20 +343,20 @@ plt.ylabel("Power required")
 plt.ylim(0.9 * min(df_curve_g["Power required"]), 1.1 * max(df_curve_g["Power required"]))
 plt.legend()
 plt.title("Power curve with g_load")
-#plt.show()
+# plt.show()
 
 """"###############################################################################################################"""
 """"Take-off"""
 """"###############################################################################################################"""
 
-#integration for the determination of the landing distance forr a certain output of thrust
-res, err = quad(f, 0.001, V_to ** 2)
-
-print("The numerical result is {:f} (+-{:g})".format(res, err))
+# integration for the determination of the landing distance forr a certain output of thrust
+res = quad(f, 0.001, V_to ** 2)
+print("runway lenght needed for take-off", res[0])
 
 """"###############################################################################################################"""
 """"Landing"""
 """"###############################################################################################################"""
 
-
 # print(Preq(0, 3200, 0.63, 28.29, 1) / eff_fan / eff_engine)
+x = V_induced(1, V_to, D, 3200, 0)
+print(V3(V_to, x))
