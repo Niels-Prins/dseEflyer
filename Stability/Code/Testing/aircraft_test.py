@@ -14,25 +14,25 @@ class TestAircraft(unittest.TestCase):
         m_c_calc = test_case.m_c
 
         m_b_true = 6.423
-        m_b_calc = test_case.m_b
+        m_b_calc = round(test_case.m_b, 3)
 
         K_XX_true = 0.009
-        K_XX_calc = test_case.K_XX
+        K_XX_calc = round(test_case.K_XX, 3)
 
         K_YY_true = 0.681
-        K_YY_calc = test_case.K_YY
+        K_YY_calc = round(test_case.K_YY, 3)
 
         K_ZZ_true = 0.019
-        K_ZZ_calc = test_case.K_ZZ
+        K_ZZ_calc = round(test_case.K_ZZ, 3)
 
         K_XZ_true = 0.000
-        K_XZ_calc = test_case.K_XZ
+        K_XZ_calc = round(test_case.K_XZ, 3)
 
         density_true = 1.058
-        density_calc = test_case.rho
+        density_calc = round(test_case.rho, 3)
 
-        magnitude_true = 60.075
-        magnitude_calc = test_case.magnitude
+        magnitude_true = 60.075, 3
+        magnitude_calc = round(test_case.magnitude)
 
         self.assertAlmostEqual(m_c_true, m_c_calc, delta=margin * m_c_true)
         self.assertAlmostEqual(m_b_true, m_b_calc, delta=margin * m_c_true)
