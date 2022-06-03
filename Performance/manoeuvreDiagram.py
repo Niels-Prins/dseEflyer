@@ -49,39 +49,45 @@ for i in range(len(V)):
 V_manu = V_stall * np.sqrt(n_max)
 
 #%%
-plt.xlim(0, 200 * 0.51444)
+plt.xlim(0, 200)
 plt.ylim(-7, 9)
 
+meterspersec = 1/0.5144444
 # Speed 
-plt.vlines(V_stall, ymax=1, ymin=0, color="red", label="Stall speed", linestyle="--")
+plt.vlines(V_stall *meterspersec, ymax=1, ymin=0, color="red", label="Stall speed", linestyle="--")
 # plt.vlines(
 #     V_prime, ymax=0, ymin=n_min, color="black", linestyle="--"
 # )
 plt.vlines(
-    V_cruise,
+    V_cruise *meterspersec,
     ymax=n_max,
     ymin=n_min,
-    color="limegreen",
+    color="fuchsia",
     label="Cruise speed",
     linestyle="--",
 )
-plt.vlines(V_dive, ymax=n_max, ymin=n_min, color="Blue", label="Dive speed")
 
+n_pos = [n_pos[i] for i in range(len(n_pos)) if n_pos[i] <=8]
+n_neg = [n_neg[i] for i in range(len(n_neg)) if n_neg[i] >=-6]
+
+plt.vlines(V_dive *meterspersec, ymax=n_max, ymin=n_min, color="Blue", label="Dive speed")
+
+vplot = V*meterspersec
 # Manoeuvre Diagram
-plt.hlines(n_max, xmin=V_manu, xmax=V_dive, color="purple", label="Manoeuvre")
-plt.hlines(n_min, xmin=V_prime, xmax=V_dive, color="purple")
-plt.plot(V, n_pos, color="purple")
-plt.plot(V, n_neg, color="purple")
+plt.hlines(n_max, xmin=V_manu*meterspersec, xmax=V_dive*meterspersec, color="purple", label="Manoeuvre")
+plt.hlines(n_min, xmin=V_prime*meterspersec, xmax=V_dive*meterspersec, color="purple")
+plt.plot(vplot[:len(n_pos)], n_pos, color="purple")
+plt.plot(vplot[:len(n_neg)], n_neg, color="purple")
 
 # Dust Diagram
-plt.plot([0, V_cruise], [1, n_gust_cruise_pos], color="orange", label="Gust")
-plt.plot([0, V_cruise], [1, n_gust_cruise_neg], color="orange")
-plt.plot([0, V_dive], [1, n_gust_dive_pos], color="orange", linestyle="--")
-plt.plot([0, V_dive], [1, n_gust_dive_neg], color="orange", linestyle="--")
-plt.plot([V_cruise, V_dive], [n_gust_cruise_pos, n_gust_dive_pos], color="orange")
-plt.plot([V_cruise, V_dive], [n_gust_cruise_neg, n_gust_dive_neg], color="orange")
+plt.plot([0, V_cruise*meterspersec], [1, n_gust_cruise_pos], color="orange", label="Gust")
+plt.plot([0, V_cruise*meterspersec], [1, n_gust_cruise_neg], color="orange")
+plt.plot([0, V_dive*meterspersec], [1, n_gust_dive_pos], color="orange", linestyle="--")
+plt.plot([0, V_dive*meterspersec], [1, n_gust_dive_neg], color="orange", linestyle="--")
+plt.plot([V_cruise*meterspersec, V_dive*meterspersec], [n_gust_cruise_pos, n_gust_dive_pos], color="orange")
+plt.plot([V_cruise*meterspersec, V_dive*meterspersec], [n_gust_cruise_neg, n_gust_dive_neg], color="orange")
 plt.plot(
-    [V_dive, V_dive], [n_gust_dive_pos, n_gust_dive_neg], color="orange", linestyle="--"
+    [V_dive*meterspersec, V_dive*meterspersec], [n_gust_dive_pos, n_gust_dive_neg], color="orange", linestyle="--"
 )
 
 #Set the grid nicely
@@ -91,7 +97,8 @@ plt.grid(visible=True, which="minor", color="#999999", linestyle="-", alpha=0.2)
 plt.yticks(np.arange(-6,9,1))
 
 plt.legend(loc="upper left")
-plt.xlabel("Operating Velocities")
-plt.ylabel("G-load")
+plt.xlabel("Operating Velocities [kts]")
+plt.ylabel("G-load [-]")
+plt.savefig("vndiagram")
 plt.show()
 #%%
