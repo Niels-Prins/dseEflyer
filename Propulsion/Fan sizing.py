@@ -6,7 +6,7 @@ from scipy.integrate import quad
 """"###############################################################################################################"""
 """"Variables"""
 """"###############################################################################################################"""
-# constants
+# constants based on the UL-39
 kt = 1.032914
 kq = 0.1110977401
 
@@ -257,6 +257,9 @@ df.to_excel("Prop_sizing_final.xlsx", index=False)
 
 new_df = df[(round(df["Diameter"], 2) == round(D, 2)) & (round(df["e_d"], 2) == round(1, 2))]
 
+#Calculation of the take-off requirement, based on the runway lenght
+
+
 V_cr = V_to
 T_cr = 3200
 RPM_cr = 60 * np.sqrt(T_cr / (ISA(alt_0)[2] * new_df.iloc[0]["Diameter"] ** 4 * kt))
@@ -274,14 +277,6 @@ df_cr = pd.DataFrame(np.array([[T_cr, RPM_cr, Q_cr, P_req_cr, w_cr, Torque_power
                               "V3 TO", "V4 TO", "Mass flow TO"])
 
 df_cr.to_excel("df_cr.xlsx", index=False)
-
-# new_df = pd.concat([new_df, df_cr], axis = 1, ignore_index=False)
-# print(new_df)
-
-
-# new_df["Thrust TO", "RPM TO", "Torque TO",
-#         "Pr_TO", "w_TO", "Torque Power TO",
-#         "V3 TO", "V4 TO", "Mass flow TO"] [T_cr, RPM_cr, Q_cr, P_req_cr, w_cr, Torque_power_cr, V3_cr, V4_cr, Mass_flow_cr]
 print(new_df.iloc[0])
 
 lst_header_2 = ["Diameter", "Area", "e_d", "Max RPM", 'Min RPM', "Max P prop", "Max P engine",
@@ -324,8 +319,10 @@ plt.xlabel("Velocity")
 plt.ylabel("Power required")
 plt.legend()
 plt.title("Power curve")
-# plt.show()
+plt.show()
 
+
+#Plot curve for 3 g flight
 alt_power = 0
 lst_Preq_g = []
 g_load = 3
@@ -343,7 +340,7 @@ plt.ylabel("Power required")
 plt.ylim(0.9 * min(df_curve_g["Power required"]), 1.1 * max(df_curve_g["Power required"]))
 plt.legend()
 plt.title("Power curve with g_load")
-# plt.show()
+plt.show()
 
 """"###############################################################################################################"""
 """"Take-off"""
@@ -353,10 +350,3 @@ plt.title("Power curve with g_load")
 res = quad(f, 0.001, V_to ** 2)
 print("runway lenght needed for take-off", res[0])
 
-""""###############################################################################################################"""
-""""Landing"""
-""""###############################################################################################################"""
-
-# print(Preq(0, 3200, 0.63, 28.29, 1) / eff_fan / eff_engine)
-x = V_induced(1, V_to, D, 3200, 0)
-print(V3(V_to, x))
