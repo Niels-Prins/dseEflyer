@@ -19,9 +19,9 @@ incidence		0.000	deg
 
 # positioning #
 
-X_le	        1.600	m
+X_le	               -1.600	m
 Y_le			0.000	m
-Z_le			1.500	m
+Z_le		       -1.500	m
 
 # controls #
 

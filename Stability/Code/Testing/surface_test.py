@@ -20,14 +20,14 @@ class TestAerodynamicSurface(unittest.TestCase):
         input_magnitude = np.linalg.norm(inputs[:, 2])
 
         if symmetric:
-            surface = AerodynamicSurface('Aircraft/Symmetric', [0, 0, 0],
+            surface = AerodynamicSurface('Aircraft/Symmetric', [-0.04, 0, 0],
                                          symmetric=symmetric, vertical=vertical, step=0.001)
         else:
             if vertical:
-                surface = AerodynamicSurface('Aircraft/Vertical', [0, 0, 0],
+                surface = AerodynamicSurface('Aircraft/Vertical', [-0.04, 0, 0],
                                              symmetric=symmetric, vertical=vertical, step=0.001)
             else:
-                surface = AerodynamicSurface('Aircraft/Asymmetric', [0, 0, 0],
+                surface = AerodynamicSurface('Aircraft/Asymmetric', [-0.04, 0, 0],
                                              symmetric=symmetric, vertical=vertical, step=0.001)
 
         surface.calculate_outputs(inputs, input_magnitude, input_rho, controls=controls)
@@ -41,6 +41,9 @@ class TestAerodynamicSurface(unittest.TestCase):
 
             area_true = 0.180  # calculated by hand using formula [1].
             area_calc = round(surface.area, 3)
+
+            ar_true = 8.000
+            ar_calc = round(surface.ar, 3)
 
             mac_true = 0.156  # calculated by hand using formula [2].
             mac_calc = round(surface.mac, 3)
@@ -62,6 +65,7 @@ class TestAerodynamicSurface(unittest.TestCase):
 
             # Geometry tests.
             self.assertAlmostEqual(area_true, area_calc, delta=margin * area_true)
+            self.assertAlmostEqual(ar_true, ar_calc, delta=margin * ar_true)
             self.assertAlmostEqual(mac_true, mac_calc, delta=margin * mac_true)
             self.assertAlmostEqual(X_ac_true, X_ac_calc, delta=margin * X_ac_true)
             self.assertAlmostEqual(Y_ac_true, Y_ac_calc, delta=margin * Y_ac_true)

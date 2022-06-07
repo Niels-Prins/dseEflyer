@@ -1,11 +1,11 @@
 # section 1 #
 
 nose_length 		2.00	m
-nose_height_start 	0.50	m
+nose_height_start 	1.00	m
 nose_height_end 	1.60	m
-nose_width_start 	0.50	m
-nose_width_end 		0.80	m
-nose_sweep        -15.00    deg
+nose_width_start 	0.80	m
+nose_width_end 		1.20	m
+nose_sweep        -9.00    deg
 
 # section 2 #
 
@@ -16,5 +16,5 @@ main_length 		3.70	m
 tail_length 		2.00	m
 tail_height_end		0.50	m
 tail_width_end 		0.50	m
-tail_sweep        -15.00    deg
+tail_sweep        -6.00    deg
 

@@ -19,7 +19,7 @@ incidence       0.000   deg
 
 # positioning #
 
-X_le	       -0.040	m
+X_le	            0.000	m
 Y_le		    0.000	m
 Z_le		    0.000	m
 

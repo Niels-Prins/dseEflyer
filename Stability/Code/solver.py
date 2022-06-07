@@ -250,9 +250,9 @@ class AircraftStability():
         plt.axvline(0, color='black')
 
         if symmetric:
-            plt.savefig(f'Results/{self.aircraft.name}/Eigenvalues/symmetric')
+            plt.savefig(f'Results/{self.aircraft.name}/Eigenvalues/symmetric', bbox_inches='tight')
         else:
-            plt.savefig(f'Results/{self.aircraft.name}/Eigenvalues/asymmetric')
+            plt.savefig(f'Results/{self.aircraft.name}/Eigenvalues/asymmetric', bbox_inches='tight')
 
         if show:
             plt.show()
@@ -287,9 +287,9 @@ class AircraftStability():
         axis[1, 2].plot(time, inputs[1])
 
         if symmetric:
-            plt.savefig(f'Results/{self.aircraft.name}/Responses/symmetric')
+            plt.savefig(f'Results/{self.aircraft.name}/Responses/symmetric', bbox_inches='tight')
         else:
-            plt.savefig(f'Results/{self.aircraft.name}/Responses/asymmetric')
+            plt.savefig(f'Results/{self.aircraft.name}/Responses/asymmetric', bbox_inches='tight')
 
         if show:
             plt.show()
@@ -302,4 +302,4 @@ def main(path, interval=100, fuselage=True):
     solver.plot_responses(deflections=[0.1, 0], deflections_time=2, stop=interval, show=True)
 
     solver.plot_eigenvalues(symmetric=False, show=False)
-    solver.plot_responses(deflections=[0.1, 0], deflections_time=0.5, stop=interval / 10, symmetric=False, show=True)
+    solver.plot_responses(deflections=[0.1, 0], deflections_time=0.5, stop=interval / 6, symmetric=False, show=True)

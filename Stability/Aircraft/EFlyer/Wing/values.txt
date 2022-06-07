@@ -10,26 +10,26 @@ position	    0	    0=low,1=mid,2=high
 
 # geometry #
 
-chord			2.010	m
-span			8.480	m
-sweep		   -7.450	deg
+chord			2.100	m
+span			8.500	m
+sweep		   -7.500	deg
 taper			0.450	-
-dihedral        6.000	deg
-incidence		0.750	deg
+dihedral        5.000	deg
+incidence		0.000	deg
 
 # positioning #
 
-X_le	        3.610	m
+X_le	       -3.400	m
 Y_le			0.000	m
 Z_le			0.000	m
 
 # controls #
 
-start 			0.42	m
-end 			4.03	m
+start 			0.40	m
+end 			4.00	m
 
 motion			X	    X=roll,Y=pitch,Z=yaw
 deflection		False	boolean
 
-alpha			0.602	1/deg
-moment		    -0.011	1/deg
+alpha			0.600	1/deg
+moment		    -0.010	1/deg
