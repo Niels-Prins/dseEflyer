@@ -8,14 +8,16 @@ import matplotlib.pyplot as plt
 D_fan = 0.63
 pi_fan = 1.0648 #taken from UL-39
 shaft_rad = 0.5 #assumed
-a = 0.9         #assumed fuselage height behind the cockpit (consider clearance for FOD and wing placement)
-kt = 1.032914   #Wessel computed this
-e_d = 1         #Wessel decided this
-thrust = 3200   #Wessel computed this
-v3 = 121.55     #Wessel computed this
+a = 1.2         #assumed fuselage height behind the cockpit (consider clearance for FOD and wing placement)
+
+#values from Wessel
+e_d = 1
+thrust = 3200   #v3 and thrust change together
+v3 = 106.765
+
 
 #FLIGHT CONDITIONS
-v = 77.17 #operating velocity (freestream)
+v = 28.29 #operating velocity (freestream)
 
 h = 0 * 0.3048
 kin_vis = 1.460 * (10**-5)
@@ -88,6 +90,10 @@ if e_d < 1:
     p_loss34 = W(Re3, mean_velocity34, 1.4, mean_HyDiam34)[1]
 if e_d == 1:
     p_loss34 = W(Re3, v3, 1.4, D_fan)[1]
+if e_d > 1:
+    mean_velocity34 = abs((v4-v3)/2)
+    mean_HyDiam34 = abs((D_fan - exhaust_diam)/2)
+    p_loss34 = W(Re3, mean_velocity34, 1.4, mean_HyDiam34)[1]
 
 #stagnation point
 T_0 = total_conditions(v, T, p)[0]
@@ -108,19 +114,25 @@ T_tot4 = (((ptot_4/p4) ** (kappa-1/kappa)) * T)
 T_tot3 = T_tot4 / (1 + ((1/noz_eff) * ((ptot_4/ptot_3)**(kappa-1/kappa) - 1)))
 T_tot2 = T_tot3 / (1 + ((1/fan_eff) * ((ptot_3/ptot_2)**(kappa-1/kappa) - 1)))
 
+'''
+dyn_pres2 = ptot_2 - p
+v2 = np.sqrt((2*dyn_pres2)/rho)
+fanface_area = (fan_area*v3)/v2'''
 
-duct_acc_v = 80 - 62.5 #velocity increase due to the duct for the UL-39 (inlet velocity - freestream)
+duct_acc_v = 63.5 #velocity increase due to the duct for the UL-39 (inlet velocity - freestream)
 A2 = np.arange(fan_area, 2*fan_area, 0.01)
 fanfaceV = []
 fanfaceA = []
 for i in range(len(A2)):
     vel2 = (fan_area*v3)/A2[i]
+    #print(vel2)
     if mt.isclose(vel2, v + duct_acc_v, rel_tol=0.05):
         fanfaceV.append(vel2)
         fanfaceA.append(A2[i])
 
 v2 = np.max(fanfaceV)
 fanface_area = np.min(fanfaceA)
+
 
 Re2 = Reynolds(v2, diam(fanface_area))
 ptot_2 = ptot_3 / pi_fan
@@ -138,10 +150,12 @@ base_track = np.linspace(-1*(a/2), 1*(a/2), 3)
 cowl_points = [0, b, 0]
 cowl = interpolate.interp1d(base_track, cowl_points, kind='quadratic')
 x = np.arange(-1*(a/2), 1*(a/2), 0.0001)
-plt.xlim(-0.5, 0.5)
-plt.ylim(-0.05, 0.5)
-plt.plot(x, (cowl(x)), color='blue')
-plt.plot([-1*(a/2), 1*(a/2)], [np.min(cowl(base_track)), np.min(cowl(base_track))], color='blue')
+plt.ylim(-(a/2)-0.1, (a/2)+0.1)
+plt.xlim(-0.05, 1.2)
+plt.plot((cowl(x)), x, color='blue')
+plt.plot([np.min(cowl(base_track)), np.min(cowl(base_track))], [-1*(a/2), 1*(a/2)], color='blue')
+plt.xlabel("Aircraft Y-axis[m]")
+plt.ylabel("Aircraft Z-axis[m]")
 plt.grid(True)
 plt.show()
 
@@ -170,24 +184,24 @@ print("Total pressure Before Fan:", ptot_2)
 
 #print("Total Temperature After Fan:", T_tot3)
 print("Total Pressure After Fan:", ptot_3)
-#print("Static Pressure After Fan:", p3)
+print("Static Pressure After Fan:", p3)
 
 #print("Total Temperature at Exhaust:", T_tot4)
 print("Total Pressure at Exhaust:", ptot_4)
-#print("Static Pressure at Exhaust:", p4)
+print("Static Pressure at Exhaust:", p4)
 
-#print("Inlet duct pressure ratio:", ptot_2/ptot_1)
+
 print("Fan pressure ratio:", pi_fan)
 print("Intake duct pressure ratio:", ptot_2/ptot_1)
 print("Exhaust duct pressure ratio:", ptot_4/ptot_3)
 
 print("V_1 (assumed freestream):", v)
 print("V_2:", v2)
-print("Velocity increase due to duct convergence (taken from UL-39):", duct_acc_v)
+#print("Velocity increase due to duct convergence (taken from UL-39):", duct_acc_v)
 print("V_3:", v3)
 print("Fan induced velocity, w:", v3-v2)
 print("V_4:", v4)
-#print("delta V:", v4 - v)
+print("delta V:", v4 - v)
 print("Mass Flow:", mdot)
 
 print("Inlet Area per side:", inlet_area)
@@ -195,7 +209,7 @@ print("Duct End Area per side:", ductend_area)
 print("Fan Face Area:", fanface_area)
 print("Fan Area:", fan_area)
 print("Exhaust area:", exhaust_area)
-
+print("Duct tapering:", inlet_area/ductend_area)
 print("Exhaust diameter:", diam(exhaust_area))
 print("Fan face diameter:", diam(fanface_area))
 print("Cowl max width:", b)
