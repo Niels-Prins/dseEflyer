@@ -1,9 +1,11 @@
 #%%
+#Importing for stress calculations
 import numpy as np
 from fus_idealization import *
 from fus_loads import *
 
 # %%
+#Initialize class for stress calculations
 class Fuselage_apply_loads:
     @staticmethod
     def shear_stress_closed(shear_force, zLoc, totalInertia, areas):
@@ -53,13 +55,19 @@ class Fuselage_apply_loads:
             bendingStress.append(stress)
 
         return bendingStress
-
     @staticmethod
-    def apply_forces(x, data):
+    def get_forces(x: float = 700, n: int = 8):
+        v, m = VM(x, n)
+        return v, m
+    
+    @staticmethod
+    def apply_forces(x, data, n):
         results = pd.DataFrame()
         # Get load
         for i in x:
-            v, m = Fuselage_apply_loads.get_forces(i / 1000)
+            v, m = Fuselage_apply_loads.get_forces(i / 1000, n)
+            m = m * 1000
+
             temp = data[data["xcoor"] == i]
             temp["bendingstress"] = Fuselage_apply_loads.bending_stress_closed(
                 m,
@@ -75,15 +83,10 @@ class Fuselage_apply_loads:
 
         return results
 
-    @staticmethod
-    def get_forces(x: float = 700, n: int = 12):
-        v, m = VM(x, n)
-        return v, m
-
 
 if __name__ == "__main__":
-    test = Fuselage_structure()
+    test = Fuselage_idealized()
     test.create_fuselage()
-    result = Fuselage_apply_loads.apply_stress(test.x, test.data)
+    result = Fuselage_apply_loads.apply_forces(test.x, test.data)
 
 # %%

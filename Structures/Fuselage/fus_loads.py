@@ -36,18 +36,13 @@ distributedL_weightAFT = full_fuse - avg_CG  # fuselage span aft of the CG
 qFW = ((W * n) / (distributedL_weightFW)) / 2
 qAFT = ((W * n) / (distributedL_weightAFT)) / 2
 
-x_pos_whole = np.linspace(0, full_fuse, (len(x_pos_FW) + len(x_pos_AFT)))
-Vx = [*Shear_FW, *Shear_AFT]
-print(Vx)
-Mx = [*Bending_FW, *Bending_AFT]
-
 distributedL_weightFW = avg_CG  # fuselage span in front of the CG
 distributedL_weightAFT = full_fuse - avg_CG  # fuselage span aft of the CG
 
 qFW = ((W * n) / (distributedL_weightFW)) / 2
 qAFT = ((W * n) / (distributedL_weightAFT)) / 2
 
-def VM(x, n):
+def VM(x, n: int=8):
     distributedL_weightFW = avg_CG  # fuselage span in front of the CG
     distributedL_weightAFT = full_fuse - avg_CG  # fuselage span aft of the CG
     
@@ -76,6 +71,10 @@ for j in range(len(x_pos_AFT)):
     m2 = (qAFT / 6) * (distributedL_weightAFT - x_pos_AFT[j]) ** 3
     Shear_AFT.append(v2)
     Bending_AFT.append(m2)
+    
+x_pos_whole = np.linspace(0, full_fuse, (len(x_pos_FW) + len(x_pos_AFT)))
+Vx = [*Shear_FW, *Shear_AFT]
+Mx = [*Bending_FW, *Bending_AFT]
 
 if __name__ == "__main__":
     print(
