@@ -10,7 +10,7 @@ position	    0	    0=low,1=mid,2=high
 
 # geometry #
 
-chord			2.100	m
+chord			2.010	m
 span			8.500	m
 sweep		   -7.500	deg
 taper			0.450	-

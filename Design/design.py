@@ -484,7 +484,7 @@ class Design:
 
         area_ratio_stability = (X_cg / denominator) - ((X_ac - 0.05) / denominator)
         area_ratio_control = (X_cg - X_ac + (C_m_ac / C_L_aircraft)) * ((C_L_aircraft * self.wing_MAC) /
-                                                                        (C_L_h * h_tail_arm * h_tail_speed_ratio))
+                                                                        (C_L_h * h_tail_arm * h_tail_speed_ratio**2))
 
         min_cg = np.min(self.aircraft_X_CG[:, 2] / 100)
         max_cg = np.max(self.aircraft_X_CG[:, 2] / 100)
