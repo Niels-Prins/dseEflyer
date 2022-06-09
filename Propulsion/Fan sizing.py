@@ -1,3 +1,10 @@
+"""
+Wessel Kruidenier 
+08/06/2022
+Ducted Fan sizing 
+Calculation of diameter and duct of fan
+    based on information provided by the constraint analysis.
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -25,15 +32,15 @@ S = 12.3
 e = 0.8
 g = 9.81
 MTOM = 979  # kg
-MTOM_3g = 3 * MTOM
+MTOM_3g = 2.5 * MTOM
+Cd0_to = 0.06
 Cd0 = 0.025
 
 # take-off
 Cd_to = 0.202
 Cl_to = 1.59
 mu = 0.015
-T = 3200
-RPM = 7200
+T = 3000
 W = g * MTOM
 
 # altitudes
@@ -46,9 +53,10 @@ D = 0.63
 # efficiencies
 eff_engine = 0.95
 eff_fan = 0.885
-""""###############################################################################################################"""
+"""""""################################################################################"""
 """"Definitions"""
-""""###############################################################################################################"""
+"""""""################################################################################"""
+
 
 
 # Calculator for the ISA conditions up to 11000 meters
@@ -81,7 +89,8 @@ def Torque(kq, n, D, alt):
 
 # formula for change in speed due to the spinning propeller
 def V_induced(e_d, V, D, Thr, alt):
-    return (0.5 * e_d - 1) * V + np.sqrt((e_d * V / 2) ** 2 + (e_d * Thr) / (ISA(alt)[2] * np.pi * D ** 2 / 4))
+    return (0.5 * e_d - 1) * V + np.sqrt((e_d * V / 2) ** 2
+                                         + (e_d * Thr) / (ISA(alt)[2] * np.pi * D ** 2 / 4))
 
 
 # formula for the torque power based on the induced airspeed
@@ -91,7 +100,8 @@ def P_torque(n, Q):
 
 # formula for calculating the power required for certain rpm, thrust and diameter, velocity
 def Preq(alt, Thr, D, V, e_d):
-    return 0.75 * Thr * V + np.sqrt(((Thr ** 2 * V ** 2) / 16) + ((Thr ** 3) / (ISA(alt)[2] * np.pi * e_d * D ** 2)))
+    return 0.75 * Thr * V + np.sqrt(((Thr ** 2 * V ** 2) / 16)
+                                    + ((Thr ** 3) / (ISA(alt)[2] * np.pi * e_d * D ** 2)))
 
 
 # Velocity just after the propeller including the induced speed
@@ -114,7 +124,8 @@ def Drag(V, MTOM, alt):
 # formula for Preq as a function of drag
 def Preq_drag(V, MTOM, alt, D, e_d):
     return 0.75 * Drag(V, MTOM, alt) * V + np.sqrt(
-        ((Drag(V, MTOM, alt) ** 2 * V ** 2) / 16) + ((Drag(V, MTOM, alt) ** 3) / (ISA(alt)[2] * np.pi * e_d * D ** 2)))
+        ((Drag(V, MTOM, alt) ** 2 * V ** 2) / 16) + ((Drag(V, MTOM, alt) ** 3)
+                                                     / (ISA(alt)[2] * np.pi * e_d * D ** 2)))
 
 
 # function we want to integrate
@@ -122,9 +133,21 @@ def f(X):
     return 1 / ((g / W * T) - (g / W * mu * W) - (g / W * 0.5 * 1.225 * X * S * (Cd_to - mu * Cl_to)))
 
 
-""""###############################################################################################################"""
+def y(x):
+    return 1 / (2 * ((g / W) * (T - 0.5 * 1.225 * x * S * (Cd0_to + Cl_to ** 2 / (np.pi * AR * e)) - mu * (
+                W - 0.5 * 1.225 * x * S * Cl_to))))
+
+
+def a(T, v):
+    return ((g / W) * (T - 0.5 * 1.225 * v ** 2 * S * (Cd0_to + Cl_to ** 2 / (np.pi * AR * e)) - mu * (
+                W - 0.5 * 1.225 * v ** 2 * S * Cl_to)))
+
+
+print("a = ", a(3200, 28.29))
+
+"""""""################################################################################"""
 """"Diameter and RPM calculation"""
-""""###############################################################################################################"""
+"""""""################################################################################"""
 # Constants for loop specific
 lst = []
 thr_thres_cl_0 = 2001
@@ -181,7 +204,8 @@ for D_cl in np.arange(0.4, 0.75, 0.01):
                                     V_3_to_6000 = V3(V_to, w_to_6000)
                                     V_4_to_6000 = V4(V_3_to_6000, e_d)
                                     mflow_to_6000 = Massflow(Thr_to_6000, V_4_to_6000, V_to)
-                                    if marginlower * thr_thres_to_6000 <= Thr_to_6000 <= marginupper * thr_thres_to_6000:
+                                    if marginlower * thr_thres_to_6000 \
+                                            <= Thr_to_6000 <= marginupper * thr_thres_to_6000:
                                         for n_la in np.arange(rpmlower / 60, rpmupper / 60, rpmspacing / 60):
                                             Thr_la_0 = Thrust(kt, n_la, D_cl, alt_0)
                                             Torque_la_0 = Torque(kq, n_la, D_cl, alt_0)
@@ -191,7 +215,8 @@ for D_cl in np.arange(0.4, 0.75, 0.01):
                                             V_3_la_0 = V3(V_la, w_la_0)
                                             V_4_la_0 = V4(V_3_la_0, e_d)
                                             mflow_la_0 = Massflow(Thr_la_0, V_4_la_0, V_la)
-                                            if marginlower * thr_thres_la_0 <= Thr_la_0 <= marginupper * thr_thres_la_0:
+                                            if marginlower * thr_thres_la_0 \
+                                                    <= Thr_la_0 <= marginupper * thr_thres_la_0:
                                                 for n_la_2 in np.arange(rpmlower / 60, rpmupper / 60, rpmspacing / 60):
                                                     Thr_la_6000 = Thrust(kt, n_la_2, D_cl, alt_6000)
                                                     Torque_la_6000 = Torque(kq, n_la_2, D_cl, alt_6000)
@@ -201,7 +226,8 @@ for D_cl in np.arange(0.4, 0.75, 0.01):
                                                     V_3_la_6000 = V3(V_la, w_la_6000)
                                                     V_4_la_6000 = V4(V_3_la_6000, e_d)
                                                     mflow_la_6000 = Massflow(Thr_la_6000, V_4_la_6000, V_la)
-                                                    if marginlower * thr_thres_la_6000 <= Thr_la_6000 <= marginupper * thr_thres_la_6000:
+                                                    if marginlower * thr_thres_la_6000 \
+                                                            <= Thr_la_6000 <= marginupper * thr_thres_la_6000:
                                                         lst.append([D_cl, D_cl ** 2 / 4 * np.pi, e_d,
                                                                     max(n_cl * 60, n_cl_2 * 60, n_to * 60,
                                                                         n_to_2 * 60, n_la * 60, n_la_2 * 60),
@@ -212,9 +238,8 @@ for D_cl in np.arange(0.4, 0.75, 0.01):
                                                                         Pr_la_6000),
                                                                     max(Pr_cl_0, Pr_cl_6000, Pr_to_0, Pr_to_6000,
                                                                         Pr_la_0, Pr_la_6000) / eff_fan / eff_engine,
-                                                                    n_cl * 60,
-                                                                    n_cl_2 * 60, n_to * 60,
-                                                                    n_to_2 * 60, n_la * 60, n_la_2 * 60,
+                                                                    n_cl * 60, n_cl_2 * 60, n_to * 60, n_to_2 * 60,
+                                                                    n_la * 60, n_la_2 * 60,
                                                                     Pr_cl_0, Pr_cl_6000, Pr_to_0, Pr_to_6000, Pr_la_0,
                                                                     Pr_la_6000,
                                                                     Thr_cl_0, Thr_cl_6000, Thr_to_0, Thr_to_6000,
@@ -257,27 +282,33 @@ df.to_excel("Prop_sizing_final.xlsx", index=False)
 
 new_df = df[(round(df["Diameter"], 2) == round(D, 2)) & (round(df["e_d"], 2) == round(1, 2))]
 
-#Calculation of the take-off requirement, based on the runway lenght
-
-
+# Calculation of the take-off requirement, based on the runway lenght
+lst_cr = []
 V_cr = V_to
-T_cr = 3200
-RPM_cr = 60 * np.sqrt(T_cr / (ISA(alt_0)[2] * new_df.iloc[0]["Diameter"] ** 4 * kt))
-Q_cr = Torque(kq, RPM_cr / 60, new_df.iloc[0]["Diameter"], alt_0)
-P_req_cr = Preq(alt_0, T_cr, new_df.iloc[0]["Diameter"], V_cr, new_df.iloc[0]["e_d"])
-w_cr = V_induced(new_df.iloc[0]["e_d"], V_to, new_df.iloc[0]["Diameter"], T_cr, alt_0)
-Torque_power_cr = P_torque(w_cr, Q_cr)
-V3_cr = V3(V_cr, w_cr)
-V4_cr = V4(V3_cr, new_df.iloc[0]["e_d"])
-Mass_flow_cr = Massflow(T_cr, V4_cr, V_cr)
+for T_cr in np.arange(2000.0, 3500.0, 100.0):
+    RPM_cr = 60 * np.sqrt(T_cr / (ISA(alt_0)[2] * new_df.iloc[0]["Diameter"] ** 4 * kt))
+    Q_cr = Torque(kq, RPM_cr / 60, new_df.iloc[0]["Diameter"], alt_0)
+    P_req_cr = Preq(alt_0, T_cr, new_df.iloc[0]["Diameter"], V_cr, new_df.iloc[0]["e_d"])
+    w_cr = V_induced(new_df.iloc[0]["e_d"], V_to, new_df.iloc[0]["Diameter"], T_cr, alt_0)
+    Torque_power_cr = P_torque(w_cr, Q_cr)
+    V3_cr = V3(V_cr, w_cr)
+    V4_cr = V4(V3_cr, new_df.iloc[0]["e_d"])
+    Mass_flow_cr = Massflow(T_cr, V4_cr, V_cr)
+    lst_cr.append(
+        [T_cr, RPM_cr, Q_cr, P_req_cr / eff_fan / eff_engine, w_cr, Torque_power_cr, V3_cr, V4_cr, Mass_flow_cr])
 
-df_cr = pd.DataFrame(np.array([[T_cr, RPM_cr, Q_cr, P_req_cr, w_cr, Torque_power_cr, V3_cr, V4_cr, Mass_flow_cr]]),
+# df_cr = pd.DataFrame(np.array([[T_cr, RPM_cr, Q_cr, P_req_cr, w_cr, Torque_power_cr, V3_cr, V4_cr, Mass_flow_cr]]),
+#                      columns=["Thrust TO", "RPM TO", "Torque TO",
+#                               "Pr_TO", "w_TO", "Torque Power TO",
+#                               "V3 TO", "V4 TO", "Mass flow TO"])
+
+df_cr = pd.DataFrame(lst_cr,
                      columns=["Thrust TO", "RPM TO", "Torque TO",
                               "Pr_TO", "w_TO", "Torque Power TO",
                               "V3 TO", "V4 TO", "Mass flow TO"])
 
 df_cr.to_excel("df_cr.xlsx", index=False)
-print(new_df.iloc[0])
+# print(new_df.iloc[0])
 
 lst_header_2 = ["Diameter", "Area", "e_d", "Max RPM", 'Min RPM', "Max P prop", "Max P engine",
                 "RPM_cl_0", "RPM_cl_6000", "RPM_to_0", "RPM_to_6000", "RPM_la_0", "RPM_la_6000",
@@ -301,9 +332,9 @@ id = 0
 df_choice = pd.DataFrame(np.array([new_df.iloc[id]]).transpose(), columns=["Propeller"], index=lst_header)
 df_choice.to_excel("Propeller_choice.xlsx", index=True)
 
-""""###############################################################################################################"""
+""""################################################################################"""
 """"Power curves"""
-""""###############################################################################################################"""
+""""################################################################################"""
 alt_power = 0
 lst_Preq = []
 for V in np.arange(20, 120, 0.01):
@@ -313,21 +344,21 @@ for V in np.arange(20, 120, 0.01):
 df_curve = pd.DataFrame(lst_Preq, columns=["Power required", "Velocity"])
 plt.plot(df_curve["Velocity"], df_curve["Power required"], label="Power required")
 plt.plot(df_curve["Velocity"], P_a * np.ones(len(lst_Preq)), label="Power available")
-plt.vlines(x=V_cl, ymin=0, ymax=df_curve[round(df_curve["Velocity"], 2) == round(V_cl, 2)]["Power required"].values[0],
-           linestyle='dotted', color='green')
+plt.vlines(x=V_cl, ymin=0, ymax=df_curve[round(df_curve["Velocity"], 2) == round(V_cl, 2)]["Power required"].values[0]
+           , linestyle='dotted', color='green')
 plt.xlabel("Velocity")
 plt.ylabel("Power required")
 plt.legend()
 plt.title("Power curve")
 plt.show()
 
-
-#Plot curve for 3 g flight
+# Plot curve for 3 g flight
 alt_power = 0
 lst_Preq_g = []
 g_load = 3
 for V in np.arange(60, 90, 0.01):
-    lst_Preq_g.append([Preq_drag(V, g_load * MTOM, alt_power, new_df.iloc[id]["Diameter"], new_df.iloc[id]["e_d"]), V])
+    lst_Preq_g.append([Preq_drag(V, g_load * MTOM, alt_power,
+                                 new_df.iloc[id]["Diameter"], new_df.iloc[id]["e_d"]), V])
 
 df_curve_g = pd.DataFrame(lst_Preq_g, columns=["Power required", "Velocity"])
 plt.plot(df_curve_g["Velocity"], df_curve_g["Power required"], label="Power required")
@@ -342,11 +373,12 @@ plt.legend()
 plt.title("Power curve with g_load")
 plt.show()
 
-""""###############################################################################################################"""
+""""##########################################################################################"""
 """"Take-off"""
-""""###############################################################################################################"""
+""""##########################################################################################"""
 
 # integration for the determination of the landing distance forr a certain output of thrust
-res = quad(f, 0.001, V_to ** 2)
-print("runway lenght needed for take-off", res[0])
+res = quad(y, 0.001, V_to ** 2)
+print("runway length needed for take-off", res[0])
 
+print(y(V_to ** 2))
