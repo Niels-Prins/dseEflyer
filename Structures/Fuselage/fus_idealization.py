@@ -21,7 +21,7 @@ class Fuselage_idealized:
         stringer_width: float = 30,
         stringer_height: float = 30,
         skin_thickness: float = 1,
-        density: float = 1750,  # density, [kg/m^3]
+        density: float = 1480,  # density, [kg/m^3]
         start_x: float = 3696.0,
         end_x: float = 4940,
         E: float = 42.31906348135664E9,
@@ -43,6 +43,8 @@ class Fuselage_idealized:
         self.materialComp = material_comp_stress
         self.materialTens = material_tens_stress
         self.shear = 102
+        self.start = start_x
+        self.end = end_x
 
     def create_fuselage(self):
         """Function to create a fuselage section including properties"""
@@ -102,7 +104,7 @@ class Fuselage_idealized:
         distanceBot = 0
 
         yChecking = np.arange(0, 400, 0.01)
-        self.totalDistance = 0
+        self.totalDistance = 250
 
         # Function to place the stringers equally spaced around the 50% fuselage
         for i in tqdm(range(1, len(yChecking))):
@@ -110,46 +112,48 @@ class Fuselage_idealized:
             # Top part of fuselage
             if 0 <= yChecking[i] <= 250:
                 zTop = topCurve(yChecking[i])
-                distanceTop += Fuselage_idealized.calc_distance(
+                distance_between = Fuselage_idealized.calc_distance(
                     yChecking[i], yChecking[i - 1], zTop, oldZTop
                 )
+                self.totalDistance += distance_between
+                distanceTop += distance_between
                 if isclose(
                     distanceTop, self.stringerSpacing, rel_tol=0.1
                 ):  # If distance is sufficient enough place stringer
                     yCoorTop.append(yChecking[i])
                     zCoorTop.append(zTop)
-                    self.totalDistance += distanceTop
                     distanceTop = 0
                 oldZTop = zTop
 
             # Side part of fuselage
             elif 250 <= yChecking[i] <= 400:
                 zSide = side_curve(yChecking[i])
-                distanceSide += Fuselage_idealized.calc_distance(
+                distance_between = Fuselage_idealized.calc_distance(
                     yChecking[i], yChecking[i - 1], zSide, oldZSide
                 )
+                distanceSide += distance_between 
+                self.totalDistance += distance_between
                 if isclose(
                     distanceSide, self.stringerSpacing, rel_tol=0.1
                 ):  # If distance is sufficient enough place stringer
                     yCoorSide.append(yChecking[i])
                     zCoorSide.append(zSide)
-                    self.totalDistance += distanceSide
                     distanceSide = 0
                 oldZSide = zSide
 
             # Bottom part of fuselage
             if 0 <= yChecking[i] <= 400:
                 zBot = bottomCurve(yChecking[i])
-                distanceBot += Fuselage_idealized.calc_distance(
+                distance_between =  Fuselage_idealized.calc_distance(
                     yChecking[i], yChecking[i - 1], zBot, oldZBot
                 )
-
+                distanceBot +=distance_between
+                self.totalDistance += distance_between
                 if isclose(
                     distanceBot, self.stringerSpacing, rel_tol=0.1
                 ):  # If distance is sufficient enough place stringer
                     yCoorBot.append(yChecking[i])
                     zCoorBot.append(zBot)
-                    self.totalDistance += distanceTop
                     distanceBot = 0
                 oldZBot = zBot
 
@@ -264,11 +268,10 @@ class Fuselage_idealized:
 
     def calc_weight(self):
         """Calculate weight of the fuselage in Kg"""
-
         totalstringerweight = (
             self.stringerArea
             * self.density
-            * (self.x[-1] - self.x[0])
+            * (self.end - self.start)
             * (self.stringerNum * 2 - 2)
             / 10 ** 9
         )
@@ -276,12 +279,13 @@ class Fuselage_idealized:
             self.skinThickness
             * self.totalDistance
             * 2
-            * (self.x[-1] - self.x[0])
+            * (self.end - self.start)
             * self.density
             / 10 ** 9
         )
+               
         self.weight = totalstringerweight + totalskinweight
-
+        
     def crippling_tens(self):
         bottopratio = 0.8 * (
             0.425

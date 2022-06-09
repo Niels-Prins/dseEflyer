@@ -58,7 +58,7 @@ class Fuselage_apply_loads:
 
         return bendingStress
     @staticmethod
-    def get_forces(x: float = 700, n: int = 8):
+    def get_forces(x: float = 700, n: int = 12):
         v, m = VM(x, n)
         return v, m
     
@@ -71,15 +71,15 @@ class Fuselage_apply_loads:
             m = m * 1000
 
             temp = obj.data[obj.data["xcoor"] == i]
-            temp["bendingstress"] = Fuselage_apply_loads.bending_stress_closed(
+            temp.loc[:,"bendingstress"] = Fuselage_apply_loads.bending_stress_closed(
                 m,
                 temp["zcoor"],
-                temp.at[0, "neutralY"],
-                temp.at[0, "totalinertia"],
+                temp.loc[0, "neutralY"],
+                temp.loc[0, "totalinertia"],
             )
 
-            temp["shearstress"] = Fuselage_apply_loads.shear_stress_closed(
-                v, temp["zcoor"], temp["totalinertia"].loc[0], temp["area"], obj.skinThickness, obj.neutralY
+            temp.loc[:,"shearstress"] = Fuselage_apply_loads.shear_stress_closed(
+                v, temp["zcoor"], temp.loc[0, "totalinertia"], temp["area"], obj.skinThickness, obj.neutralY
             )
             results = results.append(temp, ignore_index=True)
 

@@ -1,5 +1,6 @@
 #%%
-""" Main file for analizing the fuselage structure"""
+""" Main file for analizing the fuselage structure
+Niels Prins"""
 # Importing
 from fus_idealization import *
 from fus_loads import *
@@ -17,8 +18,6 @@ def plot_shear(data: pd.DataFrame):
     """
     fig = plt.figure()
     ax = plt.axes(projection="3d")
-    max_stress = data["shearstress"].max()
-    min_stress = data["shearstress"].min()
     q = ax.scatter(
         data["xcoor"],
         data["ycoor"],
@@ -45,7 +44,7 @@ def plot_moment(data):
         data["ycoor"],
         data["zcoor"],
         c=data["bendingstress"],
-        cmap="hsv",
+        cmap="jet",
         s=7,
     )
     ax.set_ylim(-810, 810)
@@ -60,7 +59,6 @@ def plot_moment(data):
 
 def critical_values(data, shear_threshold, cripling_comp, cripling_tens):
     shear_crit = data.query("abs(shearstress) >@shear_threshold")
-
     comp_crit = data.query("bendingstress< -@cripling_comp")
     tens_crit = data.query("bendingstress > @cripling_tens")
 
@@ -71,14 +69,14 @@ def critical_values(data, shear_threshold, cripling_comp, cripling_tens):
 if __name__ == "__main__":
     fuselage = Fuselage_idealized(
         spacing_3d=100,
-        stringer_spacing=500,
-        stringer_thickness=1.2,
+        stringer_spacing=200,
+        stringer_thickness=1.25,
         stringer_width=15,
         stringer_height=25,
         skin_thickness=0.96,
         density=1480,
-        start_x=3696.0,
-        end_x=4940,
+        start_x=3696,
+        end_x=5000,
     )
     fuselage.create_fuselage()
     results = Fuselage_apply_loads.apply_forces(fuselage, 12)
@@ -89,11 +87,14 @@ if __name__ == "__main__":
         fuselage.stringerCripplingTens,
     )
 
-    print(shear)
+    print(f"- Critical Compression points: {comp.head(100)}\n")
+    print(f"- Critical Tensile points: {tens.head(100)}\n")
+    print(f"- Critical sheaer points: {shear.head(100)}\n")
     print(f"Crititcal crippling compression = {fuselage.stringerCripplingComp} [MPa]")
     print(f"Crititcal crippling tension = {fuselage.stringerCripplingTens} [MPa]")
     print(f"Critical shear stress = {fuselage.shear} [MPa]")
 
     plot_moment(results)
+
 
 # %%
