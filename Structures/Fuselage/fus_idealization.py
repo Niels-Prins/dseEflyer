@@ -11,19 +11,23 @@ from tqdm import tqdm
 #%%
 # Create Class for structure idealization
 class Fuselage_idealized:
-    """ Class for creating the idealization of the fuselage
-    """    
+    """Class for creating the idealization of the fuselage"""
+
     def __init__(
         self,
         spacing_3d: int = 100,
         stringer_spacing: float = 140,
-        stringer_thickness: float = 2.5,
+        stringer_thickness: float = 1.5,
         stringer_width: float = 30,
         stringer_height: float = 30,
-        skin_thickness: float = 2,
+        skin_thickness: float = 1,
         density: float = 1750,  # density, [kg/m^3]
         start_x: float = 3696.0,
         end_x: float = 4940,
+        E: float = 42.31906348135664E9,
+        v: float = 0.28079904417448404,
+        material_comp_stress: float = 533.8656197958434E6,
+        material_tens_stress: float = 890.2474375138635E6,
     ):
         self.spacing_3d = spacing_3d
         self.stringerSpacing = stringer_spacing
@@ -31,9 +35,14 @@ class Fuselage_idealized:
         self.stringerWidth = stringer_width
         self.stringerHeight = stringer_height
         self.skinThickness = skin_thickness
-        self.x = np.arange(start_x, end_x + self.spacing_3d, self.spacing_3d)
+        self.x = np.arange(start_x, end_x +0.01, self.spacing_3d)
         self.data = pd.DataFrame()
         self.density = density
+        self.E = E
+        self.v = v
+        self.materialComp = material_comp_stress
+        self.materialTens = material_tens_stress
+        self.shear = 102
 
     def create_fuselage(self):
         """Function to create a fuselage section including properties"""
@@ -42,6 +51,8 @@ class Fuselage_idealized:
         self.calc_inertiaZZ()
         self.create_3d()
         self.calc_weight()
+        self.crippling_comp()
+        self.crippling_tens()
 
     @staticmethod
     def calc_distance(x1: float, x2: float, y1: float, y2: float):
@@ -204,8 +215,8 @@ class Fuselage_idealized:
         """Calculate area of one stringer"""
         self.stringerArea = (
             self.stringerThickness * self.stringerWidth * 2
-            + self.stringerThickness
-            * (self.stringerHeight - 2 * self.stringerThickness)
+            + self.stringerThickness * self.stringerHeight
+            + 2 * self.stringerThickness ** 2
         )
 
     def calc_b(self):
@@ -271,6 +282,71 @@ class Fuselage_idealized:
         )
         self.weight = totalstringerweight + totalskinweight
 
+    def crippling_tens(self):
+        bottopratio = 0.8 * (
+            0.425
+            * np.pi ** 2
+            * self.E
+            / (self.materialTens * 12 * (1 - self.v**2))
+            * (self.stringerThickness / self.stringerWidth) ** 2
+        ) ** (1 - 0.6)
+        if bottopratio >= 1:
+            bottopstress = self.materialTens
+        else:
+            bottopstress = self.materialTens * bottopratio
+
+        middleratio = 0.8 * (
+            4
+            * np.pi ** 2
+            * self.E
+            / (self.materialTens * 12 * (1 - self.v**2))
+            * (self.stringerThickness / self.stringerHeight) ** 2
+        ) ** (1 - 0.6)
+        if middleratio >= 1:
+            middlestress = self.materialTens
+        elif middleratio < 1:
+            middlestress = middleratio * self.materialTens
+
+        self.stringerCripplingTens = (
+            2 * bottopstress * self.stringerThickness * self.stringerWidth
+            + self.stringerHeight * self.stringerThickness * middlestress
+        ) / (
+            2 * self.stringerThickness * self.stringerWidth
+            + self.stringerThickness * self.stringerHeight
+        ) / 10**6
+
+    def crippling_comp(self):
+        bottopratio = 0.8 * (
+            0.425
+            * np.pi ** 2
+            * self.E
+            / (self.materialComp * 12 * (1 - self.v**2))
+            * (self.stringerThickness / self.stringerWidth) ** 2
+        ) ** (1 - 0.6)
+        if bottopratio >= 1:
+            bottopstress = self.materialComp
+        else:
+            bottopstress = self.materialComp * bottopratio
+
+        middleratio = 0.8 * (
+            4
+            * np.pi ** 2
+            * self.E
+            / (self.materialComp * 12 * (1 - self.v**2))
+            * (self.stringerThickness / self.stringerHeight) ** 2
+        ) ** (1 - 0.6)
+        if middleratio >= 1:
+            middlestress = self.materialComp
+        elif middleratio < 1:
+            middlestress = middleratio * self.materialComp
+
+        self.stringerCripplingComp = (
+            2 * bottopstress * self.stringerThickness * self.stringerWidth
+            + self.stringerHeight * self.stringerThickness * middlestress
+        ) / (
+            2 * self.stringerThickness * self.stringerWidth
+            + self.stringerThickness * self.stringerHeight
+        ) /10**6
 
 #%%
 if __name__ == "__main__":

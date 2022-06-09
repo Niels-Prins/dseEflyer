@@ -4,19 +4,20 @@ import numpy as np
 from fus_idealization import *
 from fus_loads import *
 
+
 # %%
 #Initialize class for stress calculations
 class Fuselage_apply_loads:
     @staticmethod
-    def shear_stress_closed(shear_force, zLoc, totalInertia, areas):
-        shearStress = [0]
+    def shear_stress_closed(shear_force, zLoc, totalInertia, areas, thickness, neutralY):
+        shearflow = [0]
         # moments = 0
         for idx in range(1, len(zLoc)):
-            localStress = (-shear_force / totalInertia) * areas[idx] * (
-                zLoc[idx]
-            ) + shearStress[idx - 1]
+            localflow = (-shear_force / totalInertia) * areas[idx] * (
+                zLoc[idx] - neutralY
+            ) + shearflow[idx - 1] 
 
-            shearStress.append(localStress)
+            shearflow.append(localflow)
 
         # Resultant shear stuff, not applicable rn
         #     moments += -shearStress[idx] * (
@@ -32,20 +33,21 @@ class Fuselage_apply_loads:
         #     )
         # # residual = -(moments) / (2 * wetted_area)
         # shearStress = [i for i in shearStress]  #+ residual
+        shearStress = [x / thickness for x in shearflow]
 
         return shearStress
 
-    @staticmethod
-    def shear_stress_open(shear_force, zLoc, totalInertia, areas):
-        shearStress = [0]
-        for idx in range(1, len(zLoc)):
-            localStress = (-shear_force / totalInertia) * areas[idx] * (
-                zLoc[idx]
-            ) + shearStress[idx - 1]
+    # @staticmethod
+    # def shear_stress_open(shear_force, zLoc, totalInertia, areas):
+    #     shearStress = [0]
+    #     for idx in range(1, len(zLoc)):
+    #         localStress = (-shear_force / totalInertia) * areas[idx] * (
+    #             zLoc[idx]
+    #         ) + shearStress[idx - 1]
 
-            shearStress.append(localStress)
+    #         shearStress.append(localStress)
 
-        return shearStress
+    #     return shearStress
 
     @staticmethod
     def bending_stress_closed(moment, zLoc, neutralY, totalInertia):
@@ -61,14 +63,14 @@ class Fuselage_apply_loads:
         return v, m
     
     @staticmethod
-    def apply_forces(x, data, n):
+    def apply_forces(obj, n):
         results = pd.DataFrame()
         # Get load
-        for i in x:
+        for i in obj.x:
             v, m = Fuselage_apply_loads.get_forces(i / 1000, n)
             m = m * 1000
 
-            temp = data[data["xcoor"] == i]
+            temp = obj.data[obj.data["xcoor"] == i]
             temp["bendingstress"] = Fuselage_apply_loads.bending_stress_closed(
                 m,
                 temp["zcoor"],
@@ -77,16 +79,16 @@ class Fuselage_apply_loads:
             )
 
             temp["shearstress"] = Fuselage_apply_loads.shear_stress_closed(
-                v, temp["zcoor"], temp["totalinertia"].loc[0], temp["area"]
+                v, temp["zcoor"], temp["totalinertia"].loc[0], temp["area"], obj.skinThickness, obj.neutralY
             )
             results = results.append(temp, ignore_index=True)
 
         return results
-
+        
 
 if __name__ == "__main__":
     test = Fuselage_idealized()
     test.create_fuselage()
-    result = Fuselage_apply_loads.apply_forces(test.x, test.data)
+    result = Fuselage_apply_loads.apply_forces(test, 12)
 
 # %%

@@ -11,10 +11,15 @@ class LaminateTheory:
         self.E22 = 56.9E9  # [Pa]
         self.v12 = 0.033  # [-]
         self.v21 = (self.E22/self.E11) * self.v12  # [-]
-        self.G12 = 5.5E9  # [GPa]
+        self.G12 = 5.5E9  # [Pa]
         self.t_ply = 0.08/1000  # [mm]
         self.layup = [0, 45, 45, 0]  # [deg]
-        self.rho = 1480 # [kg/m3]
+
+        self.tens_max_11 = 1259E6  # [Pa]
+        self.tens_max_22 = 1259E6  # [Pa]
+        self.compr_max_11 = 755E6  # [Pa]
+        self.compr_max_22 = 755E6  # [Pa]
+        self.shear_max12 = 102E6  # [Pa]
 
         self.C11 = self.E11/(1 - self.v12 * self.v21)
         self.C12 = self.v12 * self.E22/(1 - self.v12 * self.v21)
@@ -36,10 +41,16 @@ class LaminateTheory:
         self.vxy = 0
         self.vyx = 0
 
+        self.tens_max_xx = 0
+        self.tens_max_yy = 0
+        self.compr_max_xx = 0
+        self.compr_max_yy = 0
+
         self.geometric_props()
         self.Q_matrices()
         self.ABD()
         self.in_plane_properties()
+        self.max_stresses()
         self.print_properties()
 
     def geometric_props(self):
@@ -80,7 +91,6 @@ class LaminateTheory:
                           [Q16, Q26, Q66]], dtype='object')
             Qs.append(Q)
         self.Q = np.array(Qs)
-        # print(self.Q)
 
     def ABD(self):
 
@@ -139,14 +149,29 @@ class LaminateTheory:
                            [D12, D22, D26],
                            [D16, D26, D66]])
 
-        print((A11*A22 - A12**2)/(A22*self.t_ply))
-        
     def in_plane_properties(self):
         self.Exx = (self.A[0][0] * self.A[1][1] - self.A[0][1]**2) / (self.A[1][1] * self.t_lam)
         self.Eyy = (self.A[0][0] * self.A[1][1] - self.A[0][1]**2) / (self.A[0][0] * self.t_lam)
         self.Gxy = self.A[2][2] / self.t_lam
         self.vxy = self.A[0][1] / self.A[1][1]
         self.vyx = self.A[0][1] / self.A[0][0]
+
+    def max_stresses(self):
+        theta_largest = max(self.layup)
+
+        if self.tens_max_11 <= self.tens_max_22:
+            self.tens_max_xx = self.tens_max_11 * np.cos(theta_largest * np.pi / 180)
+            self.tens_max_yy = self.tens_max_xx
+        else:
+            self.tens_max_xx = self.tens_max_22 * np.cos(theta_largest * np.pi / 180)
+            self.tens_max_yy = self.tens_max_xx
+
+        if self.compr_max_11 <= self.compr_max_22:
+            self.compr_max_xx = self.compr_max_11 * np.cos(theta_largest * np.pi / 180)
+            self.compr_max_yy = self.compr_max_xx
+        else:
+            self.compr_max_xx = self.compr_max_22 * np.cos(theta_largest * np.pi / 180)
+            self.compr_max_yy = self.compr_max_xx
 
     def print_properties(self):
         print('---------- Laminate Properties ----------')
@@ -159,6 +184,9 @@ class LaminateTheory:
         print('Gxy, [GPa]:', self.Gxy / 1000000000)
         print('Poissant vxy, [-]:', self.vxy)
         print('Poissant vyx, [-]:', self.vyx)
+        print('Max tensile stress, [MPa]:', self.tens_max_xx/1000000)
+        print('Max compressive stress, [MPa]:', self.compr_max_xx/1000000)
+        print('Max shear stress, [MPa]:', self.shear_max12/1000000)
 
 
 CLT = LaminateTheory()

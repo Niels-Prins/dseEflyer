@@ -32,7 +32,6 @@ Mx = []
 
 distributedL_weightFW = avg_CG  # fuselage span in front of the CG
 distributedL_weightAFT = full_fuse - avg_CG  # fuselage span aft of the CG
-
 qFW = ((W * n) / (distributedL_weightFW)) / 2
 qAFT = ((W * n) / (distributedL_weightAFT)) / 2
 
