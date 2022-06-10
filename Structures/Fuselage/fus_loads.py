@@ -15,7 +15,7 @@ aft_CG = 4.0  # aft CG position
 wing_pos = 4.112  # wing position
 tailH_pos = 6.63  # horizontal tail position
 avg_CG = (fw_CG + aft_CG) / 2  # average CG position
-n =12
+n = 12
 W = aircraftMass * g0  # aircraft weight, [N]
 
 Shear_FW = []
@@ -70,20 +70,19 @@ for j in range(len(x_pos_AFT)):
     Shear_AFT.append(v2)
     Bending_AFT.append(m2)
 
-x_pos_whole = np.linspace(0, full_fuse, (len(x_pos_FW) + len(x_pos_AFT)))
-Vx = [*Shear_FW, *Shear_AFT]
-Mx = [*Bending_FW, *Bending_AFT]
-
 
 def plot_load_distribution():
+    x_pos_whole = np.linspace(0, full_fuse, (len(x_pos_FW) + len(x_pos_AFT)))
+    Vx = [*Shear_FW, *Shear_AFT]
+    Mx = [*Bending_FW, *Bending_AFT]
     fig, axis = plt.subplots(nrows=2, ncols=1)
-    axis[0].plot(x_pos_whole * 1000, Vx, color="red")
-    axis[0].set_ylabel("Shear Force [N]")
-    axis[1].set_ylabel("Moment [N]")
-    axis[1].set_xlabel("x [mm]")
+    axis[0].plot(x_pos_whole * 1000, [x/1000 for x in Vx], color="red")
+    axis[0].set_ylabel("Shear Force [kN]")
+    axis[1].set_ylabel("Moment [kNm]")
+    axis[0].set_xlabel("x [mm]")
     axis[1].set_xlabel("x [mm]")
 
-    axis[1].plot(x_pos_whole * 1000, Mx, color="blue")
+    axis[1].plot(x_pos_whole * 1000, [x/1000 for x in Mx], color="blue")
     axis[0].grid(visible=True, which="major", color="#666666", linestyle="-")
     axis[0].minorticks_on()
     axis[0].grid(visible=True, which="minor", color="#999999", linestyle="-", alpha=0.2)
@@ -92,13 +91,13 @@ def plot_load_distribution():
     axis[1].minorticks_on()
     axis[1].grid(visible=True, which="minor", color="#999999", linestyle="-", alpha=0.2)
 
-    axis[1].vlines(3696, ymin=0, ymax=150000, ls="--", colors="g")
-    axis[1].vlines(4996, ymin=0, ymax=150000, ls="--", colors="g")
-    axis[0].vlines(3696, ymin=0, ymax=150000, ls="--", colors="g")
-    axis[0].vlines(4996, ymin=0, ymax=150000, ls="--", colors="g")
+    axis[1].vlines(3696, ymin=0, ymax=15000, ls="--", colors="g")
+    axis[1].vlines(4996, ymin=0, ymax=15000, ls="--", colors="g")
+    axis[0].vlines(3696, ymin=0, ymax=15000, ls="--", colors="g")
+    axis[0].vlines(4996, ymin=0, ymax=15000, ls="--", colors="g")
 
-    axis[0].set_ylim(ymin=0, ymax=max(Vx)*1.1)
-    axis[1].set_ylim(ymin=0, ymax=max(Mx)*1.1)
+    axis[0].set_ylim(ymin=0, ymax=max(Vx)*1.1/1000)
+    axis[1].set_ylim(ymin=0, ymax=max(Mx)*1.1/1000)
 
     fig.tight_layout()
     plt.savefig("loads12g")

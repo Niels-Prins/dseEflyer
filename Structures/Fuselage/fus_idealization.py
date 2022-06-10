@@ -17,25 +17,32 @@ class Fuselage_idealized:
         self,
         spacing_3d: int = 100,
         stringer_spacing: float = 140,
-        stringer_thickness: float = 1.5,
+        flange_thickness: float = 1.5,
+        web_thickness: float = 1,
         stringer_width: float = 30,
         stringer_height: float = 30,
         skin_thickness: float = 1,
         density: float = 1480,  # density, [kg/m^3]
         start_x: float = 3696.0,
         end_x: float = 4940,
-        E: float = 42.31906348135664E9,
+        E: float = 42.31906348135664e9,
         v: float = 0.28079904417448404,
-        material_comp_stress: float = 533.8656197958434E6,
-        material_tens_stress: float = 890.2474375138635E6,
+        material_comp_stress: float = 533.8656197958434e6,
+        material_tens_stress: float = 890.2474375138635e6,
+        manual_place: bool = False,
+        top: list = [],
+        side: list = [],
+        side2: list = [],
+        bot: list = [],
     ):
         self.spacing_3d = spacing_3d
         self.stringerSpacing = stringer_spacing
-        self.stringerThickness = stringer_thickness
+        self.flangeThickness = flange_thickness
+        self.webThickness = web_thickness
         self.stringerWidth = stringer_width
         self.stringerHeight = stringer_height
         self.skinThickness = skin_thickness
-        self.x = np.arange(start_x, end_x +0.01, self.spacing_3d)
+        self.x = np.arange(start_x, end_x + 0.01, self.spacing_3d)
         self.data = pd.DataFrame()
         self.density = density
         self.E = E
@@ -45,6 +52,11 @@ class Fuselage_idealized:
         self.shear = 102
         self.start = start_x
         self.end = end_x
+        self.manualPlace = manual_place
+        self.topMan = top
+        self.botMan = bot
+        self.sideMan = side
+        self.side2Man = side2
 
     def create_fuselage(self):
         """Function to create a fuselage section including properties"""
@@ -83,7 +95,7 @@ class Fuselage_idealized:
         # Side part of fuselage
         y_side = [400, 400 - 25.8141, 400 - 67.348, 400 - 109.619, 400 - 141.198, 250]
         z_side = [0, 88.06, 188.067, 288.067, 402.401, 500]
-        side_curve = interpolate.interp1d(y_side, z_side, kind="cubic")
+        sideCurve = interpolate.interp1d(y_side, z_side, kind="cubic")
 
         # Coordinates of top part of the fuselage
         y_top = np.array([250, 0, -250])
@@ -127,11 +139,11 @@ class Fuselage_idealized:
 
             # Side part of fuselage
             elif 250 <= yChecking[i] <= 400:
-                zSide = side_curve(yChecking[i])
+                zSide = sideCurve(yChecking[i])
                 distance_between = Fuselage_idealized.calc_distance(
                     yChecking[i], yChecking[i - 1], zSide, oldZSide
                 )
-                distanceSide += distance_between 
+                distanceSide += distance_between
                 self.totalDistance += distance_between
                 if isclose(
                     distanceSide, self.stringerSpacing, rel_tol=0.1
@@ -144,10 +156,10 @@ class Fuselage_idealized:
             # Bottom part of fuselage
             if 0 <= yChecking[i] <= 400:
                 zBot = bottomCurve(yChecking[i])
-                distance_between =  Fuselage_idealized.calc_distance(
+                distance_between = Fuselage_idealized.calc_distance(
                     yChecking[i], yChecking[i - 1], zBot, oldZBot
                 )
-                distanceBot +=distance_between
+                distanceBot += distance_between
                 self.totalDistance += distance_between
                 if isclose(
                     distanceBot, self.stringerSpacing, rel_tol=0.1
@@ -157,16 +169,31 @@ class Fuselage_idealized:
                     distanceBot = 0
                 oldZBot = zBot
 
-        # Sort coordinates to loop counter clockwise around the fuselage
-        zCoorBot = [x for y, x in sorted(zip(yCoorBot, zCoorBot))]
-        zCoorSide = [x for y, x in sorted(zip(yCoorSide, zCoorSide))][::-1]
-        yCoorSide = yCoorSide[::-1]
+        if self.manualPlace:
+            zCoorBot = bottomCurve(self.botMan)
+            yCoorBot = self.botMan
 
-        zCoorTop = [x for y, x in sorted(zip(yCoorTop, zCoorTop))][::-1]
-        yCoorTop = yCoorTop[::-1]
+            zCoorTop = topCurve(self.topMan)
+            yCoorTop = self.topMan
 
-        zCoorSide2 = np.arange(500, 750, self.stringerSpacing)
-        yCoorSide2 = np.full(len(zCoorSide2), 250)
+            zCoorSide = sideCurve(self.sideMan)
+            yCoorSide = self.sideMan
+
+            zCoorSide2 = self.side2Man
+            yCoorSide2 = np.full(len(self.side2Man), 250)
+
+        else:
+            # Sort coordinates to loop counter clockwise around the fuselage
+            zCoorBot = [x for y, x in sorted(zip(yCoorBot, zCoorBot))]
+
+            zCoorSide = [x for y, x in sorted(zip(yCoorSide, zCoorSide))][::-1]
+            yCoorSide = yCoorSide[::-1]
+
+            zCoorTop = [x for y, x in sorted(zip(yCoorTop, zCoorTop))][::-1]
+            yCoorTop = yCoorTop[::-1]
+
+            zCoorSide2 = np.arange(500, 750, self.stringerSpacing)
+            yCoorSide2 = np.full(len(zCoorSide2), 250)
 
         yHalf = np.concatenate([yCoorBot, yCoorSide, yCoorSide2, yCoorTop])
         zHalf = np.concatenate([zCoorBot, zCoorSide, zCoorSide2, zCoorTop])
@@ -218,9 +245,9 @@ class Fuselage_idealized:
     def calc_stringer_area(self):
         """Calculate area of one stringer"""
         self.stringerArea = (
-            self.stringerThickness * self.stringerWidth * 2
-            + self.stringerThickness * self.stringerHeight
-            + 2 * self.stringerThickness ** 2
+            self.flangeThickness * self.stringerWidth * 2
+            + self.webThickness * self.stringerHeight
+            + 2 * self.webThickness * self.flangeThickness
         )
 
     def calc_b(self):
@@ -283,28 +310,28 @@ class Fuselage_idealized:
             * self.density
             / 10 ** 9
         )
-               
+
         self.weight = totalstringerweight + totalskinweight
-        
+
     def crippling_tens(self):
         bottopratio = 0.8 * (
             0.425
             * np.pi ** 2
             * self.E
-            / (self.materialTens * 12 * (1 - self.v**2))
-            * (self.stringerThickness / self.stringerWidth) ** 2
+            / (self.materialTens * 12 * (1 - self.v ** 2))
+            * (self.flangeThickness / self.stringerWidth) ** 2
         ) ** (1 - 0.6)
         if bottopratio >= 1:
             bottopstress = self.materialTens
-        else:
+        elif bottopratio < 1:
             bottopstress = self.materialTens * bottopratio
 
         middleratio = 0.8 * (
             4
             * np.pi ** 2
             * self.E
-            / (self.materialTens * 12 * (1 - self.v**2))
-            * (self.stringerThickness / self.stringerHeight) ** 2
+            / (self.materialTens * 12 * (1 - self.v ** 2))
+            * (self.webThickness / self.stringerHeight) ** 2
         ) ** (1 - 0.6)
         if middleratio >= 1:
             middlestress = self.materialTens
@@ -312,20 +339,24 @@ class Fuselage_idealized:
             middlestress = middleratio * self.materialTens
 
         self.stringerCripplingTens = (
-            2 * bottopstress * self.stringerThickness * self.stringerWidth
-            + self.stringerHeight * self.stringerThickness * middlestress
-        ) / (
-            2 * self.stringerThickness * self.stringerWidth
-            + self.stringerThickness * self.stringerHeight
-        ) / 10**6
+            (
+                2 * bottopstress * self.flangeThickness * self.stringerWidth
+                + self.stringerHeight * self.webThickness * middlestress
+            )
+            / (
+                2 * self.flangeThickness * self.stringerWidth
+                + self.webThickness * self.stringerHeight
+            )
+            / 10 ** 6
+        )
 
     def crippling_comp(self):
         bottopratio = 0.8 * (
             0.425
             * np.pi ** 2
             * self.E
-            / (self.materialComp * 12 * (1 - self.v**2))
-            * (self.stringerThickness / self.stringerWidth) ** 2
+            / (self.materialComp * 12 * (1 - self.v ** 2))
+            * (self.flangeThickness / self.stringerWidth) ** 2
         ) ** (1 - 0.6)
         if bottopratio >= 1:
             bottopstress = self.materialComp
@@ -336,8 +367,8 @@ class Fuselage_idealized:
             4
             * np.pi ** 2
             * self.E
-            / (self.materialComp * 12 * (1 - self.v**2))
-            * (self.stringerThickness / self.stringerHeight) ** 2
+            / (self.materialComp * 12 * (1 - self.v ** 2))
+            * (self.webThickness / self.stringerHeight) ** 2
         ) ** (1 - 0.6)
         if middleratio >= 1:
             middlestress = self.materialComp
@@ -345,12 +376,17 @@ class Fuselage_idealized:
             middlestress = middleratio * self.materialComp
 
         self.stringerCripplingComp = (
-            2 * bottopstress * self.stringerThickness * self.stringerWidth
-            + self.stringerHeight * self.stringerThickness * middlestress
-        ) / (
-            2 * self.stringerThickness * self.stringerWidth
-            + self.stringerThickness * self.stringerHeight
-        ) /10**6
+            (
+                2 * bottopstress * self.flangeThickness * self.stringerWidth
+                + self.stringerHeight * self.webThickness * middlestress
+            )
+            / (
+                2 * self.flangeThickness * self.stringerWidth
+                + self.webThickness * self.stringerHeight
+            )
+            / 10 ** 6
+        )
+
 
 #%%
 if __name__ == "__main__":

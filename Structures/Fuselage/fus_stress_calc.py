@@ -69,7 +69,8 @@ class Fuselage_apply_loads:
         for i in obj.x:
             v, m = Fuselage_apply_loads.get_forces(i / 1000, n)
             m = m * 1000
-
+            
+            
             temp = obj.data[obj.data["xcoor"] == i]
             temp.loc[:,"bendingstress"] = Fuselage_apply_loads.bending_stress_closed(
                 m,
