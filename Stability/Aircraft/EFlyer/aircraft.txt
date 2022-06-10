@@ -8,3 +8,8 @@ I_XX  		  789.191	kg*m^2
 I_YY  		  921.215	kg*m^2
 I_ZZ 		 1705.244	kg*m^2
 I_XZ 			0.000	kg*m^2
+
+# flight conditions #
+
+V			 32.00	m/s
+altitude	 1800.00	m

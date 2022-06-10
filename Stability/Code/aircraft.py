@@ -17,10 +17,6 @@ class Aircraft:
         with open(f'{path}/aircraft.txt') as file:
             aircraft_data = np.genfromtxt(file, dtype=str)
 
-        # Obtain flight conditions provided by user.
-        with open(f'{path}/conditions.txt') as file:
-            conditions_data = np.genfromtxt(file, dtype=str)
-
         self.g = 9.80665
         self.mass = float(aircraft_data[0, 1])
         self.weight = self.mass * self.g
@@ -34,8 +30,8 @@ class Aircraft:
         self.I_ZZ = float(aircraft_data[6, 1])
         self.I_XZ = float(aircraft_data[7, 1])
 
-        self.velocity = float(conditions_data[0, 1])
-        self.altitude = float(conditions_data[1, 1])
+        self.velocity = float(aircraft_data[8, 1])
+        self.altitude = float(aircraft_data[9, 1])
 
         temperature = 15.04 + 273.1 - (0.00649 * self.altitude)
         pressure = 101.29 * (temperature / 288.08) ** 5.256
