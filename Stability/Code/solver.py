@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import control as ctrl
 
 import os
@@ -36,13 +37,6 @@ class AircraftStability():
         # Eigenvalues of the equations of motion, calculated by the eigenvalue function.
         self.eigenvalues_symmetric = None
         self.eigenvalues_asymmetric = None
-
-        self.period_symmetric = None
-        self.period_asymmetric = None
-
-        self.half_amplitude_symmetric = None
-        self.half_amplitude_asymmetric = None
-
         self.eigenvalues()
 
         if not self.example:
@@ -170,6 +164,13 @@ class AircraftStability():
                                       [0, 0]])
 
     def eigenvalues(self):
+
+        def modes(eigenvalues):
+            damping_ratio = - eigenvalues[:, 0] / np.sqrt(eigenvalues[:, 0] ** 2 + eigenvalues[:, 1] ** 2)
+            frequency = np.sqrt(eigenvalues[:, 0] ** 2 + eigenvalues[:, 1] ** 2)
+            frequency_natural = frequency * (1 - damping_ratio ** 2)
+            return damping_ratio.reshape(-1, 1), frequency_natural.reshape(-1, 1)
+
         # Calculating and assigning eigenvalues to class attributes.
         self.eigenvalues_symmetric = np.linalg.eigvals(self.A_symmetric)
         self.eigenvalues_asymmetric = np.linalg.eigvals(self.A_asymmetric)
@@ -181,15 +182,23 @@ class AircraftStability():
         eigenvalues_asymmetric = np.array([[i.real, abs(i.imag)] for i in self.eigenvalues_asymmetric])
         eigenvalues_asymmetric = np.unique(eigenvalues_asymmetric, axis=0)
 
-        # Calculating period from unique eigenvalues and assign infinite if eigenvalue only has real part.
-        self.period_symmetric = [2 * np.pi / i if i != 0
-                                 else np.inf for i in eigenvalues_symmetric[:, 1]]
-        self.period_asymmetric = [2 * np.pi / i if i != 0
-                                  else np.inf for i in eigenvalues_asymmetric[:, 1]]
+        symmetric_ratio, symmetric_frequency = modes(eigenvalues_symmetric)
+        asymmetric_ratio, asymmetric_frequency = modes(eigenvalues_asymmetric)
 
-        # Calculating half amplitude time from unique eigenvalues.
-        self.half_amplitude_symmetric = - np.log(2) / eigenvalues_symmetric[:, 0]
-        self.half_amplitude_asymmetric = - np.log(2) / eigenvalues_asymmetric[:, 0]
+        symmetric = np.hstack((eigenvalues_symmetric, symmetric_ratio, symmetric_frequency))
+        asymmetric = np.hstack((eigenvalues_asymmetric, asymmetric_ratio, asymmetric_frequency))
+
+        if not self.example:
+            columns = ['Eigenvalue real', 'Eigenvalue imaginary', 'Damping ratio', 'Natural frequency']
+
+            dataframe_symmetric = pd.DataFrame(np.round(symmetric, 3), columns=columns)
+            dataframe_symmetric.to_csv(f'Results/{self.aircraft.name}/Eigenvalues/symmetric.csv')
+
+            dataframe_asymmetric = pd.DataFrame(np.round(asymmetric, 3), columns=columns)
+            dataframe_asymmetric.to_csv(f'Results/{self.aircraft.name}/Eigenvalues/asymmetric.csv')
+
+            print(f'\nSymmetric modes: \n\n{dataframe_symmetric}')
+            print(f'\nAsymmetric modes: \n\n{dataframe_asymmetric}')
 
     def responses(self, deflections, deflections_time, start=0, stop=200, step=0.01, symmetric=True):
         # Relevant aerodynamic & geometric coefficients.

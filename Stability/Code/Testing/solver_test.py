@@ -177,6 +177,8 @@ class TestAircraftStability(unittest.TestCase):
             eigenvalues_true = [complex(i * (velocity / span)) for i in eigenvalues_true]
             eigenvalues_true = np.sort(np.round(eigenvalues_true, 4))
 
+            print(eigenvalues_true)
+
             # Calculated eigenvalues by program.
             eigenvalues_calc = test_case.eigenvalues_asymmetric
             eigenvalues_calc = np.sort(np.round(eigenvalues_calc, 4))
