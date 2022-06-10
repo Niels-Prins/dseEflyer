@@ -7,15 +7,15 @@ kts = 1/0.5144444
 metersps = 1/kts
 
 density = 1.225
-MAC = 1.5
+MAC = 1.46
 S = 12.3
-W = 888 * 9.80065
+W = 978 * 9.80065
 CLmax = 1.6
 CLalpha = 0.11 * (180 / np.pi)
 a = CLalpha * 1.1
-CNmax = CLmax * 1.1
-n_max = 8
-n_min = -6
+CNmax = CLmax * 1
+n_max = 6
+n_min = -4
 wing_loading = W / S
 
 mu_g = (2 * wing_loading) / (density * MAC * a * 9.80065)
@@ -27,7 +27,6 @@ V = np.linspace(0, 160 * metersps, 1000)
 V_cruise = 150 * 0.514444
 V_dive = 1.25 * V_cruise
 q = 0.5 * V ** 2  * density
-
 
 n_pos = (q * CNmax * S) / W
 n_neg = (q * -CNmax * S) / W
@@ -43,12 +42,12 @@ n_gust_dive_pos = 1 + ((k_g * density * U_de_dive * V_dive * a) / (2 * wing_load
 n_gust_dive_neg = 1 - ((k_g * density * U_de_dive * V_dive * a) / (2 * wing_loading))
 
 for i in range(len(V)):
-    if mt.isclose(n_pos[i], 1, rel_tol=0.01):
-        V_stall = V[i]
-    if mt.isclose(n_neg[i], -6, rel_tol=0.01):
+    # if mt.isclose(n_pos[i], 1, rel_tol=0.01):
+    #     V_stall = V[i]
+    if mt.isclose(n_neg[i], n_min, rel_tol=0.01):
         V_prime = V[i]
 
-V_stall = 50 * metersps
+V_stall = (W /(0.5*density*CLmax*S))**0.5
 V_manu = V_stall * np.sqrt(n_max)
 
 plt.xlim(0, V_dive*kts+10)
@@ -68,8 +67,8 @@ plt.vlines(
     linestyle="--",
 )
 
-n_pos = [n_pos[i] for i in range(len(n_pos)) if n_pos[i] <=8]
-n_neg = [n_neg[i] for i in range(len(n_neg)) if n_neg[i] >=-6]
+n_pos = [n_pos[i] for i in range(len(n_pos)) if n_pos[i] <=n_max]
+n_neg = [n_neg[i] for i in range(len(n_neg)) if n_neg[i] >=n_min]
 
 plt.vlines(V_dive*kts , ymax=n_max, ymin=n_min, color="Blue", label="Dive speed")
 
@@ -100,6 +99,6 @@ plt.yticks(np.arange(-6,9,1))
 plt.legend(loc="upper left")
 plt.xlabel("Operating Velocities [kts]")
 plt.ylabel("G-load [-]")
-plt.savefig("vndiagram")
+plt.savefig("vndiagram2P")
 plt.show()
 #%%
