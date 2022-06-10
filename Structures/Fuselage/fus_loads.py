@@ -8,8 +8,8 @@ from matplotlib import pyplot as plt
 
 g0 = 9.81
 
-aircraftMass = 888  # aircraft mass, [kg]
-full_fuse = 7.6  # fuselage length
+aircraftMass = 876  # aircraft mass, [kg]
+full_fuse = 7.7  # fuselage length
 fw_CG = 3.8  # forward CG position
 aft_CG = 4.0  # aft CG position
 wing_pos = 4.112  # wing position
@@ -102,6 +102,8 @@ def plot_load_distribution():
     fig.tight_layout()
     plt.savefig("loads12g")
     plt.show()
+    
+    
 
 
 if __name__ == "__main__":

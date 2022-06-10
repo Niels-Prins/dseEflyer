@@ -71,39 +71,120 @@ def critical_values(data, shear_threshold, cripling_comp, cripling_tens):
     return shear_crit, tens_crit, comp_crit
 
 
-def plot_margin(data, max_compres, max_crippling, max_shear):
-    max_bending = data[data["zcoor"] == 1000]
-    min_bending = data[data["zcoor"] == -620]
-    shear = data[data["ycoor"] == 400]
-    print(shear)
+def plot_margin(data1, objects):
+    compression = []
+    tensile = []
+    shear = []
+    x = []
 
+    for idx, data in enumerate(data1):
+        max_bending1 = data[data["zcoor"] == 1000]
+        min_bending1 = data[data["zcoor"] == -620]
+        shear1 = data[data["ycoor"] == 400.0]
+        print(shear1)
+
+        compression.extend(
+            objects[idx].stringerCripplingComp / x
+            for x in max_bending1["bendingstress"]
+        )
+        tensile.extend(
+            -objects[idx].stringerCripplingTens / x
+            for x in min_bending1["bendingstress"]
+        )
+        
+        shear.extend(objects[idx].shear / x for x in shear1["shearstress"])
+        x.extend(max_bending1["xcoor"].tolist())
+    print(shear)
     plt.plot(
-        max_bending["xcoor"],
-        [max_compres / x for x in max_bending["bendingstress"]],
+        x,
+        compression,
         label="Bending Compression",
+        color="deepskyblue",
     )
     plt.plot(
-        max_bending["xcoor"],
-        [-max_crippling / x for x in min_bending["bendingstress"]],
+        x,
+        tensile,
         label="Bending Tensile",
+        color="firebrick",
     )
     plt.plot(
-        shear["xcoor"], [max_shear / x for x in shear["shearstress"]], label="Shear"
+        x,
+        shear,
+        label="Shear",
+        color="forestgreen",
     )
+
     plt.grid(visible=True, which="major", color="#666666", linestyle="-")
     plt.minorticks_on()
     plt.grid(visible=True, which="minor", color="#999999", linestyle="-", alpha=0.2)
 
     plt.xlabel("X [mm]")
-    plt.ylabel("Stress ratio [-]")
-    plt.legend()
+    plt.ylabel("Allowable stress / Actual stress [-]")
+    plt.ylim(1, 4.2)
+    plt.hlines(y =1.5, xmin=x[0], xmax=x[-1], ls="--", label="Limit", color="darkorange")
+    plt.legend(loc="upper right")
     plt.title("Safety margins of structure")
 
     plt.show()
+    
+def design_fuse():
+    # Manual y coordinate placement
+    bot = [0.0, 250, 400]  # From LEFT to Right in y
+    side = [250]  # From RIGHT to LEFT in y
+    side2 = [750]  ## This one are the z coordinates, Bottom to TOP!
+    top = [250, 0.0]  # From right to left in y
+    
+    # for thickness in range
 
+    fuselage = Fuselage_idealized(
+        flange_thickness=0.96,
+        web_thickness=0.64,
+        stringer_width=10,
+        stringer_height=15,
+        skin_thickness=0.80,
+        start_x= 4200,
+        end_x=4450,
+        top=top,
+        bot=bot,
+        side=side,
+        side2=side2,
+        manual_place=True,
+    )
+    
+    fuselage.create_fuselage()
+    results = Fuselage_apply_loads.apply_forces(fuselage, 8)
+    shear, comp, tens = critical_values(
+    results,
+    fuselage.shear,
+    fuselage.stringerCripplingComp,
+    fuselage.stringerCripplingTens,
+)
+
+    print(f"- Critical Compression points: {comp.head(100)}\n")
+    print(f"- Critical Tensile points: {tens.head(100)}\n")
+    print(f"- Critical shear points: {shear.head(100)}\n")
+    print(
+        f"Crititcal crippling compression = {round(fuselage.stringerCripplingComp, 2)} [MPa]"
+    )
+    print(
+        f"Crititcal crippling tension = {round(fuselage.stringerCripplingTens,2)} [MPa]"
+    )
+    print(f"Critical shear stress = {fuselage.shear} [MPa]\n")
+
+    print(f"The fuselage weight = {round(fuselage.weight,2)} [kg]")
+
+    # plot_shear(results)
+    # plot_moment(results)
+    
+    plot_margin([results], [fuselage])
+    
+    return results
+    
+if __name__ == "__main__":
+    results = design_fuse()
 
 #%%
-if __name__ == "__main__":
+def final_design():
     # Manual y coordinate placement
     bot = [0.0, 250, 400]  # From LEFT to Right in y
     side = [250]  # From RIGHT to LEFT in y
@@ -111,34 +192,58 @@ if __name__ == "__main__":
     top = [250, 0.0]  # From right to left in y
 
     fuselage1 = Fuselage_idealized(
-        spacing_3d=20,
-        stringer_spacing=500,
         flange_thickness=0.96,
         web_thickness=0.96,
         stringer_width=10,
         stringer_height=15,
         skin_thickness=0.96,
-        density=1480,
         start_x=3696,
-        end_x=400,
+        end_x=4200,
         top=top,
         bot=bot,
         side=side,
         side2=side2,
         manual_place=True,
     )
-
+    
     fuselage2 = Fuselage_idealized(
-        spacing_3d=20,
-        stringer_spacing=500,
         flange_thickness=0.96,
-        web_thickness=0.96,
+        web_thickness=0.64,
         stringer_width=10,
         stringer_height=15,
-        skin_thickness=0.96,
-        density=1480,
-        start_x=3696,
-        end_x=400,
+        skin_thickness=0.80,
+        start_x= 4200,
+        end_x=4450,
+        top=top,
+        bot=bot,
+        side=side,
+        side2=side2,
+        manual_place=True,
+    )
+  
+    fuselage3 = Fuselage_idealized(
+        flange_thickness=0.96,
+        web_thickness=0.64,
+        stringer_width=10,
+        stringer_height=15,
+        skin_thickness=0.64,
+        start_x=4450,
+        end_x=4800,
+        top=top,
+        bot=bot,
+        side=side,
+        side2=side2,
+        manual_place=True,
+    )
+    
+    fuselage4 = Fuselage_idealized(
+        flange_thickness=0.96,
+        web_thickness=0.64,
+        stringer_width=10,
+        stringer_height=15,
+        skin_thickness=0.48,
+        start_x=4800,
+        end_x=4996,
         top=top,
         bot=bot,
         side=side,
@@ -146,37 +251,21 @@ if __name__ == "__main__":
         manual_place=True,
     )
     fuselage1.create_fuselage()
+    fuselage2.create_fuselage()
+    fuselage3.create_fuselage()
+    fuselage4.create_fuselage()
+    
     results1 = Fuselage_apply_loads.apply_forces(fuselage1, 8)
+    results2 = Fuselage_apply_loads.apply_forces(fuselage2, 8)
+    results3 = Fuselage_apply_loads.apply_forces(fuselage3,8)
+    results4 = Fuselage_apply_loads.apply_forces(fuselage4, 8)
+    
+    plot_margin([results1, results2, results3, results4], [fuselage1, fuselage2,fuselage3,fuselage4])
 
-    shear1, comp1, tens1 = critical_values(
-        results1,
-        fuselage1.shear,
-        fuselage1.stringerCripplingComp,
-        fuselage1.stringerCripplingTens,
-    )
-
-    plot_margin(
-        results,
-        fuselage1.stringerCripplingComp,
-        fuselage1.stringerCripplingTens,
-        fuselage1.shear,
-    )
-
-    print(f"- Critical Compression points: {comp1.head(100)}\n")
-    print(f"- Critical Tensile points: {tens1.head(100)}\n")
-    print(f"- Critical shear points: {shear1.head(100)}\n")
-    print(
-        f"Crititcal crippling compression = {round(fuselage1.stringerCripplingComp, 2)} [MPa]"
-    )
-    print(
-        f"Crititcal crippling tension = {round(fuselage1.stringerCripplingTens,2)} [MPa]"
-    )
-    print(f"Critical shear stress = {fuselage1.shear} [MPa]\n")
-
-    print(f"The fuselage weight = {round(fuselage1.weight,2)} [kg]")
-
-    plot_shear(results)
-    plot_moment(results)
+    print(fuselage4.weight +fuselage1.weight +fuselage2.weight+ fuselage3.weight)
+#%%
+final_design()
+    
 
 
 # %%

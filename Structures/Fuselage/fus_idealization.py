@@ -15,7 +15,7 @@ class Fuselage_idealized:
 
     def __init__(
         self,
-        spacing_3d: int = 100,
+        spacing_3d: int = 20,
         stringer_spacing: float = 140,
         flange_thickness: float = 1.5,
         web_thickness: float = 1,
@@ -30,10 +30,11 @@ class Fuselage_idealized:
         material_comp_stress: float = 533.8656197958434e6,
         material_tens_stress: float = 890.2474375138635e6,
         manual_place: bool = False,
-        top: list = [],
-        side: list = [],
-        side2: list = [],
-        bot: list = [],
+        bot = [0.0, 250, 400],  # From LEFT to Right in y
+        side = [250],  # From RIGHT to LEFT in y
+        side2 = [750],  ## This one are the z coordinates, Bottom to TOP!
+        top = [250, 0.0]  # From right to left in y
+
     ):
         self.spacing_3d = spacing_3d
         self.stringerSpacing = stringer_spacing
@@ -42,7 +43,7 @@ class Fuselage_idealized:
         self.stringerWidth = stringer_width
         self.stringerHeight = stringer_height
         self.skinThickness = skin_thickness
-        self.x = np.arange(start_x, end_x + 0.01, self.spacing_3d)
+        self.x = np.arange(start_x, end_x, self.spacing_3d)
         self.data = pd.DataFrame()
         self.density = density
         self.E = E
@@ -115,7 +116,7 @@ class Fuselage_idealized:
         distanceTop = 0
         distanceBot = 0
 
-        yChecking = np.arange(0, 400, 0.01)
+        yChecking = np.arange(0, 400, 0.07)
         self.totalDistance = 250
 
         # Function to place the stringers equally spaced around the 50% fuselage
