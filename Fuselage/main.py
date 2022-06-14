@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 n_crew = 2  # Requirements
 weight_crew = 80 * n_crew
-weight_batteries = 424  # [kg] Class 1
+weight_batteries = 288  # [kg] Class 1
 n_batteries = int(weight_batteries / 27.7) + 1  # ELEO series 35
 volume_batteries = n_batteries * (0.864 * 0.303 * 0.08)  # [m^3]
 weight_engines = 60  # [kg] Class 1
@@ -20,7 +20,7 @@ print("volume batteries", volume_batteries)
 
 
 #### Landing gear sizing
-xcg = np.arange(3.8, 4.0 + 0.1, 0.1)  # [m]
+xcg = np.arange(3.81, 3.91 + 0.1, 0.1)  # [m]
 ycg = 0.5  # [m]
 Wto = 1220  # [kg]
 Dtmg = 127 * 2  # [mm] assuming Dt = dt*2
@@ -38,7 +38,7 @@ strut_length_nose = l_ng - (Dtng * 1E-3 * 0.5)   # m
 strut_length_main = l_mg - (Dtmg * 1E-3 * 0.5)   # m
 print("strut length nose", strut_length_nose)
 print("strut length main", strut_length_main)
-thick_fuselage = 7.686  # Position of thickest part of fuselage bottom used for ground clearance
+thick_fuselage = 8.219  # Position of thickest part of fuselage bottom used for ground clearance
 ln = xcg - x_ng
 print("Volume main gear", volume_mw)
 print("volume nose gear", volume_nw)
