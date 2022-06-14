@@ -19,35 +19,9 @@ class Fuselage_apply_loads:
 
             shearflow.append(localflow)
 
-        # Resultant shear stuff, not applicable rn
-        #     moments += -shearStress[idx] * (
-        #         yLoc[idx + 1 if idx != len(yLoc) - 1 else 0]
-        #         - shearCoor[0]
-        #         - (yLoc[idx] - shearCoor[0])
-        #     ) * (zLoc[idx] - shearCoor[1]) + shearStress[idx] * (
-        #         zLoc[idx + 1 if idx != len(yLoc) - 1 else 0]
-        #         - shearCoor[1]
-        #         - (zLoc[idx] - shearCoor[1])
-        #     ) * (
-        #         yLoc[idx] - shearCoor[0]
-        #     )
-        # # residual = -(moments) / (2 * wetted_area)
-        # shearStress = [i for i in shearStress]  #+ residual
         shearStress = [x / thickness for x in shearflow]
 
         return shearStress
-
-    # @staticmethod
-    # def shear_stress_open(shear_force, zLoc, totalInertia, areas):
-    #     shearStress = [0]
-    #     for idx in range(1, len(zLoc)):
-    #         localStress = (-shear_force / totalInertia) * areas[idx] * (
-    #             zLoc[idx]
-    #         ) + shearStress[idx - 1]
-
-    #         shearStress.append(localStress)
-
-    #     return shearStress
 
     @staticmethod
     def bending_stress_closed(moment, zLoc, neutralY, totalInertia):

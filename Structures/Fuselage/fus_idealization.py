@@ -15,7 +15,7 @@ class Fuselage_idealized:
 
     def __init__(
         self,
-        spacing_3d: int = 20,
+        spacing_3d: int = 10,
         stringer_spacing: float = 140,
         flange_thickness: float = 1.5,
         web_thickness: float = 1,
@@ -116,7 +116,7 @@ class Fuselage_idealized:
         distanceTop = 0
         distanceBot = 0
 
-        yChecking = np.arange(0, 400, 0.07)
+        yChecking = np.arange(0, 400, 0.01)
         self.totalDistance = 250
 
         # Function to place the stringers equally spaced around the 50% fuselage
@@ -208,11 +208,6 @@ class Fuselage_idealized:
         self.z = zHalf
         self.stringerNum = len(self.z)
 
-    def plot_cross_sec(self):
-        """Plot one cross section"""
-        plt.scatter(self.x, self.y, s=0.5)
-        plt.axis("equal")
-        plt.show()
 
     def create_3d(self):
         """Create 3d version of fuselage by placing multiple cross-sections behind eachother"""
@@ -387,14 +382,49 @@ class Fuselage_idealized:
             )
             / 10 ** 6
         )
-
+        
+    def plot_cross_sec(self):
+        """Plot one cross section"""
+        
+        q = plt.scatter(self.y, self.z, c=self.areas, label="Booms",cmap="turbo", s=75)
+        plt.scatter(-self.y, self.z, c=self.areas, cmap="turbo", s=75)
+        plt.plot(self.y, self.z, color="deepskyblue", label="Fuselage\ncross-section")
+        plt.plot(-self.y, self.z, color="deepskyblue")
+        plt.grid(visible=True, which="major", color="#666666", linestyle="-")
+        plt.minorticks_on()
+        plt.grid(visible=True, which="minor", color="#999999", linestyle="-", alpha=0.2)
+        plt.axis("equal")
+        plt.xlabel("y [mm]")
+        plt.ylabel("z [mm]")
+        plt.legend()
+        plt.colorbar(q, label="Boom Area [$mm^2$]")
+        annotations = np.arange(1, int(len(self.y)/2)+1)
+        for i, label in enumerate(annotations):
+            plt.annotate(label, # this is the text
+                 (self.y[i], self.z[i]), # these are the coordinates to position the label
+                 textcoords="offset points", # how to position the text
+                 xytext=(10,-7), # distance from text to points (x,y)
+                 ha='center')
+            
+        
+        annotations2 = np.arange(int(len(self.y)/2)+1, len(self.y)+1 )
+        for i , label in enumerate(annotations2):
+            plt.annotate(label, # this is the text
+                 (self.y[i+ int(len(self.y)/2)], self.z[i+ int(len(self.y)/2)]), # these are the coordinates to position the label
+                 textcoords="offset points", # how to position the text
+                 xytext=(10,0), # distance from text to points (x,y)
+                 ha='center')
+            
+        plt.savefig("crossIdea")
+        plt.show()
 
 #%%
 if __name__ == "__main__":
     test = Fuselage_idealized(stringer_spacing=150)
     test.create_fuselage()
-    test.plot_fuselage()
-    test.calc_weight()
+    test.plot_cross_sec()
+    # test.plot_fuselage()
+    # test.calc_weight()
 
 
 # %%
