@@ -9,13 +9,13 @@ metersps = 1/kts
 density = 1.225
 MAC = 1.46
 S = 12.3
-W = 978 * 9.80065
+W = 876 * 9.80065
 CLmax = 1.6
 CLalpha = 0.11 * (180 / np.pi)
 a = CLalpha * 1.1
 CNmax = CLmax * 1
-n_max = 6
-n_min = -4
+n_max = 8
+n_min = -6
 wing_loading = W / S
 
 mu_g = (2 * wing_loading) / (density * MAC * a * 9.80065)
@@ -54,7 +54,7 @@ plt.xlim(0, V_dive*kts+10)
 plt.ylim(-7, 9)
 
 # Speed 
-plt.vlines(V_stall*kts , ymax=1, ymin=0, color="red", label="Stall speed", linestyle="--")
+plt.vlines(V_stall*kts , ymax=1.01, ymin=0, color="red", label="Stall speed", linestyle="--")
 # plt.vlines(
 #     V_prime, ymax=0, ymin=n_min, color="black", linestyle="--"
 # )
@@ -99,6 +99,6 @@ plt.yticks(np.arange(-6,9,1))
 plt.legend(loc="upper left")
 plt.xlabel("Operating Velocities [kts]")
 plt.ylabel("G-load [-]")
-plt.savefig("vndiagram2P")
+plt.savefig("vndiagram")
 plt.show()
 #%%
