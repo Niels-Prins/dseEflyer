@@ -41,7 +41,7 @@ class Fuselage_apply_loads:
         results = pd.DataFrame()
         # Get load
         for i in obj.x:
-            v, m = Fuselage_apply_loads.get_forces(i / 1000, n)
+            v, m = Fuselage_apply_loads.get_forces(i/1000 , n)
             m = m * 1000
             
             
