@@ -134,7 +134,7 @@ def plot_margin(data1, objects):
         color="forestgreen",
     )
 
-    plt.vlines(sections, ymin=1, ymax=8, color="mediumblue", ls="--", label="Section")
+    plt.vlines(sections, ymin=1, ymax=17, color="mediumblue", ls="--", label="Section")
 
     plt.grid(visible=True, which="major", color="#666666", linestyle="-")
     plt.minorticks_on()
@@ -142,11 +142,11 @@ def plot_margin(data1, objects):
 
     plt.xlabel("x [mm]")
     plt.ylabel("Allowable stress / Actual stress [-]")
-    plt.ylim(1, 6)
+    plt.ylim(1, 12)
     plt.hlines(y=1.5, xmin=x[0], xmax=x[-1], ls="--", label="Limit", color="darkorange")
-    plt.legend(loc="upper left")
+    plt.legend(loc="upper right")
     # plt.title("Safety margins of structure")
-    plt.savefig("marginsFuselage6")
+    plt.savefig("marginsFuselage8")
 
     plt.show()
 
@@ -216,11 +216,11 @@ def final_design():
     top = [0.0]  # From right to left in y
 
     fuselage1 = Fuselage_idealized(
-        flange_thickness=0.96,
-        web_thickness=0.96,
-        stringer_width=12,
-        stringer_height=15,
-        skin_thickness=0.48,
+        flange_thickness=0.80,
+        web_thickness=0.80,
+        stringer_width=10,
+        stringer_height=10,
+        skin_thickness=0.32,
         start_x=3696,
         end_x=3815,
         top=top,
@@ -231,42 +231,42 @@ def final_design():
     )
 
     fuselage2 = Fuselage_idealized(
-        flange_thickness=0.96,
-        web_thickness=0.96,
-        stringer_width=12,
-        stringer_height=15,
-        skin_thickness=0.64,
+        flange_thickness=1.60,
+        web_thickness=1.44,
+        stringer_width=15,
+        stringer_height=20,
+        skin_thickness=1.28,
         start_x=3815,
-        end_x=4100,
+        end_x=4165,
         top=top,
         bot=bot,
         side=side,
         side2=side2,
         manual_place=True,
     )
-    
+
     fuselage3 = Fuselage_idealized(
         flange_thickness=0.96,
         web_thickness=0.96,
-        stringer_width=12,
-        stringer_height=15,
+        stringer_width=10,
+        stringer_height=10,
         skin_thickness=0.48,
-        start_x=4100,
-        end_x=4400,
+        start_x=4165,
+        end_x=4450,
         top=top,
         bot=bot,
         side=side,
         side2=side2,
         manual_place=True,
     )
-    
+
     fuselage4 = Fuselage_idealized(
-        flange_thickness=0.96,
-        web_thickness=0.96,
-        stringer_width=12,
-        stringer_height=15,
+        flange_thickness=0.80,
+        web_thickness=0.80,
+        stringer_width=10,
+        stringer_height=10,
         skin_thickness=0.32,
-        start_x=4400,
+        start_x=4450,
         end_x=4996,
         top=top,
         bot=bot,
@@ -285,38 +285,40 @@ def final_design():
     results3 = Fuselage_apply_loads.apply_forces(fuselage3, 8)
     results4 = Fuselage_apply_loads.apply_forces(fuselage4, 8)
 
-    test = pd.concat([ results1, results2, results3, results4]) 
+    test = pd.concat([results1, results2, results3, results4]) # 
     plot_moment(test)
     plot_shear(test)
 
     plot_margin(
-        [results1,results2, results3, results4], # 
-        [fuselage1, fuselage2, fuselage3, fuselage4]) # 
+        [results1, results2, results3, results4],  # 
+        [fuselage1, fuselage2, fuselage3, fuselage4], # 
+    )  #
 
-    # fuselage1.plot_cross_sec()
+    fuselage1.plot_cross_sec()
     print(fuselage1.stringerArea)
 
     print(fuselage1.weight, fuselage2.weight)
     print(
-        f"The weight of the fuselage = {round(fuselage1.weight +fuselage2.weight +fuselage3.weight + fuselage4.weight,2)} [kg]"
+        f"The weight of the fuselage = {round(fuselage1.weight +fuselage2.weight +fuselage3.weight + fuselage4.weight ,2)} [kg]" #+ fuselage4.weight
     )
-    
-
+    print(fuselage4.stringerArea, fuselage3.stringerArea,fuselage2.stringerArea,fuselage1.stringerArea)
+    print(fuselage4.weight, fuselage3.weight,fuselage2.weight,fuselage1.weight)
 # %%
 def plot_final_design():
+     # Manual y coordinate placement
     bot = [0.0, 250, 400]  # From LEFT to Right in y
     side = [300, 250]  # From RIGHT to LEFT in y
     side2 = [750]  ## This one are the z coordinates, Bottom to TOP!
     top = [0.0]  # From right to left in y
 
     fuselage1 = Fuselage_idealized(
-        stringer_spacing =30,
-        spacing_3d=20,
-        flange_thickness=0.96,
-        web_thickness=0.96,
-        stringer_width=12,
-        stringer_height=15,
-        skin_thickness=0.48,
+        stringer_spacing=30,
+        spacing_3d = 20,
+        flange_thickness=0.80,
+        web_thickness=0.80,
+        stringer_width=10,
+        stringer_height=10,
+        skin_thickness=0.32,
         start_x=3696,
         end_x=3815,
         top=top,
@@ -327,49 +329,15 @@ def plot_final_design():
     )
 
     fuselage2 = Fuselage_idealized(
-        stringer_spacing =30,
-        spacing_3d=20,
-        flange_thickness=0.96,
-        web_thickness=0.96,
-        stringer_width=12,
-        stringer_height=15,
-        skin_thickness=0.64,
+        stringer_spacing=30,
+        spacing_3d = 20,
+        flange_thickness=1.60,
+        web_thickness=1.44,
+        stringer_width=15,
+        stringer_height=20,
+        skin_thickness=1.28,
         start_x=3815,
-        end_x=4100,
-        top=top,
-        bot=bot,
-        side=side,
-        side2=side2,
-        # manual_place=True,
-    )
-    
-    fuselage3 = Fuselage_idealized(
-        stringer_spacing =30,
-        spacing_3d=20,
-        flange_thickness=0.96,
-        web_thickness=0.96,
-        stringer_width=12,
-        stringer_height=15,
-        skin_thickness=0.48,
-        start_x=4100,
-        end_x=4400,
-        top=top,
-        bot=bot,
-        side=side,
-        side2=side2,
-        # manual_place=True,
-    )
-    
-    fuselage4 = Fuselage_idealized(
-        stringer_spacing =30,
-        spacing_3d=20,
-        flange_thickness=0.96,
-        web_thickness=0.96,
-        stringer_width=12,
-        stringer_height=15,
-        skin_thickness=0.32,
-        start_x=4400,
-        end_x=4996,
+        end_x=4165,
         top=top,
         bot=bot,
         side=side,
@@ -377,6 +345,40 @@ def plot_final_design():
         # manual_place=True,
     )
 
+    fuselage3 = Fuselage_idealized(
+        stringer_spacing=30,
+        spacing_3d = 20,
+        flange_thickness=0.96,
+        web_thickness=0.96,
+        stringer_width=10,
+        stringer_height=10,
+        skin_thickness=0.48,
+        start_x=4165,
+        end_x=4450,
+        top=top,
+        bot=bot,
+        side=side,
+        side2=side2,
+        # manual_place=True,
+    )
+
+    fuselage4 = Fuselage_idealized(
+        stringer_spacing=30,
+        spacing_3d = 20,
+        flange_thickness=0.80,
+        web_thickness=0.80,
+        stringer_width=10,
+        stringer_height=10,
+        skin_thickness=0.32,
+        start_x=4450,
+        end_x=4996,
+        top=top,
+        bot=bot,
+        side=side,
+        side2=side2,
+        # manual_place=True,
+    )
+    
     fuselage1.create_fuselage()
     fuselage2.create_fuselage()
     fuselage3.create_fuselage()
@@ -387,7 +389,7 @@ def plot_final_design():
     results3 = Fuselage_apply_loads.apply_forces(fuselage3, 8)
     results4 = Fuselage_apply_loads.apply_forces(fuselage4, 8)
 
-    test = pd.concat([ results1, results2, results3, results4]) 
+    test = pd.concat([results1, results2, results3, results4])
     plot_moment(test, multiplication=5)
     plot_shear(test, multiplication=0.9)
 
@@ -403,4 +405,6 @@ def plot_final_design():
 # %%
 if __name__ == "__main__":
     final_design()
-    plot_final_design()
+    # plot_final_design()
+
+# %%

@@ -46,70 +46,72 @@ qAFT = (OEW * 2) / (distributedL_weightAFT ** 2)
 
 def VM(x, n: int = 12):
 
-    distributedL_weightFW = cg_oew  # fuselage span in front of the CG
-    distributedL_weightAFT = full_fuse - cg_oew  # fuselage span aft of the CG
-
-    qFW = (OEW * 2) / (distributedL_weightFW ** 2)
-    qAFT = (OEW * 2) / (distributedL_weightAFT ** 2)
-    
-    
-    if x <=3.81:   
-        if 0 <= x <= bat_pos:
-            v = (qFW / (2)) * (x) ** 2
-            m = (qFW / (6)) * (x) ** 3
-            
-        if bat_pos <= x <= cg_oew:
-            v = BAT + ((qFW / (2)) * (x - bat_pos) ** 2)
-            m = BAT * (x - bat_pos) + ((qFW / (6)) * (x - bat_pos) ** 3)
-        
-    if x > 3.81:
-        x = x - 3.81
-        if 0 <= x <= (distributedL_weightAFT - (full_fuse - motor_pos)):
-            v = ((qAFT / (2)) * (distributedL_weightAFT - x) ** 2) + MOT
-            m = ((qAFT / (6)) * (distributedL_weightAFT - x) ** 3) + MOT * (
-                distributedL_weightAFT - (full_fuse - motor_pos) - x
-            )
-        if distributedL_weightAFT - (full_fuse - motor_pos) <= x <= distributedL_weightAFT:
-            v = (qAFT / (2)) * (distributedL_weightAFT - x) ** 2
-            m = (qAFT / (6)) * (distributedL_weightAFT - x) ** 3
-
-    return v * n, m * n
-
-if __name__ == "__main__":
     distributedL_weightFW = cg_oew #fuselage span in front of the CG
     distributedL_weightAFT = full_fuse - cg_oew #fuselage span aft of the CG
 
 
-    qFW = (OEW*2)/(distributedL_weightFW**2)
-    qAFT = (OEW*2)/(distributedL_weightAFT**2)
+    qFW = (OEW*2)/(distributedL_weightFW**2)*n
+    qAFT = (OEW*2)/(distributedL_weightAFT**2)*n
+
+    if 0 <= x <= bat_pos:
+        v = ((qFW/(2))*(x)**2)
+        m = ((qFW/(6))*(x)**3)
+        
+    if bat_pos <= x <= cg_oew:
+        v =  BAT + ((qFW/(2))*(x - bat_pos)**2)
+        m =  BAT * (x - bat_pos) + ((qFW/(6))*(x - bat_pos)**3)
+        
+    if x > 3.81:
+        x = x -3.81
+        if 0 <= x <= (distributedL_weightAFT-(full_fuse-motor_pos)):
+            v = ((qAFT/(2))*(distributedL_weightAFT - x)**2) + MOT - Wing
+            m = ((qAFT/(6))*(distributedL_weightAFT - x)**3) + MOT*(distributedL_weightAFT-(full_fuse-motor_pos) - x) - Wing*(distributedL_weightAFT-(full_fuse-wing_pos) - x)
+
+        if distributedL_weightAFT-(full_fuse-motor_pos) <= x <= distributedL_weightAFT:
+            v = ((qAFT/(2))*(distributedL_weightAFT - x)**2)
+            m = ((qAFT/(6))*(distributedL_weightAFT - x)**3)
+
+    return v , m 
+
+if __name__ == "__main__":
+    Vx = []
+    Mx = []
+
+    distributedL_weightFW = cg_oew #fuselage span in front of the CG
+    distributedL_weightAFT = full_fuse - cg_oew #fuselage span aft of the CG
+
+
+    qFW = (OEW*2)/(distributedL_weightFW**2)*n
+    qAFT = (OEW*2)/(distributedL_weightAFT**2)*n
 
     for i in range(len(x_pos_FW)):
         if 0 <= x_pos_FW[i] <= bat_pos:
             v1 = ((qFW/(2))*(x_pos_FW[i])**2)
             m1 = ((qFW/(6))*(x_pos_FW[i])**3)
-            Shear_FW.append(v1*n)
-            Bending_FW.append(m1*n)
+            Shear_FW.append(v1/1000)
+            Bending_FW.append(m1/1000)
         if bat_pos <= x_pos_FW[i] <= cg_oew:
             v2 =  BAT + ((qFW/(2))*(x_pos_FW[i] - bat_pos)**2)
-            m2 =  BAT*(x_pos_FW[i] - bat_pos) + ((qFW/(6))*(x_pos_FW[i] - bat_pos)**3)
-            Shear_FW.append(v2*n)
-            Bending_FW.append(m2*n)
+            m2 =  BAT * (x_pos_FW[i] - bat_pos) + ((qFW/(6))*(x_pos_FW[i] - bat_pos)**3)
+            Shear_FW.append(v2/1000)
+            Bending_FW.append(m2/1000)
             
     for k in range(len(x_pos_AFT)):
         if 0 <= x_pos_AFT[k] <= (distributedL_weightAFT-(full_fuse-motor_pos)):
-            v3 = ((qAFT/(2))*(distributedL_weightAFT - x_pos_AFT[k])**2) + MOT
-            m3 = ((qAFT/(6))*(distributedL_weightAFT - x_pos_AFT[k])**3) + MOT*(distributedL_weightAFT-(full_fuse-motor_pos) - x_pos_AFT[k])
-            Shear_AFT.append(v3*n)
-            Bending_AFT.append(m3*n)
+            v3 = ((qAFT/(2))*(distributedL_weightAFT - x_pos_AFT[k])**2) + MOT - Wing
+            m3 = ((qAFT/(6))*(distributedL_weightAFT - x_pos_AFT[k])**3) + MOT*(distributedL_weightAFT-(full_fuse-motor_pos) - x_pos_AFT[k]) - Wing*(distributedL_weightAFT-(full_fuse-wing_pos) - x_pos_AFT[k])
+            Shear_AFT.append(v3/1000)
+            Bending_AFT.append(m3/1000)
         if distributedL_weightAFT-(full_fuse-motor_pos) <= x_pos_AFT[k] <= distributedL_weightAFT:
             v4 = ((qAFT/(2))*(distributedL_weightAFT - x_pos_AFT[k])**2)
             m4 = ((qAFT/(6))*(distributedL_weightAFT - x_pos_AFT[k])**3)
-            Shear_AFT.append(v4*n)
-            Bending_AFT.append(m4*n)
+            Shear_AFT.append(v4/1000)
+            Bending_AFT.append(m4/1000)
 
     x_pos_whole = np.linspace(0, full_fuse, (len(x_pos_FW) + len(x_pos_AFT)))
     Vx = [*Shear_FW, *Shear_AFT]
     Mx = [*Bending_FW, *Bending_AFT]
+
 
 
 def plot_load_distribution():
