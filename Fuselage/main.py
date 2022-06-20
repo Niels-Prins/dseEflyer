@@ -22,12 +22,12 @@ print("volume batteries", volume_batteries)
 #### Landing gear sizing
 xcg = np.arange(3.81, 3.91 + 0.1, 0.1)  # [m]
 ycg = 0.5  # [m]
-Wto = 1220  # [kg]
-Dtmg = 127 * 2  # [mm] assuming Dt = dt*2
-Btmg = 127  # [mm]
+Wto = 966  # [kg]
+Dtmg = 459  # [mm] assuming Dt = dt*2
+Btmg = 197  # [mm]
 volume_mw = np.pi * (Dtmg * 1E-3 * 0.5) ** 2 * (Btmg * 1E-3)  # m^3
-Dtng = 177.8  # [mm] assuming Dt = dt*2
-Btng = 101.6  # [mm]
+Dtng = 321  # [mm] assuming Dt = dt*2
+Btng = 138  # [mm]
 volume_nw = np.pi * (Dtng * 1E-3 * 0.5) ** 2 * (Btng * 1E-3)  # m^3
 ns = 1
 x_ng = 1.29  # [m] Start of cockpit
@@ -38,7 +38,7 @@ strut_length_nose = l_ng - (Dtng * 1E-3 * 0.5)   # m
 strut_length_main = l_mg - (Dtmg * 1E-3 * 0.5)   # m
 print("strut length nose", strut_length_nose)
 print("strut length main", strut_length_main)
-thick_fuselage = 8.219  # Position of thickest part of fuselage bottom used for ground clearance
+thick_fuselage = 8.232  # Position of thickest part of fuselage bottom used for ground clearance
 ln = xcg - x_ng
 print("Volume main gear", volume_mw)
 print("volume nose gear", volume_nw)
