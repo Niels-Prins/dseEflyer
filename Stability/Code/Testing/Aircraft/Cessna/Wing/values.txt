@@ -1,0 +1,35 @@
+# surface type #
+
+symmetric 		True	boolean
+vertical		False	boolean
+
+downwash		False	boolean
+sidewash		False	boolean
+
+position	    2	    0=low,1=mid,2=high
+
+# geometry #
+
+chord			1.729	m
+span		   10.922	m
+sweep		    0.000	deg
+taper			0.712	-
+dihedral        1.733	deg
+incidence		0.000	deg
+
+# positioning #
+
+X_le	               -1.600	m
+Y_le			0.000	m
+Z_le		       -1.500	m
+
+# controls #
+
+start 			2.60	m
+end 			5.25	m
+
+motion			X	    X=roll,Y=pitch,Z=yaw
+deflection		False	boolean
+
+alpha			0.533	1/deg
+moment		    -0.011   1/deg
