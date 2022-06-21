@@ -1,0 +1,15 @@
+# mass properties #
+
+mass		 1200.000	kg
+X_cg		   -2.100	m
+Y_cg		    0.000	m
+Z_cg		   -0.700	m
+I_XX  		 1285.300	kg*m^2
+I_YY  		 1824.900	kg*m^2
+I_ZZ 		 2666.000	kg*m^2
+I_XZ 		    0.000	kg*m^2
+
+# flight conditions #
+
+V			   60.00	m/s
+altitude	 1500.00	m
