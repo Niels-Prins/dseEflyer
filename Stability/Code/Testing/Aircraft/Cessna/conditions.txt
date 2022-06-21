@@ -1,4 +1,0 @@
-# flight conditions #
-
-V			   60.00	m/s
-altitude	 1500.00	m
